@@ -201,7 +201,7 @@
                             </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="1up-Wl-iyF"/>
-                        <color key="backgroundColor" red="0.6982421875" green="0.3647460938" blue="0.1323242188" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+                        <color key="backgroundColor" red="1" green="0.93725490196078431" blue="0.81568627450980391" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="Item" id="F6R-Qb-rYK"/>
                 </viewController>
