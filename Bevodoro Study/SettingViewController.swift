@@ -42,7 +42,6 @@ class SettingViewController: UIViewController {
         fatalError("SettingViewController: no UITableView found. Connect the tableView outlet in the storyboard.")
     }
 
-    private var backgroundMusicOn = false
     private var bevosSoundOn = false
     private var selectedPomodoroMinutes = 25
 
@@ -145,7 +144,7 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
         case .backgroundMusic:
             cell.accessoryType = .none
             let toggle = UISwitch()
-            toggle.isOn = backgroundMusicOn
+            toggle.isOn = MusicManager.shared.isMusicEnabled
             toggle.addTarget(self, action: #selector(backgroundMusicChanged(_:)), for: .valueChanged)
             cell.accessoryView = toggle
             cell.selectionStyle = .none
@@ -175,7 +174,7 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     @objc private func backgroundMusicChanged(_ sender: UISwitch) {
-        backgroundMusicOn = sender.isOn
+        MusicManager.shared.toggleMusic(enabled: sender.isOn)
     }
 
     @objc private func bevosSoundChanged(_ sender: UISwitch) {

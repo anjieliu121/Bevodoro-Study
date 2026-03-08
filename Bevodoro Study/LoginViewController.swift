@@ -32,6 +32,7 @@ class LoginViewController: UIViewController {
                     self.errorMsgLabel.text = "Error: \(error.localizedDescription)"
                 } else {
                     self.errorMsgLabel.text = ""
+                    MusicManager.shared.playMusic()
                     self.performSegue(withIdentifier: "loginSegue", sender: self)
                     self.emailField.text = ""
                     self.passwordField.text = ""
@@ -66,6 +67,7 @@ class LoginViewController: UIViewController {
                     self.errorMsgLabel.text = "Error: \(error.localizedDescription)"
                 } else {
                     self.errorMsgLabel.text = ""
+                    MusicManager.shared.playMusic()
                 }
             }
         }
