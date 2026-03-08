@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="cCJ-dv-HQe">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="gUv-8z-Nji">
     <device id="retina6_9" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24504"/>
@@ -148,6 +148,15 @@
                                 <buttonConfiguration key="configuration" style="tinted" title="Settings"/>
                                 <connections>
                                     <segue destination="ghb-3v-cDb" kind="show" id="mMI-X2-KlA"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9bM-vi-rgw">
+                                <rect key="frame" x="187" y="347" width="68" height="35"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="tinted" title="Timer"/>
+                                <connections>
+                                    <segue destination="cCJ-dv-HQe" kind="show" id="SVr-Xp-i6b"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -327,13 +336,13 @@
                                 </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ATo-QY-7gb">
-                                <rect key="frame" x="30" y="154" width="380" height="0.0"/>
+                                <rect key="frame" x="30" y="146" width="380" height="0.0"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9Wv-Km-I3M">
-                                <rect key="frame" x="155.66666666666669" y="525.66666666666663" width="128.66666666666669" height="35"/>
+                                <rect key="frame" x="138.33333333333337" y="525.66666666666663" width="163.66666666666663" height="35"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="plain" title="End Timer 🙁"/>
                                 <connections>
@@ -356,6 +365,7 @@
                             <constraint firstItem="FHi-gj-uSw" firstAttribute="leading" secondItem="NjC-2p-xrD" secondAttribute="leading" constant="30" id="sCg-YT-Ubm"/>
                         </constraints>
                     </view>
+                    <navigationItem key="navigationItem" id="Gbs-Hl-Wzy"/>
                     <connections>
                         <outlet property="endButtonLabel" destination="9Wv-Km-I3M" id="w5T-v9-I6L"/>
                         <outlet property="endMsg" destination="ATo-QY-7gb" id="dKz-L0-6sd"/>
@@ -365,7 +375,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="aIa-Ko-atz" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="47.727272727272734" y="1457.9497907949792"/>
+            <point key="canvasLocation" x="3016" y="835"/>
         </scene>
     </scenes>
     <resources>
