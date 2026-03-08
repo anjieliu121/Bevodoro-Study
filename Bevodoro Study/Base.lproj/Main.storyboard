@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="gUv-8z-Nji">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="24506" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES" initialViewController="cCJ-dv-HQe">
     <device id="retina6_9" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24504"/>
@@ -291,6 +291,81 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="9n7-9R-iiq" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1181" y="835"/>
+        </scene>
+        <!--Timer View Controller-->
+        <scene sceneID="vY2-7i-qQq">
+            <objects>
+                <viewController id="cCJ-dv-HQe" customClass="TimerViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="NhC-bm-2wc" customClass="TimerGradientView" customModule="Bevodoro_Study" customModuleProvider="target">
+                        <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="00:00" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="FHi-gj-uSw">
+                                <rect key="frame" x="30" y="280.66666666666669" width="380" height="150"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="150" id="8FU-0m-a8U"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="100"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="O6a-fL-kKg">
+                                <rect key="frame" x="163" y="460.66666666666669" width="114" height="35"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Start Timer!"/>
+                                <connections>
+                                    <action selector="startButtonPressed:" destination="cCJ-dv-HQe" eventType="touchUpInside" id="TtI-od-GQy"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="sqI-22-SWr">
+                                <rect key="frame" x="100" y="726" width="121" height="35"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="debug: reset"/>
+                                <connections>
+                                    <action selector="resetButtonPressed:" destination="cCJ-dv-HQe" eventType="touchUpInside" id="Js6-at-cqA"/>
+                                </connections>
+                            </button>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ATo-QY-7gb">
+                                <rect key="frame" x="30" y="154" width="380" height="0.0"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9Wv-Km-I3M">
+                                <rect key="frame" x="155.66666666666669" y="525.66666666666663" width="128.66666666666669" height="35"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="End Timer 🙁"/>
+                                <connections>
+                                    <action selector="endButtonPressed:" destination="cCJ-dv-HQe" eventType="touchUpInside" id="MrZ-5J-hVB"/>
+                                </connections>
+                            </button>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="NjC-2p-xrD"/>
+                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="O6a-fL-kKg" firstAttribute="centerX" secondItem="NhC-bm-2wc" secondAttribute="centerX" id="23P-X7-GIp"/>
+                            <constraint firstItem="ATo-QY-7gb" firstAttribute="leading" secondItem="NjC-2p-xrD" secondAttribute="leading" constant="30" id="LhZ-eD-kHH"/>
+                            <constraint firstItem="NjC-2p-xrD" firstAttribute="trailing" secondItem="ATo-QY-7gb" secondAttribute="trailing" constant="30" id="N8G-dd-jOQ"/>
+                            <constraint firstItem="ATo-QY-7gb" firstAttribute="top" secondItem="NjC-2p-xrD" secondAttribute="top" constant="30" id="SFH-dG-P4c"/>
+                            <constraint firstItem="9Wv-Km-I3M" firstAttribute="top" secondItem="O6a-fL-kKg" secondAttribute="bottom" constant="30" id="lTh-Du-Eqb"/>
+                            <constraint firstItem="NjC-2p-xrD" firstAttribute="trailing" secondItem="FHi-gj-uSw" secondAttribute="trailing" constant="30" id="owZ-JI-Cid"/>
+                            <constraint firstItem="O6a-fL-kKg" firstAttribute="centerY" secondItem="NhC-bm-2wc" secondAttribute="centerY" id="q9y-S5-hWO"/>
+                            <constraint firstItem="9Wv-Km-I3M" firstAttribute="centerX" secondItem="NhC-bm-2wc" secondAttribute="centerX" id="qw6-te-6P7"/>
+                            <constraint firstItem="O6a-fL-kKg" firstAttribute="top" secondItem="FHi-gj-uSw" secondAttribute="bottom" constant="30" id="rmd-vS-0F0"/>
+                            <constraint firstItem="FHi-gj-uSw" firstAttribute="leading" secondItem="NjC-2p-xrD" secondAttribute="leading" constant="30" id="sCg-YT-Ubm"/>
+                        </constraints>
+                    </view>
+                    <connections>
+                        <outlet property="endButtonLabel" destination="9Wv-Km-I3M" id="w5T-v9-I6L"/>
+                        <outlet property="endMsg" destination="ATo-QY-7gb" id="dKz-L0-6sd"/>
+                        <outlet property="startButtonLabel" destination="O6a-fL-kKg" id="SrG-Ia-e1f"/>
+                        <outlet property="timerLabel" destination="FHi-gj-uSw" id="Knw-0v-O2S"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="aIa-Ko-atz" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="47.727272727272734" y="1457.9497907949792"/>
         </scene>
     </scenes>
     <resources>
