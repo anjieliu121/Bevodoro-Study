@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		64A7E38D2F58C70E00833651 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 64A7E38C2F58C70E00833651 /* FirebaseAuth */; };
 		64A7E38F2F58C70E00833651 /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = 64A7E38E2F58C70E00833651 /* FirebaseCore */; };
+		64A7E3912F58C70E00833651 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 64A7E3902F58C70E00833651 /* FirebaseFirestore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -43,6 +44,7 @@
 			files = (
 				64A7E38F2F58C70E00833651 /* FirebaseCore in Frameworks */,
 				64A7E38D2F58C70E00833651 /* FirebaseAuth in Frameworks */,
+				64A7E3912F58C70E00833651 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -87,6 +89,7 @@
 			packageProductDependencies = (
 				64A7E38C2F58C70E00833651 /* FirebaseAuth */,
 				64A7E38E2F58C70E00833651 /* FirebaseCore */,
+				64A7E3902F58C70E00833651 /* FirebaseFirestore */,
 			);
 			productName = "Bevodoro Study";
 			productReference = C15049222F4B7044005E038C /* Bevodoro Study.app */;
@@ -379,6 +382,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 64A7E38B2F58C70E00833651 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseCore;
+		};
+		64A7E3902F58C70E00833651 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 64A7E38B2F58C70E00833651 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
