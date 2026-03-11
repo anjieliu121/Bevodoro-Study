@@ -7,6 +7,7 @@
 
 import UIKit
 import FirebaseAuth
+import FirebaseFirestore
 
 class LoginViewController: UIViewController {
 
@@ -50,6 +51,10 @@ class LoginViewController: UIViewController {
             tfEmail.placeholder = "Enter your email"
         }
         
+        alert.addTextField() { tfUser in
+            tfUser.placeholder = "Enter your username"
+        }
+        
         alert.addTextField(){ tfPassword in
             tfPassword.placeholder = "Enter your password"
             tfPassword.isSecureTextEntry = true
@@ -57,15 +62,29 @@ class LoginViewController: UIViewController {
         
         let saveAction = UIAlertAction(title: "Save", style: .default) { action in
             let emailField = alert.textFields![0]
-            let passwordField = alert.textFields![1]
+            let userField = alert.textFields![1]
+            let passwordField = alert.textFields![2]
             
-            // create a new user here
-            
+            // create a new user auth here
             Auth.auth().createUser(withEmail: emailField.text!, password: passwordField.text!) { authResult, error in
                 if let error = error as NSError? {
                     self.errorMsgLabel.text = "Error: \(error.localizedDescription)"
-                } else {
+                } else if let authResult = authResult {
+                    let newUser = User(userUID: authResult.user.uid, username: userField.text!)
+                    newUser.uploadChangesToFirebase()
                     self.errorMsgLabel.text = ""
+//                    let newUser = User(userUID: authResult.user.uid, username: userField.text!)
+//                    
+//                    let db = Firestore.firestore()
+//                    do {
+//                        try db.collection("users")
+//                            .document(authResult.user.uid)
+//                            .setData(from: newUser)
+//                        self.errorMsgLabel.text = ""
+//                    } catch let firestoreError {
+//                        self.errorMsgLabel.text = "Error: \(firestoreError.localizedDescription)"
+//                    }
+                    
                 }
             }
         }
