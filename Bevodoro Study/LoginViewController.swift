@@ -44,13 +44,13 @@ class LoginViewController: UIViewController {
                     UserManager.shared.currentUser = user
                     user.saveToFirestore()
                 } else {
-                    // First login or offline with no cache -- create default user
                     let newUser = User(userID: uid, user: email)
                     UserManager.shared.currentUser = newUser
                     newUser.saveToFirestore()
                 }
 
                 DispatchQueue.main.async {
+                    MusicManager.shared.playMusic()
                     self.performSegue(withIdentifier: "loginSegue", sender: self)
                     self.emailField.text = ""
                     self.passwordField.text = ""
@@ -83,6 +83,7 @@ class LoginViewController: UIViewController {
                     self.errorMsgLabel.text = "Error: \(error.localizedDescription)"
                 } else {
                     self.errorMsgLabel.text = ""
+                    MusicManager.shared.playMusic()
 
                     guard let uid = authResult?.user.uid else { return }
                     let email = authResult?.user.email ?? ""

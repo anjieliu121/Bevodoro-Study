@@ -124,54 +124,36 @@
                         <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Success" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aVL-nf-bnk">
-                                <rect key="frame" x="188" y="187" width="65" height="21"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="0lk-gF-mqn">
-                                <rect key="frame" x="189" y="565" width="64" height="35"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="tinted" title="Shop"/>
-                                <connections>
-                                    <segue destination="XVe-z2-E84" kind="show" id="TGI-Ng-gm0"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Vaf-wo-8U2">
-                                <rect key="frame" x="177" y="461" width="87" height="35"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="tinted" title="Settings"/>
-                                <connections>
-                                    <segue destination="ghb-3v-cDb" kind="show" id="mMI-X2-KlA"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9bM-vi-rgw">
-                                <rect key="frame" x="187" y="347" width="68" height="35"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="tinted" title="Timer"/>
-                                <connections>
-                                    <segue destination="cCJ-dv-HQe" kind="show" id="SVr-Xp-i6b"/>
-                                </connections>
-                            </button>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="bkgDday" translatesAutoresizingMaskIntoConstraints="NO" id="ec7-TH-W6H">
+                                <rect key="frame" x="0.0" y="116" width="440" height="806"/>
+                            </imageView>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="normalFullBody" translatesAutoresizingMaskIntoConstraints="NO" id="X0H-Vu-LL5">
+                                <rect key="frame" x="53.333333333333343" y="388.66666666666674" width="333.33333333333326" height="333.33333333333326"/>
+                            </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="ec7-TH-W6H" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="27w-Go-GcL"/>
+                            <constraint firstItem="X0H-Vu-LL5" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="9b2-fE-AtO"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="ec7-TH-W6H" secondAttribute="trailing" id="Ef2-qI-fjT"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="ec7-TH-W6H" secondAttribute="bottom" id="JFK-Fu-T6l"/>
+                            <constraint firstItem="X0H-Vu-LL5" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="bic-VC-wmy"/>
+                            <constraint firstItem="X0H-Vu-LL5" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="272.66666666666674" id="kSe-lu-8sg"/>
+                            <constraint firstItem="ec7-TH-W6H" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="pxN-0g-rNn"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="X0H-Vu-LL5" secondAttribute="bottom" constant="200" id="tyN-rV-yNK"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="zfs-lo-mAR"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2805" y="105"/>
+            <point key="canvasLocation" x="2805" y="104.81171548117155"/>
         </scene>
         <!--Item-->
         <scene sceneID="ahk-jX-aKi">
             <objects>
-                <viewController id="XVe-z2-E84" customClass="ShopViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="ShopViewController" id="XVe-z2-E84" customClass="ShopViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="GMU-BF-10F">
                         <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -298,13 +280,13 @@
         <!--Setting View Controller-->
         <scene sceneID="Fuo-vl-jkH">
             <objects>
-                <viewController id="ghb-3v-cDb" customClass="SettingViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="SettingViewController" id="ghb-3v-cDb" customClass="SettingViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="AC9-Am-V6a">
                         <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="FV4-B0-zrU">
-                                <rect key="frame" x="0.0" y="116" width="440" height="806"/>
+                                <rect key="frame" x="0.0" y="124" width="440" height="764"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="ggs-fM-l3Y">
@@ -339,7 +321,7 @@
         <!--Timer View Controller-->
         <scene sceneID="vY2-7i-qQq">
             <objects>
-                <viewController id="cCJ-dv-HQe" customClass="TimerViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="TimerViewController" id="cCJ-dv-HQe" customClass="TimerViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="NhC-bm-2wc" customClass="TimerGradientView" customModule="Bevodoro_Study" customModuleProvider="target">
                         <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -371,7 +353,7 @@
                                 </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ATo-QY-7gb">
-                                <rect key="frame" x="30" y="146" width="380" height="0.0"/>
+                                <rect key="frame" x="30" y="154" width="380" height="0.0"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
@@ -414,6 +396,9 @@
         </scene>
     </scenes>
     <resources>
+        <image name="bkgDday" width="146.66667175292969" height="318.66665649414062"/>
+        <image name="chevron.left" catalog="system" width="97" height="128"/>
+        <image name="normalFullBody" width="333.33334350585938" height="333.33334350585938"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>
