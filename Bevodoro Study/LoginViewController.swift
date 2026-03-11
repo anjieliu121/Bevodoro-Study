@@ -9,7 +9,7 @@ import UIKit
 import FirebaseAuth
 import FirebaseFirestore
 
-class LoginViewController: UIViewController {
+class LoginViewController: UIViewController, UITextFieldDelegate {
 
     @IBOutlet weak var emailField: UITextField!
     @IBOutlet weak var passwordField: UITextField!
@@ -18,12 +18,19 @@ class LoginViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         errorMsgLabel.text = ""
-        
-        Auth.auth().addStateDidChangeListener { (auth, user) in
-            if user != nil {
-                // User is signed in, but we avoid auto-navigation here to prevent auto-login.
-            }
-        }
+        emailField.delegate = self
+        passwordField.delegate = self
+    }
+    
+    // Called when 'return' key pressed
+    func textFieldShouldReturn(_ textField:UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
+    }
+    
+    // Called when the user clicks on the view outside of the UITextField
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        self.view.endEditing(true)
     }
 
     @IBAction func signInButton(_ sender: Any) {
@@ -60,45 +67,6 @@ class LoginViewController: UIViewController {
     }
     
     @IBAction func signUpButton(_ sender: Any) {
-        let alert = UIAlertController(
-            title: "Register",
-            message: "Sign up to Bevodoro here!",
-            preferredStyle: .alert)
-        
-        alert.addTextField() { tfEmail in
-            tfEmail.placeholder = "Enter your email"
-        }
-        
-        alert.addTextField() { tfUser in
-            tfUser.placeholder = "Enter your username"
-        }
-        
-        alert.addTextField() { tfPassword in
-            tfPassword.placeholder = "Enter your password"
-            tfPassword.isSecureTextEntry = true
-        }
-        
-        let saveAction = UIAlertAction(title: "Save", style: .default) { action in
-            let emailField = alert.textFields![0]
-            let userField = alert.textFields![1]
-            let passwordField = alert.textFields![2]
-            
-            Auth.auth().createUser(withEmail: emailField.text!, password: passwordField.text!) { authResult, error in
-                if let error = error as NSError? {
-                    self.errorMsgLabel.text = "Error: \(error.localizedDescription)"
-                } else if let authResult = authResult {
-                    let newUser = User(userID: authResult.user.uid, user: userField.text!)
-                    newUser.saveToFirestore()
-                    self.errorMsgLabel.text = ""
-                }
-            }
-        }
-        
-        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel)
-        
-        alert.addAction(saveAction)
-        alert.addAction(cancelAction)
-        
-        present(alert, animated: true)
+        performSegue(withIdentifier: "signUpSegue", sender: self)
     }
 }
