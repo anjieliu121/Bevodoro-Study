@@ -123,13 +123,20 @@ class TimerViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // dispose of any resouces that can be recreated.
         // why do i need this? no clue but it sounds like it makes sense.
-        print("TimerViewController Warning: didReceiveMemoryWarning wa triggered")
+        guard var user = UserManager.shared.currentUser else { return }
+        print("TimerViewController Warning: didReceiveMemoryWarning was triggered")
     }
     
     func addCoins(timeInSeconds: Int) {
-        var rate: Double = 1/60  // 1 coin per minute
+        var rate: Double = 1.0/60  // 1 coin per minute
         var earned: Int = Int(Double(timeInSeconds) * rate) // round down
-        print("TODO implement add coins in some way, such as a protocol/delegate. the user should have received", earned)
+        guard var user = UserManager.shared.currentUser else {
+            print("error adding coins: user was null")
+            return
+        }
+        user.addCoins(earned)
+        UserManager.shared.currentUser = user  // save back to shared user, user is a copy
+        user.saveToFirestore()  // save to firestore
     }
 }
 
