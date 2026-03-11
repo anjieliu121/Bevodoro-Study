@@ -33,6 +33,22 @@ class SettingViewController: UIViewController {
 
     static let pomodoroDurations = [15, 25, 30, 45, 60] // minutes
 
+    /// UserDefaults key for Bevo's moo sound on/off. Use this when playing the moo sound.
+    private static let bevosSoundKey = "bevosSoundEnabled"
+
+    /// Whether Bevo's moo sound is enabled. Check this before playing the moo (e.g. on timer complete).
+    static var isBevosSoundEnabled: Bool {
+        get {
+            if UserDefaults.standard.object(forKey: bevosSoundKey) == nil {
+                return true // default: sound on
+            }
+            return UserDefaults.standard.bool(forKey: bevosSoundKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: bevosSoundKey)
+        }
+    }
+
     @IBOutlet weak var tableView: UITableView!
 
     /// Resolves table view from outlet or from view hierarchy (avoids crash if outlet not connected).
@@ -43,7 +59,10 @@ class SettingViewController: UIViewController {
     }
 
     private var backgroundMusicOn = false
-    private var bevosSoundOn = false
+    private var bevosSoundOn: Bool {
+        get { Self.isBevosSoundEnabled }
+        set { Self.isBevosSoundEnabled = newValue }
+    }
     private var selectedPomodoroMinutes = 25
 
     override func viewDidLoad() {
@@ -166,6 +185,7 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
 
     @objc private func bevosSoundChanged(_ sender: UISwitch) {
         bevosSoundOn = sender.isOn
+        // Setting is persisted via isBevosSoundEnabled; any moo playback should check SettingViewController.isBevosSoundEnabled
     }
 }
 
