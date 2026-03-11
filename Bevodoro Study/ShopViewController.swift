@@ -7,13 +7,13 @@
 
 import UIKit
 
-// isabella wuz here # 3
-
 struct ShopItem {
+    let key: String
     let name: String
     let icon: String
     let cost: Int
     var owned: Bool
+    var isStackable: Bool
 }
 
 class ShopItemCell: UITableViewCell {
@@ -95,8 +95,8 @@ class ShopItemCell: UITableViewCell {
     func configure(with item: ShopItem) {
         iconLabel.text = item.icon
         nameLabel.text = item.name
-        costLabel.text = "🪙\(item.cost)"
-        if item.owned {
+        costLabel.text = "\u{1FA99}\(item.cost)"
+        if item.owned && !item.isStackable {
             buyButton.setTitle("owned", for: .normal)
             buyButton.backgroundColor = .systemGray4
             buyButton.isEnabled = false
@@ -114,34 +114,7 @@ class ShopViewController: UIViewController, UITableViewDelegate, UITableViewData
     @IBOutlet weak var shopTableView: UITableView!
     @IBOutlet weak var coinButton: UIButton!
 
-    var coins = 20
-
-    var shopData: [[ShopItem]] = [
-        // Food
-        [
-            ShopItem(name: "Apple", icon: "🍎", cost: 10, owned: false),
-            ShopItem(name: "Banana", icon: "🍌", cost: 15, owned: false),
-            ShopItem(name: "Cookie", icon: "🍪", cost: 20, owned: false),
-        ],
-        // Medicine
-        [
-            ShopItem(name: "Pill", icon: "💊", cost: 60, owned: false),
-            ShopItem(name: "Syringe", icon: "💉", cost: 80, owned: false),
-            ShopItem(name: "Herb", icon: "🌿", cost: 40, owned: false),
-        ],
-        // Clothes
-        [
-            ShopItem(name: "Cowboy hat", icon: "🤠", cost: 60, owned: false),
-            ShopItem(name: "Sunglasses", icon: "🕶️", cost: 45, owned: false),
-            ShopItem(name: "Scarf", icon: "🧣", cost: 35, owned: false),
-        ],
-        // Backgrounds
-        [
-            ShopItem(name: "Night", icon: "🌙", cost: 100, owned: false),
-            ShopItem(name: "Day", icon: "☀️", cost: 100, owned: false),
-            ShopItem(name: "Ocean", icon: "🌊", cost: 120, owned: false),
-        ],
-    ]
+    var shopData: [[ShopItem]] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -151,7 +124,39 @@ class ShopViewController: UIViewController, UITableViewDelegate, UITableViewData
         shopTableView.separatorStyle = .none
         shopTableView.backgroundColor = .clear
         shopSegContrl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        rebuildShopData()
         updateCoinDisplay()
+        shopTableView.reloadData()
+    }
+
+    private func rebuildShopData() {
+        let user = UserManager.shared.currentUser
+
+        shopData = ItemCatalog.shopCategories.enumerated().map { catIndex, items in
+            items.map { catalogItem in
+                let isStackable = catIndex < 2
+                let owned: Bool
+                if catIndex == 0 || catIndex == 1 {
+                    owned = (user?.food[catalogItem.key] ?? 0) > 0
+                } else if catIndex == 2 {
+                    owned = user?.hats.contains(catalogItem.key) ?? false
+                } else {
+                    owned = user?.backgrounds.contains(catalogItem.key) ?? false
+                }
+                return ShopItem(
+                    key: catalogItem.key,
+                    name: catalogItem.displayName,
+                    icon: catalogItem.icon,
+                    cost: catalogItem.cost,
+                    owned: owned,
+                    isStackable: isStackable
+                )
+            }
+        }
     }
 
     @objc func segmentChanged() {
@@ -159,12 +164,14 @@ class ShopViewController: UIViewController, UITableViewDelegate, UITableViewData
     }
 
     func updateCoinDisplay() {
-        coinButton.setTitle("🪙\(coins)", for: .normal)
+        let coins = UserManager.shared.currentUser?.num_coins ?? 0
+        coinButton.setTitle("\u{1FA99}\(coins)", for: .normal)
     }
 
     // MARK: - UITableViewDataSource
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        guard !shopData.isEmpty else { return 0 }
         return shopData[shopSegContrl.selectedSegmentIndex].count
     }
 
@@ -181,12 +188,13 @@ class ShopViewController: UIViewController, UITableViewDelegate, UITableViewData
     // MARK: - Buy Logic
 
     func buyItem(at indexPath: IndexPath) {
+        guard var user = UserManager.shared.currentUser else { return }
         let segIndex = shopSegContrl.selectedSegmentIndex
         let item = shopData[segIndex][indexPath.row]
 
-        if item.owned { return }
+        if !item.isStackable && item.owned { return }
 
-        if coins < item.cost {
+        if user.num_coins < item.cost {
             let alert = UIAlertController(
                 title: "Error",
                 message: "You don't have enough coins to buy this item",
@@ -197,9 +205,28 @@ class ShopViewController: UIViewController, UITableViewDelegate, UITableViewData
             return
         }
 
-        coins -= item.cost
-        shopData[segIndex][indexPath.row].owned = true
+        user.subtractCoins(item.cost)
+
+        switch segIndex {
+        case 0, 1:
+            user.food[item.key] = (user.food[item.key] ?? 0) + 1
+        case 2:
+            if !user.hats.contains(item.key) {
+                user.hats.append(item.key)
+            }
+        case 3:
+            if !user.backgrounds.contains(item.key) {
+                user.backgrounds.append(item.key)
+            }
+        default:
+            break
+        }
+
+        UserManager.shared.currentUser = user
+        user.saveToFirestore()
+
+        rebuildShopData()
         updateCoinDisplay()
-        shopTableView.reloadRows(at: [indexPath], with: .automatic)
+        shopTableView.reloadData()
     }
 }
