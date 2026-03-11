@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import AVFoundation
 
 class ViewController: UIViewController {
     
@@ -13,6 +14,8 @@ class ViewController: UIViewController {
     private var menuWidthConstraint: NSLayoutConstraint?
     private var menuStackView: UIStackView?
     private var isMenuOpen = false
+    private var bevoImageView: UIImageView?
+    private var audioPlayer: AVAudioPlayer?
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -37,17 +40,22 @@ class ViewController: UIViewController {
     }
     
     private func setupBevo() {
-        let bevoImageView = UIImageView(image: UIImage(named: "normalFullBody"))
-        bevoImageView.contentMode = .scaleAspectFit
-        bevoImageView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(bevoImageView)
+        let imageView = UIImageView(image: UIImage(named: "normalFullBody"))
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.isUserInteractionEnabled = true
+        view.addSubview(imageView)
+        bevoImageView = imageView
         
         NSLayoutConstraint.activate([
-            bevoImageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            bevoImageView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 80),
-            bevoImageView.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: 0.8),
-            bevoImageView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.6)
+            imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 80),
+            imageView.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: 0.8),
+            imageView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.6)
         ])
+
+        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleBevoTap))
+        imageView.addGestureRecognizer(tapGesture)
     }
     
     private func setupHamburgerMenu() {
@@ -131,6 +139,40 @@ class ViewController: UIViewController {
         stackView.addArrangedSubview(timerButton)
         stackView.addArrangedSubview(shopButton)
         stackView.addArrangedSubview(settingsButton)
+    }
+
+    @objc private func handleBevoTap() {
+        guard let imageView = bevoImageView else { return }
+        
+        // Simple bounce animation
+        UIView.animate(withDuration: 0.1,
+                       animations: {
+            imageView.transform = CGAffineTransform(scaleX: 1.08, y: 1.08)
+        }, completion: { _ in
+            UIView.animate(withDuration: 0.1) {
+                imageView.transform = .identity
+            }
+        })
+        
+        playBevoMooSound()
+    }
+    
+    private func playBevoMooSound() {
+        if let player = audioPlayer, player.isPlaying {
+            player.stop()
+        }
+        
+        guard let url = Bundle.main.url(forResource: "bevoMoo", withExtension: "mp3") else {
+            return
+        }
+        
+        do {
+            audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.prepareToPlay()
+            audioPlayer?.play()
+        } catch {
+            // If the sound fails to load, we just skip playing it.
+        }
     }
     
     private func closeMenuAndPresent(_ viewController: UIViewController) {
