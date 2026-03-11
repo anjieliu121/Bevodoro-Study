@@ -347,15 +347,6 @@
                                     <action selector="startButtonPressed:" destination="cCJ-dv-HQe" eventType="touchUpInside" id="TtI-od-GQy"/>
                                 </connections>
                             </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="sqI-22-SWr">
-                                <rect key="frame" x="100" y="726" width="121" height="35"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" title="debug: reset"/>
-                                <connections>
-                                    <action selector="resetButtonPressed:" destination="cCJ-dv-HQe" eventType="touchUpInside" id="Js6-at-cqA"/>
-                                </connections>
-                            </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ATo-QY-7gb">
                                 <rect key="frame" x="30" y="154" width="380" height="0.0"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
@@ -406,7 +397,7 @@
         <image name="bkgDday" width="146.66667175292969" height="318.66665649414062"/>
         <image name="normalFullBody" width="333.33334350585938" height="333.33334350585938"/>
         <namedColor name="ToastyOrange">
-            <color red="0.69802725320000003" green="0.36458945269999998" blue="0.1323270798" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+            <color red="0.69800001382827759" green="0.36500000953674316" blue="0.13199999928474426" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
         </namedColor>
         <systemColor name="labelColor">
             <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
