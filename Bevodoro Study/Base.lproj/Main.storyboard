@@ -3,7 +3,6 @@
     <device id="retina6_9" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24504"/>
-        <capability name="Image references" minToolsVersion="12.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -125,74 +124,40 @@
                         <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Success" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aVL-nf-bnk">
-                                <rect key="frame" x="188" y="187" width="65" height="21"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                <nil key="textColor"/>
-                                <nil key="highlightedColor"/>
-                            </label>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="0lk-gF-mqn">
-                                <rect key="frame" x="189" y="565" width="64" height="35"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="tinted" title="Shop"/>
-                                <connections>
-                                    <segue destination="XVe-z2-E84" kind="show" id="TGI-Ng-gm0"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Vaf-wo-8U2">
-                                <rect key="frame" x="177" y="461" width="87" height="35"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="tinted" title="Settings"/>
-                                <connections>
-                                    <segue destination="ghb-3v-cDb" kind="show" id="mMI-X2-KlA"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9bM-vi-rgw">
-                                <rect key="frame" x="187" y="347" width="68" height="35"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="tinted" title="Timer"/>
-                                <connections>
-                                    <segue destination="cCJ-dv-HQe" kind="show" id="SVr-Xp-i6b"/>
-                                </connections>
-                            </button>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="bkgDday" translatesAutoresizingMaskIntoConstraints="NO" id="ec7-TH-W6H">
+                                <rect key="frame" x="0.0" y="116" width="440" height="806"/>
+                            </imageView>
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="normalFullBody" translatesAutoresizingMaskIntoConstraints="NO" id="X0H-Vu-LL5">
+                                <rect key="frame" x="53.333333333333343" y="388.66666666666674" width="333.33333333333326" height="333.33333333333326"/>
+                            </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="6Tk-OE-BBY"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <constraints>
+                            <constraint firstItem="ec7-TH-W6H" firstAttribute="leading" secondItem="6Tk-OE-BBY" secondAttribute="leading" id="27w-Go-GcL"/>
+                            <constraint firstItem="X0H-Vu-LL5" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="9b2-fE-AtO"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="trailing" secondItem="ec7-TH-W6H" secondAttribute="trailing" id="Ef2-qI-fjT"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="ec7-TH-W6H" secondAttribute="bottom" id="JFK-Fu-T6l"/>
+                            <constraint firstItem="X0H-Vu-LL5" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="bic-VC-wmy"/>
+                            <constraint firstItem="X0H-Vu-LL5" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" constant="272.66666666666674" id="kSe-lu-8sg"/>
+                            <constraint firstItem="ec7-TH-W6H" firstAttribute="top" secondItem="6Tk-OE-BBY" secondAttribute="top" id="pxN-0g-rNn"/>
+                            <constraint firstItem="6Tk-OE-BBY" firstAttribute="bottom" secondItem="X0H-Vu-LL5" secondAttribute="bottom" constant="200" id="tyN-rV-yNK"/>
+                        </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="zfs-lo-mAR"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="2805" y="105"/>
+            <point key="canvasLocation" x="2805" y="104.81171548117155"/>
         </scene>
         <!--Item-->
         <scene sceneID="ahk-jX-aKi">
             <objects>
-                <viewController id="XVe-z2-E84" customClass="ShopViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="ShopViewController" id="XVe-z2-E84" customClass="ShopViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="GMU-BF-10F">
                         <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="iS7-I5-wyb">
-                                <rect key="frame" x="20" y="83" width="44" height="44"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                <color key="tintColor" cyan="0.0024482132866978645" magenta="0.68993471746575341" yellow="0.87412053346633911" black="0.0073477462865412235" alpha="1" colorSpace="custom" customColorSpace="genericCMYKColorSpace"/>
-                                <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                <state key="normal">
-                                    <color key="titleColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                    <imageReference key="image" image="chevron.left" catalog="system" symbolScale="large"/>
-                                </state>
-                                <userDefinedRuntimeAttributes>
-                                    <userDefinedRuntimeAttribute type="number" keyPath="layer.cornerRadius">
-                                        <integer key="value" value="22"/>
-                                    </userDefinedRuntimeAttribute>
-                                </userDefinedRuntimeAttributes>
-                            </button>
                             <segmentedControl opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="eeh-TD-zad">
                                 <rect key="frame" x="14" y="151" width="412" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
@@ -222,8 +187,8 @@
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="18"/>
                                 <inset key="imageEdgeInsets" minX="0.0" minY="0.0" maxX="2.2250738585072014e-308" maxY="0.0"/>
-                                <state key="normal" title="💰0">
-                                    <color key="titleColor" red="0.88627450980392153" green="0.41176470588235292" blue="0.22745098039215686" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <state key="normal" title="🪙 0">
+                                    <color key="titleColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </state>
                             </button>
                         </subviews>
@@ -241,6 +206,58 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="oy7-nr-pA3" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="2043" y="835"/>
+        </scene>
+        <!--Inventory View Controller-->
+        <scene sceneID="cSX-Oy-p3K">
+            <objects>
+                <viewController id="YCm-JB-kBY" customClass="InventoryViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
+                    <view key="view" contentMode="scaleToFill" id="Xgr-Wj-LlR">
+                        <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Inventory" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="OcJ-DG-gPk">
+                                <rect key="frame" x="180" y="82" width="80" height="22"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <fontDescription key="fontDescription" type="system" weight="semibold" pointSize="18"/>
+                                <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="LLo-Od-HFH">
+                                <rect key="frame" x="20" y="124" width="400" height="32"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <segments>
+                                    <segment title="Food"/>
+                                    <segment title="Medicine"/>
+                                    <segment title="Clothes"/>
+                                    <segment title="Backgrounds"/>
+                                </segments>
+                            </segmentedControl>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="Nn3-E0-pUM">
+                                <rect key="frame" x="0.0" y="176" width="440" height="712"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                            </tableView>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="l8J-t9-PYt">
+                                <rect key="frame" x="352" y="76" width="62" height="35"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <state key="normal" title="Button"/>
+                                <buttonConfiguration key="configuration" style="plain" title="🪙 0">
+                                    <color key="baseForegroundColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                </buttonConfiguration>
+                            </button>
+                        </subviews>
+                        <viewLayoutGuide key="safeArea" id="SUo-UB-Fk2"/>
+                        <color key="backgroundColor" red="1" green="0.93725490196078431" blue="0.81568627450980391" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                    </view>
+                    <connections>
+                        <outlet property="inventoryCoinButton" destination="l8J-t9-PYt" id="7eP-g3-yKL"/>
+                        <outlet property="inventorySegControl" destination="LLo-Od-HFH" id="Z2d-iD-AaU"/>
+                        <outlet property="inventoryTableView" destination="Nn3-E0-pUM" id="ade-CB-6HQ"/>
+                    </connections>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="qov-hR-zVb" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2038.6363636363637" y="1527.6150627615064"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="8PD-5a-A4z">
@@ -263,13 +280,13 @@
         <!--Setting View Controller-->
         <scene sceneID="Fuo-vl-jkH">
             <objects>
-                <viewController id="ghb-3v-cDb" customClass="SettingViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="SettingViewController" id="ghb-3v-cDb" customClass="SettingViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="AC9-Am-V6a">
                         <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="-1" estimatedRowHeight="-1" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="FV4-B0-zrU">
-                                <rect key="frame" x="0.0" y="116" width="440" height="806"/>
+                                <rect key="frame" x="0.0" y="124" width="440" height="764"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <prototypes>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" insetsLayoutMarginsFromSafeArea="NO" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="ggs-fM-l3Y">
@@ -304,7 +321,7 @@
         <!--Timer View Controller-->
         <scene sceneID="vY2-7i-qQq">
             <objects>
-                <viewController id="cCJ-dv-HQe" customClass="TimerViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="TimerViewController" id="cCJ-dv-HQe" customClass="TimerViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="NhC-bm-2wc" customClass="TimerGradientView" customModule="Bevodoro_Study" customModuleProvider="target">
                         <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -336,13 +353,13 @@
                                 </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ATo-QY-7gb">
-                                <rect key="frame" x="30" y="146" width="380" height="0.0"/>
+                                <rect key="frame" x="30" y="154" width="380" height="0.0"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9Wv-Km-I3M">
-                                <rect key="frame" x="138.33333333333337" y="525.66666666666663" width="163.66666666666663" height="35"/>
+                                <rect key="frame" x="155.66666666666669" y="525.66666666666663" width="128.66666666666669" height="35"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="plain" title="End Timer 🙁"/>
                                 <connections>
@@ -379,7 +396,9 @@
         </scene>
     </scenes>
     <resources>
+        <image name="bkgDday" width="146.66667175292969" height="318.66665649414062"/>
         <image name="chevron.left" catalog="system" width="97" height="128"/>
+        <image name="normalFullBody" width="333.33334350585938" height="333.33334350585938"/>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>

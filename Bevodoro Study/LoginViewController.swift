@@ -29,19 +29,37 @@ class LoginViewController: UIViewController {
     @IBAction func signInButton(_ sender: Any) {
         Auth.auth().signIn(withEmail: emailField.text!, password: passwordField.text!) {
             authResult, error in
-                if let error = error as NSError? {
-                    self.errorMsgLabel.text = "Error: \(error.localizedDescription)"
+            if let error = error as NSError? {
+                self.errorMsgLabel.text = "Error: \(error.localizedDescription)"
+                return
+            }
+
+            self.errorMsgLabel.text = ""
+            guard let uid = authResult?.user.uid else { return }
+            let email = authResult?.user.email ?? ""
+
+            User.fetch(uid: uid) { fetchedUser in
+                if var user = fetchedUser {
+                    user.lastLogin = Timestamp(date: Date())
+                    UserManager.shared.currentUser = user
+                    user.saveToFirestore()
                 } else {
-                    self.errorMsgLabel.text = ""
+                    let newUser = User(userID: uid, user: email)
+                    UserManager.shared.currentUser = newUser
+                    newUser.saveToFirestore()
+                }
+
+                DispatchQueue.main.async {
+                    MusicManager.shared.playMusic()
                     self.performSegue(withIdentifier: "loginSegue", sender: self)
                     self.emailField.text = ""
                     self.passwordField.text = ""
                 }
+            }
         }
     }
     
     @IBAction func signUpButton(_ sender: Any) {
-        // Borrowed code from class
         let alert = UIAlertController(
             title: "Register",
             message: "Sign up to Bevodoro here!",
@@ -55,7 +73,7 @@ class LoginViewController: UIViewController {
             tfUser.placeholder = "Enter your username"
         }
         
-        alert.addTextField(){ tfPassword in
+        alert.addTextField() { tfPassword in
             tfPassword.placeholder = "Enter your password"
             tfPassword.isSecureTextEntry = true
         }
@@ -65,26 +83,13 @@ class LoginViewController: UIViewController {
             let userField = alert.textFields![1]
             let passwordField = alert.textFields![2]
             
-            // create a new user auth here
             Auth.auth().createUser(withEmail: emailField.text!, password: passwordField.text!) { authResult, error in
                 if let error = error as NSError? {
                     self.errorMsgLabel.text = "Error: \(error.localizedDescription)"
                 } else if let authResult = authResult {
-                    let newUser = User(userUID: authResult.user.uid, username: userField.text!)
-                    newUser.uploadChangesToFirebase()
+                    let newUser = User(userID: authResult.user.uid, user: userField.text!)
+                    newUser.saveToFirestore()
                     self.errorMsgLabel.text = ""
-//                    let newUser = User(userUID: authResult.user.uid, username: userField.text!)
-//                    
-//                    let db = Firestore.firestore()
-//                    do {
-//                        try db.collection("users")
-//                            .document(authResult.user.uid)
-//                            .setData(from: newUser)
-//                        self.errorMsgLabel.text = ""
-//                    } catch let firestoreError {
-//                        self.errorMsgLabel.text = "Error: \(firestoreError.localizedDescription)"
-//                    }
-                    
                 }
             }
         }
@@ -97,4 +102,3 @@ class LoginViewController: UIViewController {
         present(alert, animated: true)
     }
 }
-

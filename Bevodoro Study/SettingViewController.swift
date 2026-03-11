@@ -42,7 +42,6 @@ class SettingViewController: UIViewController {
         fatalError("SettingViewController: no UITableView found. Connect the tableView outlet in the storyboard.")
     }
 
-    private var backgroundMusicOn = false
     private var bevosSoundOn = false
     private var selectedPomodoroMinutes = 25
 
@@ -68,12 +67,6 @@ class SettingViewController: UIViewController {
         let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: headerHeight))
         headerView.backgroundColor = .systemBackground
 
-        let backButton = UIButton(type: .system)
-        backButton.translatesAutoresizingMaskIntoConstraints = false
-        backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
-        backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
-        headerView.addSubview(backButton)
-
         let titleLabel = UILabel()
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = "Settings"
@@ -82,19 +75,11 @@ class SettingViewController: UIViewController {
         headerView.addSubview(titleLabel)
 
         NSLayoutConstraint.activate([
-            backButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            backButton.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
-            backButton.widthAnchor.constraint(equalToConstant: 44),
-            backButton.heightAnchor.constraint(equalToConstant: 44),
             titleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
             titleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor)
         ])
 
         settingsTableView.tableHeaderView = headerView
-    }
-
-    @objc private func backTapped() {
-        dismiss(animated: true)
     }
 
     private func setupTableView() {
@@ -145,7 +130,7 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
         case .backgroundMusic:
             cell.accessoryType = .none
             let toggle = UISwitch()
-            toggle.isOn = backgroundMusicOn
+            toggle.isOn = MusicManager.shared.isMusicEnabled
             toggle.addTarget(self, action: #selector(backgroundMusicChanged(_:)), for: .valueChanged)
             cell.accessoryView = toggle
             cell.selectionStyle = .none
@@ -175,7 +160,7 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     @objc private func backgroundMusicChanged(_ sender: UISwitch) {
-        backgroundMusicOn = sender.isOn
+        MusicManager.shared.toggleMusic(enabled: sender.isOn)
     }
 
     @objc private func bevosSoundChanged(_ sender: UISwitch) {
