@@ -8,8 +8,8 @@
 import UIKit
 
 // what the timer gets initialized to. TODO eventually change to a global variable in settings
-let initialStudyTimeSeconds: Int = 7  // 60 * 25  // 25 minutes
-let initialBreakTimeSeconds: Int = 4  // 60 * 5  // 5 minutes
+let initialStudyTimeSeconds: Int = 60 * 25  // 25 minutes
+let initialBreakTimeSeconds: Int = 60 * 5  // 5 minutes
 // TODO convert the time mentioned in these variables to be calculated instead of hard coded
 let endStudyMessage: String = "Study complete! You earned 🪙 25. Take a 5 minute break!"
 let endBreakMessage: String = "Great break. Let's get back to it!"
