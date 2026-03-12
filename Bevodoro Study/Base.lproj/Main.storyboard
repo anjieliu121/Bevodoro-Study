@@ -3,6 +3,7 @@
     <device id="retina6_9" orientation="portrait" appearance="light"/>
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="24504"/>
+        <capability name="Named colors" minToolsVersion="9.0"/>
         <capability name="Safe area layout guides" minToolsVersion="9.0"/>
         <capability name="System colors in document resources" minToolsVersion="11.0"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
@@ -307,7 +308,7 @@
                             </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="1up-Wl-iyF"/>
-                        <color key="backgroundColor" red="1" green="0.93871289954337911" blue="0.81613869863013699" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                        <color key="backgroundColor" red="0.98908585309999997" green="0.93926614519999996" blue="0.8289452195" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                     </view>
                     <tabBarItem key="tabBarItem" title="Item" id="F6R-Qb-rYK"/>
                     <navigationItem key="navigationItem" id="NhI-LH-Peg"/>
@@ -451,19 +452,13 @@
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="O6a-fL-kKg">
                                 <rect key="frame" x="163" y="460.66666666666669" width="114" height="35"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" title="Start Timer!"/>
+                                <buttonConfiguration key="configuration" style="plain" title="Start Timer!">
+                                    <color key="baseForegroundColor" systemColor="labelColor"/>
+                                </buttonConfiguration>
                                 <connections>
                                     <action selector="startButtonPressed:" destination="cCJ-dv-HQe" eventType="touchUpInside" id="TtI-od-GQy"/>
-                                </connections>
-                            </button>
-                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="sqI-22-SWr">
-                                <rect key="frame" x="100" y="726" width="121" height="35"/>
-                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" title="debug: reset"/>
-                                <connections>
-                                    <action selector="resetButtonPressed:" destination="cCJ-dv-HQe" eventType="touchUpInside" id="Js6-at-cqA"/>
                                 </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ATo-QY-7gb">
@@ -473,16 +468,19 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="9Wv-Km-I3M">
-                                <rect key="frame" x="138.33333333333337" y="525.66666666666663" width="163.66666666666663" height="35"/>
+                                <rect key="frame" x="155.66666666666669" y="525.66666666666663" width="128.66666666666669" height="35"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <state key="normal" title="Button"/>
-                                <buttonConfiguration key="configuration" style="plain" title="End Timer 🙁"/>
+                                <buttonConfiguration key="configuration" style="plain" title="End Timer 🙁">
+                                    <color key="baseForegroundColor" systemColor="labelColor"/>
+                                </buttonConfiguration>
                                 <connections>
                                     <action selector="endButtonPressed:" destination="cCJ-dv-HQe" eventType="touchUpInside" id="MrZ-5J-hVB"/>
                                 </connections>
                             </button>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="NjC-2p-xrD"/>
-                        <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+                        <color key="backgroundColor" name="ToastyOrange"/>
                         <constraints>
                             <constraint firstItem="O6a-fL-kKg" firstAttribute="centerX" secondItem="NhC-bm-2wc" secondAttribute="centerX" id="23P-X7-GIp"/>
                             <constraint firstItem="ATo-QY-7gb" firstAttribute="leading" secondItem="NjC-2p-xrD" secondAttribute="leading" constant="30" id="LhZ-eD-kHH"/>
@@ -512,6 +510,12 @@
     <resources>
         <image name="bkgDday" width="146.66667175292969" height="318.66665649414062"/>
         <image name="normalFullBody" width="333.33334350585938" height="333.33334350585938"/>
+        <namedColor name="ToastyOrange">
+            <color red="0.69800001382827759" green="0.36500000953674316" blue="0.13199999928474426" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+        </namedColor>
+        <systemColor name="labelColor">
+            <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
         </systemColor>

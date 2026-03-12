@@ -8,10 +8,10 @@
 import UIKit
 
 // what the timer gets initialized to. TODO eventually change to a global variable in settings
-let initialStudyTimeSeconds: Int = 7  // 60 * 25  // 25 minutes
-let initialBreakTimeSeconds: Int = 4  // 60 * 5  // 5 minutes
+let initialStudyTimeSeconds: Int = (UserManager.shared.currentUser?.settings.timerStudyMins ?? 25) * 60 // 6 //0 * 25  // 25 minutes
+let initialBreakTimeSeconds: Int = (UserManager.shared.currentUser?.settings.timerBreakMins ?? 5) * 60 //0 * 5  // 5 minutes
 // TODO convert the time mentioned in these variables to be calculated instead of hard coded
-let endStudyMessage: String = "Study complete! You earned 🪙 25. Take a 5 minute break!"
+let endStudyMessage: String = "Study complete!"
 let endBreakMessage: String = "Great break. Let's get back to it!"
 let endMessage: String = "Session ended. No 🪙 earned"
 
@@ -103,9 +103,9 @@ class TimerViewController: UIViewController {
             if inStudyMode {
                 // end study time, start break time
                 inStudyMode = false
-                endMsg.text = endStudyMessage
                 curSeconds = initialBreakTimeSeconds
-                addCoins(timeInSeconds: initialStudyTimeSeconds)
+                var earned: Int = addCoins(timeInSeconds: initialStudyTimeSeconds)
+                endMsg.text = endStudyMessage + " You earned 🪙 \(earned). Let's take a break!"
             } else {
                 // end break time, start study time
                 inStudyMode = true
@@ -123,13 +123,23 @@ class TimerViewController: UIViewController {
         super.didReceiveMemoryWarning()
         // dispose of any resouces that can be recreated.
         // why do i need this? no clue but it sounds like it makes sense.
-        print("TimerViewController Warning: didReceiveMemoryWarning wa triggered")
+        guard var user = UserManager.shared.currentUser else { return }
+        print("TimerViewController Warning: didReceiveMemoryWarning was triggered")
     }
     
-    func addCoins(timeInSeconds: Int) {
-        var rate: Double = 1/60  // 1 coin per minute
+    func addCoins(timeInSeconds: Int) -> Int {
+        var rate: Double = 1.0/60  // 1 coin per minute
         var earned: Int = Int(Double(timeInSeconds) * rate) // round down
-        print("TODO implement add coins in some way, such as a protocol/delegate. the user should have received", earned)
+        guard var user = UserManager.shared.currentUser else {
+            print("error adding coins: user was null")
+            return 0
+        }
+        print("user starts with \(user.num_coins) coins")  // TODO change to label
+        user.addCoins(earned)
+        UserManager.shared.currentUser = user  // save back to shared user, user is a copy
+        user.saveToFirestore()  // save to firestore
+        print("user earned \(earned) coins, now has \(user.num_coins) coins")  // TODO change to label
+        return earned
     }
 }
 
