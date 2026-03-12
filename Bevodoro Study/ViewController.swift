@@ -10,7 +10,7 @@ import AVFoundation
 
 class ViewController: UIViewController {
     
-    private let menuWidth: CGFloat = 260
+    private let menuWidth: CGFloat = 320
     private var menuWidthConstraint: NSLayoutConstraint?
     private var menuStackView: UIStackView?
     private var isMenuOpen = false
@@ -97,7 +97,7 @@ class ViewController: UIViewController {
             menuView.trailingAnchor.constraint(equalTo: hamburgerButton.leadingAnchor, constant: -8)
         ])
         
-        // Stack of icon buttons (timer, shop, settings)
+        // Stack of icon buttons (timer, shop, inventory, settings)
         let stackView = UIStackView()
         stackView.axis = .horizontal
         stackView.alignment = .center
@@ -130,14 +130,17 @@ class ViewController: UIViewController {
         
         let timerButton = makeIconButton(systemName: "timer", accessibilityLabel: "Timer")
         let shopButton = makeIconButton(systemName: "bag.fill", accessibilityLabel: "Shop")
+        let inventoryButton = makeIconButton(systemName: "tray.fill", accessibilityLabel: "Inventory")
         let settingsButton = makeIconButton(systemName: "gearshape.fill", accessibilityLabel: "Settings")
         
         timerButton.addTarget(self, action: #selector(openTimer), for: .touchUpInside)
         shopButton.addTarget(self, action: #selector(openShop), for: .touchUpInside)
+        inventoryButton.addTarget(self, action: #selector(openInventory), for: .touchUpInside)
         settingsButton.addTarget(self, action: #selector(openSettings), for: .touchUpInside)
         
         stackView.addArrangedSubview(timerButton)
         stackView.addArrangedSubview(shopButton)
+        stackView.addArrangedSubview(inventoryButton)
         stackView.addArrangedSubview(settingsButton)
     }
 
@@ -214,6 +217,11 @@ class ViewController: UIViewController {
     
     @objc private func openShop() {
         guard let vc = viewController(fromStoryboardId: "ShopViewController") else { return }
+        closeMenuAndPresent(vc)
+    }
+    
+    @objc private func openInventory() {
+        guard let vc = viewController(fromStoryboardId: "InventoryViewController") else { return }
         closeMenuAndPresent(vc)
     }
     
