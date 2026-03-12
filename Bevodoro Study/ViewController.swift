@@ -158,6 +158,8 @@ class ViewController: UIViewController {
     }
     
     private func playBevoMooSound() {
+        guard SettingViewController.isBevosSoundEnabled else { return }
+        
         if let player = audioPlayer, player.isPlaying {
             player.stop()
         }
