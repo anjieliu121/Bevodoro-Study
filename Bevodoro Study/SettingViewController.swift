@@ -33,6 +33,22 @@ class SettingViewController: UIViewController {
 
     static let pomodoroDurations = [15, 25, 30, 45, 60] // minutes
 
+    /// UserDefaults key for Bevo's moo sound on/off. Use this when playing the moo sound.
+    private static let bevosSoundKey = "bevosSoundEnabled"
+
+    /// Whether Bevo's moo sound is enabled. Check this before playing the moo (e.g. on timer complete).
+    static var isBevosSoundEnabled: Bool {
+        get {
+            if UserDefaults.standard.object(forKey: bevosSoundKey) == nil {
+                return true // default: sound on
+            }
+            return UserDefaults.standard.bool(forKey: bevosSoundKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: bevosSoundKey)
+        }
+    }
+
     @IBOutlet weak var tableView: UITableView!
 
     /// Resolves table view from outlet or from view hierarchy (avoids crash if outlet not connected).
@@ -42,8 +58,10 @@ class SettingViewController: UIViewController {
         fatalError("SettingViewController: no UITableView found. Connect the tableView outlet in the storyboard.")
     }
 
-    private var backgroundMusicOn = false
-    private var bevosSoundOn = false
+    private var bevosSoundOn: Bool {
+        get { Self.isBevosSoundEnabled }
+        set { Self.isBevosSoundEnabled = newValue }
+    }
     private var selectedPomodoroMinutes = 25
 
     override func viewDidLoad() {
@@ -68,12 +86,6 @@ class SettingViewController: UIViewController {
         let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: headerHeight))
         headerView.backgroundColor = .systemBackground
 
-        let backButton = UIButton(type: .system)
-        backButton.translatesAutoresizingMaskIntoConstraints = false
-        backButton.setImage(UIImage(systemName: "chevron.left"), for: .normal)
-        backButton.addTarget(self, action: #selector(backTapped), for: .touchUpInside)
-        headerView.addSubview(backButton)
-
         let titleLabel = UILabel()
         titleLabel.translatesAutoresizingMaskIntoConstraints = false
         titleLabel.text = "Settings"
@@ -82,19 +94,11 @@ class SettingViewController: UIViewController {
         headerView.addSubview(titleLabel)
 
         NSLayoutConstraint.activate([
-            backButton.leadingAnchor.constraint(equalTo: headerView.leadingAnchor, constant: 16),
-            backButton.centerYAnchor.constraint(equalTo: headerView.centerYAnchor),
-            backButton.widthAnchor.constraint(equalToConstant: 44),
-            backButton.heightAnchor.constraint(equalToConstant: 44),
             titleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
             titleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor)
         ])
 
         settingsTableView.tableHeaderView = headerView
-    }
-
-    @objc private func backTapped() {
-        dismiss(animated: true)
     }
 
     private func setupTableView() {
@@ -145,7 +149,7 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
         case .backgroundMusic:
             cell.accessoryType = .none
             let toggle = UISwitch()
-            toggle.isOn = backgroundMusicOn
+            toggle.isOn = MusicManager.shared.isMusicEnabled
             toggle.addTarget(self, action: #selector(backgroundMusicChanged(_:)), for: .valueChanged)
             cell.accessoryView = toggle
             cell.selectionStyle = .none
@@ -175,11 +179,12 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     @objc private func backgroundMusicChanged(_ sender: UISwitch) {
-        backgroundMusicOn = sender.isOn
+        MusicManager.shared.toggleMusic(enabled: sender.isOn)
     }
 
     @objc private func bevosSoundChanged(_ sender: UISwitch) {
         bevosSoundOn = sender.isOn
+        // Setting is persisted via isBevosSoundEnabled; any moo playback should check SettingViewController.isBevosSoundEnabled
     }
 }
 
