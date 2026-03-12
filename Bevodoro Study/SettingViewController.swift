@@ -58,15 +58,10 @@ class SettingViewController: UIViewController {
         fatalError("SettingViewController: no UITableView found. Connect the tableView outlet in the storyboard.")
     }
 
-<<<<<<< HEAD
-    private var bevosSoundOn = false
-=======
-    private var backgroundMusicOn = false
     private var bevosSoundOn: Bool {
         get { Self.isBevosSoundEnabled }
         set { Self.isBevosSoundEnabled = newValue }
     }
->>>>>>> setting
     private var selectedPomodoroMinutes = 25
 
     override func viewDidLoad() {
