@@ -204,29 +204,30 @@ class ViewController: UIViewController {
         }
     }
     
-    private func viewController(fromStoryboardId id: String) -> UIViewController? {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
-        return storyboard.instantiateViewController(identifier: id)
-    }
-    
     @objc private func openTimer() {
-        guard let vc = viewController(fromStoryboardId: "TimerViewController") as? TimerViewController else { return }
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        guard let vc = storyboard.instantiateViewController(
+            identifier: "TimerViewController"
+        ) as? TimerViewController else { return }
         vc.delegate = self
         closeMenuAndPresent(vc)
     }
     
     @objc private func openShop() {
-        guard let vc = viewController(fromStoryboardId: "ShopViewController") else { return }
+        let storyboard = UIStoryboard(name: "ShopInventory", bundle: nil)
+        let vc = storyboard.instantiateViewController(identifier: "ShopViewController")
         closeMenuAndPresent(vc)
     }
     
     @objc private func openInventory() {
-        guard let vc = viewController(fromStoryboardId: "InventoryViewController") else { return }
+        let storyboard = UIStoryboard(name: "ShopInventory", bundle: nil)
+        let vc = storyboard.instantiateViewController(identifier: "InventoryViewController")
         closeMenuAndPresent(vc)
     }
     
     @objc private func openSettings() {
-        guard let vc = viewController(fromStoryboardId: "SettingViewController") else { return }
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let vc = storyboard.instantiateViewController(identifier: "SettingViewController")
         closeMenuAndPresent(vc)
     }
     
