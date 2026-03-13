@@ -7,7 +7,7 @@
 
 import UIKit
 
-class SettingViewController: UIViewController {
+class SettingViewController: BaseViewController {
 
     enum SettingRow: Int, CaseIterable {
         case backgroundMusic = 0

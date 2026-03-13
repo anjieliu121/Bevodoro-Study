@@ -118,7 +118,7 @@ class InventoryItemCell: UITableViewCell {
     }
 }
 
-class InventoryViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class InventoryViewController: BaseViewController, UITableViewDelegate, UITableViewDataSource {
 
     @IBOutlet weak var inventorySegControl: UISegmentedControl!
     @IBOutlet weak var inventoryTableView: UITableView!

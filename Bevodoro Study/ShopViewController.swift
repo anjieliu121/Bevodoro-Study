@@ -108,7 +108,7 @@ class ShopItemCell: UITableViewCell {
     }
 }
 
-class ShopViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class ShopViewController: BaseViewController, UITableViewDelegate, UITableViewDataSource {
 
     @IBOutlet weak var shopSegContrl: UISegmentedControl!
     @IBOutlet weak var shopTableView: UITableView!

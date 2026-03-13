@@ -8,7 +8,7 @@
 import UIKit
 import AVFoundation
 
-class ViewController: UIViewController {
+class ViewController: BaseViewController {
     
     private let menuWidth: CGFloat = 320
     private var menuWidthConstraint: NSLayoutConstraint?
