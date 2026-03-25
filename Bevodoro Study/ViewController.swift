@@ -205,7 +205,7 @@ class ViewController: BaseViewController {
     }
     
     @objc private func openTimer() {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let storyboard = UIStoryboard(name: "Timer", bundle: nil)
         guard let vc = storyboard.instantiateViewController(
             identifier: "TimerViewController"
         ) as? TimerViewController else { return }
@@ -226,7 +226,7 @@ class ViewController: BaseViewController {
     }
     
     @objc private func openSettings() {
-        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let storyboard = UIStoryboard(name: "Setting", bundle: nil)
         let vc = storyboard.instantiateViewController(identifier: "SettingViewController")
         closeMenuAndPresent(vc)
     }
