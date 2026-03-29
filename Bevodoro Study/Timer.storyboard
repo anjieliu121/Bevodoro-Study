@@ -34,7 +34,7 @@
                                     <color key="baseForegroundColor" systemColor="labelColor"/>
                                 </buttonConfiguration>
                                 <connections>
-                                    <action selector="startButtonPressed:" destination="wNm-Mf-Tj6" eventType="touchUpInside" id="4eE-qq-AwZ"/>
+                                    <action selector="startButtonPressed:" destination="wNm-Mf-Tj6" eventType="touchUpInside" id="69s-ni-H0e"/>
                                 </connections>
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3Xz-9K-Urp">
@@ -51,7 +51,7 @@
                                     <color key="baseForegroundColor" systemColor="labelColor"/>
                                 </buttonConfiguration>
                                 <connections>
-                                    <action selector="endButtonPressed:" destination="wNm-Mf-Tj6" eventType="touchUpInside" id="AWb-0Y-YyS"/>
+                                    <action selector="endButtonPressed:" destination="wNm-Mf-Tj6" eventType="touchUpInside" id="mID-ou-uSZ"/>
                                 </connections>
                             </button>
                         </subviews>
@@ -72,15 +72,15 @@
                     </view>
                     <navigationItem key="navigationItem" id="7Pl-gB-OMe"/>
                     <connections>
-                        <outlet property="endButtonLabel" destination="LgU-oH-giN" id="HMM-YF-igc"/>
+                        <outlet property="endButton" destination="LgU-oH-giN" id="POU-UJ-IzF"/>
                         <outlet property="endMsg" destination="3Xz-9K-Urp" id="plQ-wN-eGt"/>
-                        <outlet property="startButtonLabel" destination="Z0o-nK-0dp" id="lad-CC-DQ3"/>
+                        <outlet property="startButton" destination="Z0o-nK-0dp" id="a9M-YE-BAF"/>
                         <outlet property="timerLabel" destination="u69-tZ-9hE" id="Qeg-IT-MSo"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="6Qm-gj-Rxi" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="831.81818181818187" y="130.54393305439331"/>
+            <point key="canvasLocation" x="829" y="75"/>
         </scene>
     </scenes>
     <resources>
