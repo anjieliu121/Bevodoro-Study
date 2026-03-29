@@ -169,7 +169,8 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         settingsTableView.deselectRow(at: indexPath, animated: true)
-        if SettingRow(rawValue: indexPath.row) == .pomodoroTimer {
+        guard let row = SettingRow(rawValue: indexPath.row) else { return }
+        if row == .pomodoroTimer {
             showPomodoroPicker()
         }
     }
