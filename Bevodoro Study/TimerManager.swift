@@ -33,10 +33,10 @@ class TimerManager {
 
     // use computed properties to get initial study time seconds in case currentUser is null
     var initialStudyTimeSeconds: Int {
-        7 //(UserManager.shared.currentUser?.settings.timerStudyMins ?? defaultTimerStudyMins) * secondsPerMin
+        (UserManager.shared.currentUser?.settings.timerStudyMins ?? defaultTimerStudyMins) * secondsPerMin
     }
     var initialBreakTimeSeconds: Int {
-        3 //(UserManager.shared.currentUser?.settings.timerBreakMins ?? defaultTimerBreakMins) * secondsPerMin
+        (UserManager.shared.currentUser?.settings.timerBreakMins ?? defaultTimerBreakMins) * secondsPerMin
     }
     var isRunning: Bool {
         timer?.isValid == true
@@ -48,7 +48,12 @@ class TimerManager {
     
     private init() {
         // initialize variables
-        secondsRemaining = (UserManager.shared.currentUser?.settings.timerStudyMins ?? defaultTimerStudyMins) * secondsPerMin
+        secondsRemaining = defaultTimerBreakMins
+        if let studyMins = UserManager.shared.currentUser?.settings.timerStudyMins {
+                secondsRemaining = studyMins * secondsPerMin
+        } else {
+            print("TimerManager ERROR: user is nil")
+        }
     }
     
     // start the timer. always initialized to study mode
@@ -62,7 +67,6 @@ class TimerManager {
             userInfo: nil,
             repeats: true
         )
-        
         state = .running
         onStateChange?(state)
     }

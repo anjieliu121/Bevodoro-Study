@@ -5,7 +5,7 @@
 //  Created by Yim, Isabella H on 3/5/26.
 //
 
-// BUG! my debug values arent show up!!!!
+// BUG! my debug values arent show up!!!! this is because it reads from firebase. change firebase.
 
 import UIKit
 
@@ -18,6 +18,7 @@ class TimerViewController: UIViewController {
     @IBOutlet weak var timerLabel: UILabel!  // displays the current time
     @IBOutlet weak var startButton: UIButton!  // the start/pause button
     @IBOutlet weak var endButton: UIButton!  // the end study session button
+    @IBOutlet weak var endView: UIView!  // view holding endMsg
     @IBOutlet weak var endMsg: UILabel!  // messages that appear when the timer reaches 0
     var delegate: UIViewController!  // note: will eventually neeed to segue from main to here.
     
@@ -43,6 +44,7 @@ class TimerViewController: UIViewController {
         timerManager.onModeChange = { [weak self] inStudyMode in
             guard let self = self else { return }
 
+            self.endView.isHidden = false
             if inStudyMode {
                 self.endMsg.text = endBreakMessage
             } else {
@@ -57,6 +59,7 @@ class TimerViewController: UIViewController {
         // initial UI state
         timerLabel.text = seconds2String(seconds: timerManager.getSecondsRemaining())
         endButton.isHidden = true
+        endView.isHidden = true
         endMsg.text = ""
         updateUI(state: timerManager.state)
     }
@@ -79,6 +82,7 @@ class TimerViewController: UIViewController {
     
     // functions as both the start AND pause button
     @IBAction func startButtonPressed(_ sender: Any) {
+        endView.isHidden = true
         endMsg.text = ""  // clear any previous end message
 
         switch timerManager.state {
@@ -96,7 +100,13 @@ class TimerViewController: UIViewController {
     
     @IBAction func endButtonPressed(_ sender: Any) {
         // show message only if ending a study session
-        endMsg.text = timerManager.inStudyMode ? endMessage : ""
+        if timerManager.inStudyMode {
+            endMsg.text = endMessage
+            endView.isHidden = false
+        } else {
+            endMsg.text = ""
+            endView.isHidden = true
+        }
         // force reset back to study mode
         timerManager.resetHard()
         // show the seconds
@@ -116,7 +126,7 @@ class TimerViewController: UIViewController {
         // dispose of any resouces that can be recreated.
         // why do i need this? no clue but it sounds like it makes sense.
         guard let user = UserManager.shared.currentUser else { return }
-        print("TimerViewController Warning: didReceiveMemoryWarning was triggered")
+        print("TimerViewController Warning: didReceiveMemoryWarning was triggered for user \(user.user)")
     }
     
     func addCoins(timeInSeconds: Int) -> Int {
