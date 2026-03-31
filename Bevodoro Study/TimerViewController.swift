@@ -64,6 +64,14 @@ class TimerViewController: UIViewController {
         updateUI(state: timerManager.state)
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+
+        timerManager.refreshFromSettings()
+        timerLabel.text = seconds2String(seconds: timerManager.getSecondsRemaining())
+        updateUI(state: timerManager.state)
+    }
+    
     func updateUI(state: TimerState) {
         switch state {
         case .notStarted, .finished:

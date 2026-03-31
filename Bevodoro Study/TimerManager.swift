@@ -116,9 +116,7 @@ class TimerManager {
     // correct timer drift by checking with calculated end date
     func correctDrift() {
         guard let endDate else { return }
-
         let actualRemaining = Int(endDate.timeIntervalSinceNow.rounded())
-        let drift = actualRemaining - secondsRemaining
         secondsRemaining = max(actualRemaining, 0)
     }
     
@@ -167,5 +165,19 @@ class TimerManager {
     
     func getSecondsRemaining() -> Int {
         return secondsRemaining
+    }
+
+    // when time was changed in settings
+    func refreshFromSettings() {
+        let minutes =
+            UserManager.shared.currentUser?.settings.timerStudyMins
+            ?? defaultTimerStudyMins
+
+        let newSeconds = minutes * 60
+
+        // Only update if the timer is not running
+        if state == .notStarted || state == .finished {
+            secondsRemaining = newSeconds
+        }
     }
 }

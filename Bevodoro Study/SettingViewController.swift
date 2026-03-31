@@ -2,7 +2,7 @@
 //  SettingViewController.swift
 //  Bevodoro Study
 //
-//  Created by 阿清 on 2/28/26.
+//  Created by 阿清 on 2/28/26. Modified by Isabella 3-30-26
 //
 
 import UIKit
@@ -31,7 +31,7 @@ class SettingViewController: BaseViewController {
         }
     }
 
-    static let pomodoroDurations = [15, 25, 30, 45, 60] // minutes
+    static let pomodoroDurations = [1, 5, 10, 15, 20, 25, 30, 45, 60] // minutes
 
     /// UserDefaults key for Bevo's moo sound on/off. Use this when playing the moo sound.
     private static let bevosSoundKey = "bevosSoundEnabled"
@@ -62,7 +62,7 @@ class SettingViewController: BaseViewController {
         get { Self.isBevosSoundEnabled }
         set { Self.isBevosSoundEnabled = newValue }
     }
-    private var selectedPomodoroMinutes = 25
+    private var selectedPomodoroMinutes = UserManager.shared.currentUser?.settings.timerStudyMins ?? defaultTimerStudyMins
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -192,7 +192,8 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
 // MARK: - Pomodoro Picker (Apple built-in picker wheel, bottom sheet)
 final class PomodoroPickerViewController: UIViewController {
 
-    var selectedMinutes: Int = 25
+    // selected minutes should be whatever the user already has
+    var selectedMinutes: Int = defaultTimerStudyMins
     var onSelect: ((Int) -> Void)?
 
     private let picker = UIPickerView()
@@ -227,9 +228,9 @@ final class PomodoroPickerViewController: UIViewController {
     }
 
     @objc private func doneTapped() {
-        let row = picker.selectedRow(inComponent: 0)
-        let minutes = SettingViewController.pomodoroDurations[row]
-        onSelect?(minutes)
+        UserManager.shared.currentUser?.settings.timerStudyMins = selectedMinutes
+        UserManager.shared.currentUser?.saveToFirestore()
+        onSelect?(selectedMinutes)
         dismiss(animated: true)
     }
 }
@@ -244,5 +245,11 @@ extension PomodoroPickerViewController: UIPickerViewDataSource, UIPickerViewDele
 
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
         "\(SettingViewController.pomodoroDurations[row]) min"
+    }
+
+    func pickerView(_ pickerView: UIPickerView,
+                    didSelectRow row: Int,
+                    inComponent component: Int) {
+        selectedMinutes = SettingViewController.pomodoroDurations[row]
     }
 }
