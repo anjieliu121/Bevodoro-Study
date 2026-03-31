@@ -26,6 +26,7 @@ enum TimerState {
 class TimerManager {
     static let shared = TimerManager()  // the manager is a singleton object
 
+    // timer data
     private var timer: Timer?
     private(set) var state: TimerState = .notStarted
     private(set) var inStudyMode = true
@@ -42,9 +43,15 @@ class TimerManager {
         timer?.isValid == true
     }
     
+    // signals
     var onTick: ((Int) -> Void)?
     var onStateChange: ((TimerState) -> Void)? // running / not running
     var onModeChange: ((Bool) -> Void)?  // study / break
+    
+    // prevent timer drifting
+    private var correctionInterval: Int = 60  // correct every one minute
+    private var endDate: Date?
+    private var pausedAt: Date?
     
     private init() {
         // initialize variables
@@ -60,6 +67,18 @@ class TimerManager {
     func start() {
         guard state != .running else { return }  // prevent two timers from running
 
+        // correct drift: compute an end date.
+        if let pausedAt {
+            // resume: push the end date forward
+            let pauseDuration = Date.now.timeIntervalSince(pausedAt)
+            endDate = endDate?.addingTimeInterval(pauseDuration)
+            self.pausedAt = nil
+        } else if endDate == nil {
+            // initial start
+            endDate = Date.now.addingTimeInterval(TimeInterval(secondsRemaining))
+        }
+        
+        // create the timer
         timer = Timer.scheduledTimer(
             timeInterval: 1,
             target: self,
@@ -75,6 +94,10 @@ class TimerManager {
     @objc private func tick() {
         if secondsRemaining > 0 {
             secondsRemaining -= 1
+            // check for timer drift every so often
+            if (secondsRemaining % correctionInterval) == 0 {
+                self.correctDrift()
+            }
             onTick?(secondsRemaining)
         } else {
             // Timer finished
@@ -86,16 +109,31 @@ class TimerManager {
 
             inStudyMode.toggle()
             onModeChange?(inStudyMode)
+            endDate = nil
         }
+    }
+    
+    // correct timer drift by checking with calculated end date
+    func correctDrift() {
+        guard let endDate else { return }
+
+        let actualRemaining = Int(endDate.timeIntervalSinceNow.rounded())
+        let drift = actualRemaining - secondsRemaining
+        secondsRemaining = max(actualRemaining, 0)
     }
     
     // pause the timer
     func pause() {
         guard state == .running else { return }  // already paused
 
+        // stop current timer
         timer?.invalidate()
         timer = nil
-
+        
+        // save pause date
+        pausedAt = Date()
+        
+        // change state
         state = .paused
         onStateChange?(state)
     }
@@ -104,6 +142,7 @@ class TimerManager {
     func reset() {
         timer?.invalidate()
         timer = nil
+        endDate = nil
 
         secondsRemaining = inStudyMode
             ? initialStudyTimeSeconds
@@ -117,6 +156,7 @@ class TimerManager {
     func resetHard() {
         timer?.invalidate()
         timer = nil
+        endDate = nil
 
         inStudyMode = true
         secondsRemaining = initialStudyTimeSeconds
