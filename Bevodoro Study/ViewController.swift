@@ -18,6 +18,9 @@ class ViewController: BaseViewController {
     private var menuStackView: UIStackView?
     private var isMenuOpen = false
     private var bevoImageView: UIImageView?
+    private var foodTroughImageView: UIImageView?
+    private var mangoImageView: UIImageView?
+    private var mangoHomeCenter: CGPoint?
     private var audioPlayer: AVAudioPlayer?
 
     private var hamburgerButton: UIButton?
@@ -26,11 +29,15 @@ class ViewController: BaseViewController {
     private var hamburgerTrailingConstraint: NSLayoutConstraint?
     private var isPhotoModeActive = false
     private var photoModeOverlay: UIView?
+    /// Cancels prior revert when Bevo is fed again before the 3s eating pose ends.
+    private var bevoEatRevertWorkItem: DispatchWorkItem?
 
     override func viewDidLoad() {
         super.viewDidLoad()
         
         setupBackground()
+        setupFoodTrough()
+        setupMango()
         setupBevo()
         setupHamburgerMenu()
     }
@@ -109,6 +116,45 @@ class ViewController: BaseViewController {
             backgroundImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
+
+    private func setupFoodTrough() {
+        let imageView = UIImageView(image: UIImage(named: "FoodTrough"))
+        imageView.contentMode = .scaleToFill
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(imageView)
+        foodTroughImageView = imageView
+
+        let safeArea = view.safeAreaLayoutGuide
+        NSLayoutConstraint.activate([
+            imageView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -4),
+            imageView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: -10),
+            imageView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: 10),
+            imageView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.28)
+        ])
+    }
+
+    private func setupMango() {
+        guard let trough = foodTroughImageView else { return }
+        guard let mangoImage = UIImage(named: "mango") else { return }
+
+        let imageView = UIImageView(image: mangoImage)
+        imageView.contentMode = .scaleAspectFit
+        imageView.translatesAutoresizingMaskIntoConstraints = false
+        imageView.isUserInteractionEnabled = true
+        view.addSubview(imageView)
+        mangoImageView = imageView
+
+        // Place it on top of the trough.
+        NSLayoutConstraint.activate([
+            imageView.centerXAnchor.constraint(equalTo: trough.centerXAnchor),
+            imageView.centerYAnchor.constraint(equalTo: trough.centerYAnchor, constant: -6),
+            imageView.widthAnchor.constraint(equalTo: trough.widthAnchor, multiplier: 0.16),
+            imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor)
+        ])
+
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(handleMangoPan(_:)))
+        imageView.addGestureRecognizer(pan)
+    }
     
     private func setupBevo() {
         let imageView = UIImageView(image: UIImage(named: "normalFullBody"))
@@ -117,13 +163,21 @@ class ViewController: BaseViewController {
         imageView.isUserInteractionEnabled = true
         view.addSubview(imageView)
         bevoImageView = imageView
-        
-        NSLayoutConstraint.activate([
+
+        var constraints: [NSLayoutConstraint] = [
             imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 80),
             imageView.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: 0.8),
             imageView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.6)
-        ])
+        ]
+
+        if let trough = foodTroughImageView {
+            constraints.append(imageView.bottomAnchor.constraint(equalTo: trough.topAnchor, constant: 10))
+            constraints.append(imageView.topAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.topAnchor, constant: 24))
+        } else {
+            constraints.append(imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 80))
+        }
+
+        NSLayoutConstraint.activate(constraints)
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleBevoTap))
         imageView.addGestureRecognizer(tapGesture)
@@ -237,6 +291,112 @@ class ViewController: BaseViewController {
         })
         
         playBevoMooSound()
+    }
+
+    @objc private func handleMangoPan(_ gesture: UIPanGestureRecognizer) {
+        guard let mango = mangoImageView else { return }
+
+        switch gesture.state {
+        case .began:
+            if mangoHomeCenter == nil {
+                mangoHomeCenter = mango.center
+            }
+            // Make sure it drags above other views.
+            view.bringSubviewToFront(mango)
+
+        case .changed:
+            let translation = gesture.translation(in: view)
+            gesture.setTranslation(.zero, in: view)
+            mango.center = CGPoint(x: mango.center.x + translation.x, y: mango.center.y + translation.y)
+
+        case .ended, .cancelled, .failed:
+            if isMangoTouchingOrNearBevo(mangoFrame: mango.frame) {
+                animateMangoEatenAndRemove(mango)
+            } else if let home = mangoHomeCenter {
+                UIView.animate(
+                    withDuration: 0.35,
+                    delay: 0,
+                    usingSpringWithDamping: 0.75,
+                    initialSpringVelocity: 0.7,
+                    options: [.curveEaseInOut]
+                ) {
+                    mango.center = home
+                }
+            }
+
+        default:
+            break
+        }
+    }
+
+    private func isMangoTouchingOrNearBevo(mangoFrame: CGRect) -> Bool {
+        guard let bevo = bevoImageView else { return false }
+
+        // Rule: Only "eat" if the dropped food is touching Bevo OR close enough.
+        // Tunable: bigger = easier to feed even if not perfectly touching.
+        let feedPadding = max(16, min(view.bounds.width, view.bounds.height) * 0.04)
+
+        let expandedBevoFrame = bevo.frame.insetBy(dx: -feedPadding, dy: -feedPadding)
+        return expandedBevoFrame.intersects(mangoFrame)
+    }
+
+    /// Same `UIImageView` and constraints as normal pose — only the asset changes, so size stays identical.
+    private func showBevoEatingFullBodyForThreeSeconds() {
+        guard let bevo = bevoImageView else { return }
+        guard let eatImage = UIImage(named: "EatFullBody"),
+              let normalImage = UIImage(named: "normalFullBody") else { return }
+
+        bevoEatRevertWorkItem?.cancel()
+        bevo.image = eatImage
+
+        let work = DispatchWorkItem { [weak self] in
+            guard let self, let bevo = self.bevoImageView else { return }
+            bevo.image = normalImage
+            self.bevoEatRevertWorkItem = nil
+        }
+        bevoEatRevertWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: work)
+    }
+
+    private func animateMangoEatenAndRemove(_ mango: UIImageView) {
+        mango.isUserInteractionEnabled = false
+        showBevoEatingFullBodyForThreeSeconds()
+
+        // Optional tiny "sparkle" using SF Symbol (no extra assets needed).
+        let sparkle = UIImageView(image: UIImage(systemName: "sparkles"))
+        sparkle.translatesAutoresizingMaskIntoConstraints = false
+        sparkle.tintColor = UIColor.white.withAlphaComponent(0.9)
+        sparkle.alpha = 0
+        view.addSubview(sparkle)
+        NSLayoutConstraint.activate([
+            sparkle.centerXAnchor.constraint(equalTo: mango.centerXAnchor),
+            sparkle.centerYAnchor.constraint(equalTo: mango.centerYAnchor),
+            sparkle.widthAnchor.constraint(equalTo: mango.widthAnchor, multiplier: 0.8),
+            sparkle.heightAnchor.constraint(equalTo: sparkle.widthAnchor)
+        ])
+
+        UIView.animate(withDuration: 0.12, animations: {
+            mango.transform = CGAffineTransform(scaleX: 1.12, y: 1.12)
+        }, completion: { _ in
+            UIView.animate(withDuration: 0.28, animations: {
+                mango.transform = CGAffineTransform(scaleX: 0.05, y: 0.05)
+                mango.alpha = 0
+                sparkle.alpha = 1
+                sparkle.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+            }, completion: { _ in
+                UIView.animate(withDuration: 0.18, animations: {
+                    sparkle.alpha = 0
+                    sparkle.transform = CGAffineTransform(scaleX: 1.6, y: 1.6)
+                }, completion: { _ in
+                    sparkle.removeFromSuperview()
+                    mango.removeFromSuperview()
+                    self.mangoImageView = nil
+                    self.mangoHomeCenter = nil
+                    // Infinite mango: respawn a fresh mango back on the trough after it's eaten.
+                    self.setupMango()
+                })
+            })
+        })
     }
     
     private func playBevoMooSound() {
