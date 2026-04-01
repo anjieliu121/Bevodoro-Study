@@ -18,7 +18,9 @@ struct InventoryItem {
 
 class InventoryItemCell: UITableViewCell {
 
+    private let cardView = UIView()
     let iconLabel = UILabel()
+    let iconImageView = UIImageView()
     let nameLabel = UILabel()
     let quantityLabel = UILabel()
     let actionButton = UIButton(type: .system)
@@ -38,51 +40,62 @@ class InventoryItemCell: UITableViewCell {
     }
 
     private func setupViews() {
-        let card = UIView()
-        card.tag = 100
-        card.backgroundColor = .white
-        card.layer.cornerRadius = 16
-        card.translatesAutoresizingMaskIntoConstraints = false
-        contentView.addSubview(card)
+        cardView.backgroundColor = .white
+        cardView.layer.cornerRadius = 16
+        cardView.translatesAutoresizingMaskIntoConstraints = false
+        contentView.addSubview(cardView)
 
         iconLabel.font = UIFont.systemFont(ofSize: 48)
         iconLabel.translatesAutoresizingMaskIntoConstraints = false
-        card.addSubview(iconLabel)
+        cardView.addSubview(iconLabel)
+
+        iconImageView.contentMode = .scaleAspectFit
+        iconImageView.clipsToBounds = true
+        iconImageView.translatesAutoresizingMaskIntoConstraints = false
+        iconImageView.isHidden = true
+        cardView.addSubview(iconImageView)
 
         nameLabel.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
-        card.addSubview(nameLabel)
+        cardView.addSubview(nameLabel)
 
         quantityLabel.font = UIFont.systemFont(ofSize: 14, weight: .medium)
         quantityLabel.textColor = .darkGray
         quantityLabel.translatesAutoresizingMaskIntoConstraints = false
-        card.addSubview(quantityLabel)
+        cardView.addSubview(quantityLabel)
 
         actionButton.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .semibold)
         actionButton.setTitleColor(.white, for: .normal)
         actionButton.layer.cornerRadius = 14
         actionButton.translatesAutoresizingMaskIntoConstraints = false
         actionButton.addTarget(self, action: #selector(actionTapped), for: .touchUpInside)
-        card.addSubview(actionButton)
+        cardView.addSubview(actionButton)
 
         NSLayoutConstraint.activate([
-            card.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
-            card.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
-            card.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
-            card.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
-            card.heightAnchor.constraint(greaterThanOrEqualToConstant: 80),
+            cardView.topAnchor.constraint(equalTo: contentView.topAnchor, constant: 6),
+            cardView.bottomAnchor.constraint(equalTo: contentView.bottomAnchor, constant: -6),
+            cardView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 16),
+            cardView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -16),
+            cardView.heightAnchor.constraint(greaterThanOrEqualToConstant: 80),
 
-            iconLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
-            iconLabel.centerYAnchor.constraint(equalTo: card.centerYAnchor),
+            iconLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 16),
+            iconLabel.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
+            iconLabel.widthAnchor.constraint(equalToConstant: 52),
+            iconLabel.heightAnchor.constraint(equalToConstant: 52),
+
+            iconImageView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 16),
+            iconImageView.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
+            iconImageView.widthAnchor.constraint(equalToConstant: 52),
+            iconImageView.heightAnchor.constraint(equalToConstant: 52),
 
             nameLabel.leadingAnchor.constraint(equalTo: iconLabel.trailingAnchor, constant: 16),
-            nameLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 16),
+            nameLabel.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 16),
 
             quantityLabel.leadingAnchor.constraint(equalTo: nameLabel.leadingAnchor),
             quantityLabel.topAnchor.constraint(equalTo: nameLabel.bottomAnchor, constant: 4),
 
-            actionButton.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -16),
-            actionButton.centerYAnchor.constraint(equalTo: card.centerYAnchor),
+            actionButton.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -16),
+            actionButton.centerYAnchor.constraint(equalTo: cardView.centerYAnchor),
             actionButton.widthAnchor.constraint(equalToConstant: 60),
             actionButton.heightAnchor.constraint(equalToConstant: 28),
         ])
@@ -93,27 +106,33 @@ class InventoryItemCell: UITableViewCell {
     }
 
     func configure(with item: InventoryItem) {
-        iconLabel.text = item.icon
+        if let image = UIImage(named: item.icon) {
+            iconImageView.image = image
+            iconImageView.isHidden = false
+            iconLabel.text = nil
+        } else {
+            iconImageView.image = nil
+            iconImageView.isHidden = true
+            iconLabel.text = item.icon
+        }
         nameLabel.text = item.displayName
-
-        let card = contentView.viewWithTag(100)
 
         if item.isConsumable {
             quantityLabel.text = "x \(item.quantity)"
             quantityLabel.isHidden = false
             actionButton.setTitle("Use", for: .normal)
             actionButton.backgroundColor = UIColor(red: 0.886, green: 0.412, blue: 0.227, alpha: 1.0)
-            card?.backgroundColor = .white
+            cardView.backgroundColor = .white
         } else if item.isEquipped {
             quantityLabel.isHidden = true
             actionButton.setTitle("On", for: .normal)
             actionButton.backgroundColor = UIColor.systemGreen
-            card?.backgroundColor = UIColor(red: 0.85, green: 1.0, blue: 0.85, alpha: 1.0)
+            cardView.backgroundColor = UIColor(red: 0.85, green: 1.0, blue: 0.85, alpha: 1.0)
         } else {
             quantityLabel.isHidden = true
             actionButton.setTitle("Use", for: .normal)
             actionButton.backgroundColor = UIColor(red: 0.886, green: 0.412, blue: 0.227, alpha: 1.0)
-            card?.backgroundColor = .white
+            cardView.backgroundColor = .white
         }
     }
 }
@@ -209,9 +228,24 @@ class InventoryViewController: BaseViewController, UITableViewDelegate, UITableV
         inventoryTableView.reloadData()
     }
 
+    private func coinButtonAttributedText(_ value: Int) -> NSAttributedString {
+        let text = NSMutableAttributedString(string: " \(value)")
+        if let image = UIImage(named: "Coin") {
+            let attachment = NSTextAttachment()
+            attachment.image = image
+            attachment.bounds = CGRect(x: 0, y: -2, width: 16, height: 16)
+            text.insert(NSAttributedString(attachment: attachment), at: 0)
+        } else {
+            text.insert(NSAttributedString(string: "Coin "), at: 0)
+        }
+        return text
+    }
+
     func updateCoinDisplay() {
         let coins = UserManager.shared.currentUser?.num_coins ?? 0
-        inventoryCoinButton.setTitle("\u{1FA99}\(coins)", for: .normal)
+        inventoryCoinButton.setImage(nil, for: .normal)
+        inventoryCoinButton.setAttributedTitle(coinButtonAttributedText(coins), for: .normal)
+        inventoryCoinButton.setTitleColor(.black, for: .normal)
     }
 
     // MARK: - UITableViewDataSource

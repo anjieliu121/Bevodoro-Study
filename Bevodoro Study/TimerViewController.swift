@@ -13,7 +13,7 @@ let initialBreakTimeSeconds: Int = (UserManager.shared.currentUser?.settings.tim
 // TODO convert the time mentioned in these variables to be calculated instead of hard coded
 let endStudyMessage: String = "Study complete!"
 let endBreakMessage: String = "Great break. Let's get back to it!"
-let endMessage: String = "Session ended. No 🪙 earned"
+let endMessage: String = "Session ended. No coins earned"
 
 class TimerViewController: UIViewController {
     @IBOutlet weak var timerLabel: UILabel!  // displays the current time
@@ -105,7 +105,7 @@ class TimerViewController: UIViewController {
                 inStudyMode = false
                 curSeconds = initialBreakTimeSeconds
                 var earned: Int = addCoins(timeInSeconds: initialStudyTimeSeconds)
-                endMsg.text = endStudyMessage + " You earned 🪙 \(earned). Let's take a break!"
+                endMsg.text = endStudyMessage + " You earned \(earned) coins. Let's take a break!"
             } else {
                 // end break time, start study time
                 inStudyMode = true

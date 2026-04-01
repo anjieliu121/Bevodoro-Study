@@ -19,6 +19,7 @@ struct ShopItem {
 class ShopItemCell: UITableViewCell {
 
     let iconLabel = UILabel()
+    let iconImageView = UIImageView()
     let nameLabel = UILabel()
     let costLabel = UILabel()
     let buyButton = UIButton(type: .system)
@@ -48,6 +49,12 @@ class ShopItemCell: UITableViewCell {
         iconLabel.translatesAutoresizingMaskIntoConstraints = false
         card.addSubview(iconLabel)
 
+        iconImageView.contentMode = .scaleAspectFit
+        iconImageView.clipsToBounds = true
+        iconImageView.translatesAutoresizingMaskIntoConstraints = false
+        iconImageView.isHidden = true
+        card.addSubview(iconImageView)
+
         nameLabel.font = UIFont.systemFont(ofSize: 18, weight: .semibold)
         nameLabel.translatesAutoresizingMaskIntoConstraints = false
         card.addSubview(nameLabel)
@@ -74,6 +81,13 @@ class ShopItemCell: UITableViewCell {
 
             iconLabel.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
             iconLabel.centerYAnchor.constraint(equalTo: card.centerYAnchor),
+            iconLabel.widthAnchor.constraint(equalToConstant: 52),
+            iconLabel.heightAnchor.constraint(equalToConstant: 52),
+
+            iconImageView.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 16),
+            iconImageView.centerYAnchor.constraint(equalTo: card.centerYAnchor),
+            iconImageView.widthAnchor.constraint(equalToConstant: 52),
+            iconImageView.heightAnchor.constraint(equalToConstant: 52),
 
             nameLabel.leadingAnchor.constraint(equalTo: iconLabel.trailingAnchor, constant: 16),
             nameLabel.topAnchor.constraint(equalTo: card.topAnchor, constant: 16),
@@ -92,10 +106,31 @@ class ShopItemCell: UITableViewCell {
         onBuy?()
     }
 
+    private func coinAttributedText(_ value: Int) -> NSAttributedString {
+        let text = NSMutableAttributedString(string: " \(value)")
+        if let image = UIImage(named: "Coin") {
+            let attachment = NSTextAttachment()
+            attachment.image = image
+            attachment.bounds = CGRect(x: 0, y: -2, width: 14, height: 14)
+            text.insert(NSAttributedString(attachment: attachment), at: 0)
+        } else {
+            text.insert(NSAttributedString(string: "Coin "), at: 0)
+        }
+        return text
+    }
+
     func configure(with item: ShopItem) {
-        iconLabel.text = item.icon
+        if let image = UIImage(named: item.icon) {
+            iconImageView.image = image
+            iconImageView.isHidden = false
+            iconLabel.text = nil
+        } else {
+            iconImageView.image = nil
+            iconImageView.isHidden = true
+            iconLabel.text = item.icon
+        }
         nameLabel.text = item.name
-        costLabel.text = "\u{1FA99}\(item.cost)"
+        costLabel.attributedText = coinAttributedText(item.cost)
         if item.owned && !item.isStackable {
             buyButton.setTitle("owned", for: .normal)
             buyButton.backgroundColor = .systemGray4
@@ -163,9 +198,24 @@ class ShopViewController: BaseViewController, UITableViewDelegate, UITableViewDa
         shopTableView.reloadData()
     }
 
+    private func coinButtonAttributedText(_ value: Int) -> NSAttributedString {
+        let text = NSMutableAttributedString(string: " \(value)")
+        if let image = UIImage(named: "Coin") {
+            let attachment = NSTextAttachment()
+            attachment.image = image
+            attachment.bounds = CGRect(x: 0, y: -2, width: 16, height: 16)
+            text.insert(NSAttributedString(attachment: attachment), at: 0)
+        } else {
+            text.insert(NSAttributedString(string: "Coin "), at: 0)
+        }
+        return text
+    }
+
     func updateCoinDisplay() {
         let coins = UserManager.shared.currentUser?.num_coins ?? 0
-        coinButton.setTitle("\u{1FA99}\(coins)", for: .normal)
+        coinButton.setImage(nil, for: .normal)
+        coinButton.setAttributedTitle(coinButtonAttributedText(coins), for: .normal)
+        coinButton.setTitleColor(.black, for: .normal)
     }
 
     // MARK: - UITableViewDataSource
