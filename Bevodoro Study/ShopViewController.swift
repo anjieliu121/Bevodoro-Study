@@ -149,6 +149,8 @@ class ShopViewController: BaseViewController, UITableViewDelegate, UITableViewDa
     @IBOutlet weak var shopTableView: UITableView!
     @IBOutlet weak var coinButton: UIButton!
 
+    private let coinCountLabel = UILabel()
+
     var shopData: [[ShopItem]] = []
 
     override func viewDidLoad() {
@@ -159,6 +161,34 @@ class ShopViewController: BaseViewController, UITableViewDelegate, UITableViewDa
         shopTableView.separatorStyle = .none
         shopTableView.backgroundColor = .clear
         shopSegContrl.addTarget(self, action: #selector(segmentChanged), for: .valueChanged)
+        setupCoinButtonContent()
+    }
+
+    private func setupCoinButtonContent() {
+        let font = coinButton.titleLabel?.font ?? .systemFont(ofSize: 18)
+        let color = coinButton.titleLabel?.textColor ?? .label
+
+        coinButton.setTitle(nil, for: .normal)
+        coinButton.setImage(nil, for: .normal)
+
+        let emojiLabel = UILabel()
+        emojiLabel.text = "\u{1FA99}"
+        emojiLabel.font = font
+        emojiLabel.textColor = color
+        coinCountLabel.font = font
+        coinCountLabel.textColor = color
+
+        let row = UIStackView(arrangedSubviews: [emojiLabel, coinCountLabel])
+        row.axis = .horizontal
+        row.alignment = .center
+        row.spacing = 2
+        row.isUserInteractionEnabled = false
+        row.translatesAutoresizingMaskIntoConstraints = false
+        coinButton.addSubview(row)
+        NSLayoutConstraint.activate([
+            row.centerXAnchor.constraint(equalTo: coinButton.centerXAnchor),
+            row.centerYAnchor.constraint(equalTo: coinButton.centerYAnchor),
+        ])
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -198,24 +228,9 @@ class ShopViewController: BaseViewController, UITableViewDelegate, UITableViewDa
         shopTableView.reloadData()
     }
 
-    private func coinButtonAttributedText(_ value: Int) -> NSAttributedString {
-        let text = NSMutableAttributedString(string: " \(value)")
-        if let image = UIImage(named: "Coin") {
-            let attachment = NSTextAttachment()
-            attachment.image = image
-            attachment.bounds = CGRect(x: 0, y: -2, width: 16, height: 16)
-            text.insert(NSAttributedString(attachment: attachment), at: 0)
-        } else {
-            text.insert(NSAttributedString(string: "Coin "), at: 0)
-        }
-        return text
-    }
-
     func updateCoinDisplay() {
         let coins = UserManager.shared.currentUser?.num_coins ?? 0
-        coinButton.setImage(nil, for: .normal)
-        coinButton.setAttributedTitle(coinButtonAttributedText(coins), for: .normal)
-        coinButton.setTitleColor(.black, for: .normal)
+        coinCountLabel.text = "\(coins)"
     }
 
     // MARK: - UITableViewDataSource
