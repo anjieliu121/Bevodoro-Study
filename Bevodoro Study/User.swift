@@ -39,8 +39,8 @@ struct User: Codable {
     var user: String
     var num_coins: Int
     var food: [String: Int]
-    /// Keys of medicine items owned at most once (see `ItemCatalog.medicineItems`).
-    var medicine: [String]?
+    /// Per-key counts like `food` (see `ItemCatalog.medicineItems`). Decodes legacy Firestore arrays of keys.
+    var medicine: [String: Int]
     var hats: [String]
     var backgrounds: [String]
     var equippedHat: String?
@@ -53,7 +53,7 @@ struct User: Codable {
         user: String,
         num_coins: Int = 0,
         food: [String: Int] = [:],
-        medicine: [String]? = nil,
+        medicine: [String: Int] = [:],
         hats: [String] = [],
         backgrounds: [String] = [ItemCatalog.dayBackgroundKey],
         equippedHat: String? = nil,
@@ -72,6 +72,55 @@ struct User: Codable {
         self.equippedBkg = equippedBkg
         self.lastLogin = lastLogin
         self.settings = settings
+    }
+
+    enum CodingKeys: String, CodingKey {
+        case userID, user, num_coins, food, medicine, hats, backgrounds
+        case equippedHat, equippedBkg, lastLogin, settings
+    }
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        userID = try c.decode(String.self, forKey: .userID)
+        user = try c.decode(String.self, forKey: .user)
+        num_coins = try c.decode(Int.self, forKey: .num_coins)
+        food = try c.decodeIfPresent([String: Int].self, forKey: .food) ?? [:]
+        medicine = Self.decodeMedicineCounts(from: c)
+        hats = try c.decodeIfPresent([String].self, forKey: .hats) ?? []
+        backgrounds = try c.decodeIfPresent([String].self, forKey: .backgrounds) ?? []
+        equippedHat = try c.decodeIfPresent(String.self, forKey: .equippedHat)
+        equippedBkg = try c.decodeIfPresent(String.self, forKey: .equippedBkg)
+        lastLogin = try c.decode(Timestamp.self, forKey: .lastLogin)
+        settings = try c.decodeIfPresent(UserSettings.self, forKey: .settings) ?? UserSettings()
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(userID, forKey: .userID)
+        try c.encode(user, forKey: .user)
+        try c.encode(num_coins, forKey: .num_coins)
+        try c.encode(food, forKey: .food)
+        try c.encode(medicine, forKey: .medicine)
+        try c.encode(hats, forKey: .hats)
+        try c.encode(backgrounds, forKey: .backgrounds)
+        try c.encodeIfPresent(equippedHat, forKey: .equippedHat)
+        try c.encodeIfPresent(equippedBkg, forKey: .equippedBkg)
+        try c.encode(lastLogin, forKey: .lastLogin)
+        try c.encode(settings, forKey: .settings)
+    }
+
+    private static func decodeMedicineCounts(from c: KeyedDecodingContainer<CodingKeys>) -> [String: Int] {
+        if let dict = try? c.decode([String: Int].self, forKey: .medicine) {
+            return dict
+        }
+        if let arr = try? c.decode([String].self, forKey: .medicine) {
+            var out: [String: Int] = [:]
+            for key in arr {
+                out[key, default: 0] += 1
+            }
+            return out
+        }
+        return [:]
     }
 
     func saveToFirestore(completion: ((Error?) -> Void)? = nil) {

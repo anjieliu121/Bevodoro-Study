@@ -57,4 +57,9 @@ struct ItemCatalog {
     static func displayName(forKey key: String) -> String {
         return allItems.first(where: { $0.key == key })?.displayName ?? key
     }
+
+    /// Asset name in the asset catalog (same as `icon` for background rows).
+    static func backgroundAssetName(forKey key: String) -> String {
+        backgroundItems.first(where: { $0.key == key })?.icon ?? "bkgday"
+    }
 }

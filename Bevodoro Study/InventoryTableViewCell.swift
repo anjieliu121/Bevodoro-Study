@@ -14,11 +14,56 @@ final class InventoryTableViewCell: UITableViewCell {
     @IBOutlet weak var itemImageView: UIImageView!
     @IBOutlet weak var nameLabel: UILabel!
     @IBOutlet weak var amountLabel: UILabel!
+    @IBOutlet weak var useButton: UIButton!
 
-    func configure(item: CatalogItem, quantity: Int, imageSide: CGFloat) {
+    private var onUseTapped: (() -> Void)?
+
+    override func prepareForReuse() {
+        super.prepareForReuse()
+        itemImageView.image = nil
+        onUseTapped = nil
+    }
+
+    /// - Parameter canUse: When false (e.g. background already equipped), matches shop’s grey disabled buy button.
+    func configure(
+        item: CatalogItem,
+        quantity: Int,
+        imageSide: CGFloat,
+        showsQuantity: Bool,
+        onUse: (() -> Void)? = nil,
+        canUse: Bool = true
+    ) {
+        onUseTapped = onUse
+        useButton.isHidden = onUse == nil
+        if onUse != nil {
+            setUseButton(canUse: canUse)
+        }
         nameLabel.text = item.displayName
-        amountLabel.text = "×\(quantity)"
+        if showsQuantity {
+            amountLabel.isHidden = false
+            amountLabel.text = "×\(quantity)"
+        } else {
+            amountLabel.isHidden = true
+            amountLabel.text = nil
+        }
         itemImageView.image = Self.catalogImage(for: item, side: imageSide)
+    }
+
+    private func setUseButton(canUse: Bool) {
+        useButton.isEnabled = true
+        useButton.isUserInteractionEnabled = canUse
+        if canUse {
+            useButton.accessibilityTraits.remove(.notEnabled)
+        } else {
+            useButton.accessibilityTraits.insert(.notEnabled)
+        }
+        var config = useButton.configuration ?? .filled()
+        if canUse {
+            config.background.backgroundColor = UIColor(named: "BurntOrange")
+        } else {
+            config.background.backgroundColor = .systemGray
+        }
+        useButton.configuration = config
     }
 
     private static func catalogImage(for item: CatalogItem, side: CGFloat) -> UIImage? {
@@ -42,5 +87,8 @@ final class InventoryTableViewCell: UITableViewCell {
             )
             s.draw(at: origin, withAttributes: attrs)
         }
+    }
+    @IBAction func useButtonPressed(_ sender: Any) {
+        onUseTapped?()
     }
 }

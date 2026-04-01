@@ -62,7 +62,7 @@ class ShopViewController: BaseViewController {
         case 0:
             return false
         case 1:
-            return (user.medicine ?? []).contains(item.key)
+            return (user.medicine[item.key] ?? 0) > 0
         case 2:
             return user.hats.contains(item.key)
         case 3:
@@ -82,11 +82,8 @@ class ShopViewController: BaseViewController {
             user.food[item.key, default: 0] += 1
 
         case 1:
-            var meds = user.medicine ?? []
-            guard !meds.contains(item.key) else { return }
             user.subtractCoins(item.cost)
-            meds.append(item.key)
-            user.medicine = meds
+            user.medicine[item.key, default: 0] += 1
 
         case 2:
             guard !user.hats.contains(item.key) else { return }
@@ -132,7 +129,8 @@ extension ShopViewController: UITableViewDataSource {
         let user = UserManager.shared.currentUser
         let coins = user?.num_coins ?? 0
 
-        let oneTimeCategory = cat != 0
+        // Food and medicine stack; hats and backgrounds are one-time unlocks.
+        let oneTimeCategory = cat == 2 || cat == 3
         let alreadyHave = user.map { userHasCatalogItem(item: item, categoryIndex: cat, user: $0) } ?? false
         let lockedOneTimePurchase = oneTimeCategory && alreadyHave
         let canAfford = coins >= item.cost

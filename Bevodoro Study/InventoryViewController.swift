@@ -57,7 +57,7 @@ class InventoryViewController: BaseViewController {
         return i
     }
 
-    /// Catalog order; food uses stacked counts from `User.food`.
+    /// Catalog order; food and medicine use stacked counts on the user model.
     private func ownedRows() -> [(CatalogItem, Int)] {
         guard let user = UserManager.shared.currentUser else { return [] }
         switch categoryIndex() {
@@ -67,8 +67,10 @@ class InventoryViewController: BaseViewController {
                 return n > 0 ? (item, n) : nil
             }
         case 1:
-            let owned = Set(user.medicine ?? [])
-            return ItemCatalog.medicineItems.filter { owned.contains($0.key) }.map { ($0, 1) }
+            return ItemCatalog.medicineItems.compactMap { item in
+                let n = user.medicine[item.key, default: 0]
+                return n > 0 ? (item, n) : nil
+            }
         case 2:
             let owned = Set(user.hats)
             return ItemCatalog.hatItems.filter { owned.contains($0.key) }.map { ($0, 1) }
@@ -95,7 +97,43 @@ extension InventoryViewController: UITableViewDataSource {
             return UITableViewCell()
         }
         let row = ownedRows()[indexPath.row]
-        cell.configure(item: row.0, quantity: row.1, imageSide: thumbnailSide)
+        let cat = categoryIndex()
+        let showsQuantity = cat == 0 || cat == 1
+        let onUse: (() -> Void)? = cat == 3 ? { [weak self] in
+            self?.equipBackground(key: row.0.key)
+        } : nil
+        let canUse: Bool
+        if cat == 3, let user = UserManager.shared.currentUser {
+            let fallback = ItemCatalog.dayBackgroundKey
+            let chosen = user.equippedBkg ?? fallback
+            let effectiveEquipped = user.backgrounds.contains(chosen) ? chosen : fallback
+            canUse = row.0.key != effectiveEquipped
+        } else {
+            canUse = true
+        }
+        cell.configure(
+            item: row.0,
+            quantity: row.1,
+            imageSide: thumbnailSide,
+            showsQuantity: showsQuantity,
+            onUse: onUse,
+            canUse: canUse
+        )
         return cell
+    }
+}
+
+extension InventoryViewController {
+    private func equipBackground(key: String) {
+        guard var user = UserManager.shared.currentUser else { return }
+        guard user.backgrounds.contains(key) else { return }
+        user.equippedBkg = key
+        UserManager.shared.currentUser = user
+        inventoryTableView.reloadData()
+        user.saveToFirestore { err in
+            if let err {
+                print("save equipped background:", err.localizedDescription)
+            }
+        }
     }
 }

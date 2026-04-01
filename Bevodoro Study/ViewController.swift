@@ -31,15 +31,22 @@ class ViewController: BaseViewController {
     private var photoModeOverlay: UIView?
     /// Cancels prior revert when Bevo is fed again before the 3s eating pose ends.
     private var bevoEatRevertWorkItem: DispatchWorkItem?
+    /// Full-screen image behind Bevo (not the `BaseViewController` chrome).
+    private var bevoSceneBackgroundImageView: UIImageView?
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         setupBackground()
         setupFoodTrough()
         setupMango()
         setupBevo()
         setupHamburgerMenu()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        applyBevoSceneBackgroundFromUser()
     }
 
     override func viewDidLayoutSubviews() {
@@ -108,13 +115,27 @@ class ViewController: BaseViewController {
         backgroundImageView.contentMode = .scaleAspectFill
         backgroundImageView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(backgroundImageView)
-        
+        bevoSceneBackgroundImageView = backgroundImageView
+
         NSLayoutConstraint.activate([
             backgroundImageView.topAnchor.constraint(equalTo: view.topAnchor),
             backgroundImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
             backgroundImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             backgroundImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+    }
+
+    private func applyBevoSceneBackgroundFromUser() {
+        guard let bgView = bevoSceneBackgroundImageView else { return }
+        let fallback = ItemCatalog.dayBackgroundKey
+        guard let user = UserManager.shared.currentUser else {
+            bgView.image = UIImage(named: ItemCatalog.backgroundAssetName(forKey: fallback))
+            return
+        }
+        let chosen = user.equippedBkg ?? fallback
+        let key = user.backgrounds.contains(chosen) ? chosen : fallback
+        let asset = ItemCatalog.backgroundAssetName(forKey: key)
+        bgView.image = UIImage(named: asset) ?? UIImage(named: "bkgday")
     }
 
     private func setupFoodTrough() {
@@ -559,3 +580,4 @@ extension UIViewController {
         dismiss(animated: true)
     }
 }
+
