@@ -12,7 +12,7 @@ class InventoryViewController: BaseViewController {
 
     @IBOutlet weak var inventorySegControl: UISegmentedControl!
     @IBOutlet weak var inventoryTableView: UITableView!
-    @IBOutlet weak var inventoryCoinButton: UIButton!
+    @IBOutlet weak var inventoryCoinLabel: UILabel!
 
     private let catalogRows = ItemCatalog.shopCategories
     private let thumbnailSide: CGFloat = 60
@@ -46,7 +46,7 @@ class InventoryViewController: BaseViewController {
 
     private func updateCoinButtonTitle() {
         let count = UserManager.shared.currentUser?.num_coins ?? 0
-        inventoryCoinButton.setTitle("\(count)", for: .normal)
+        inventoryCoinLabel.text = "\(count)"
     }
 
     private func categoryIndex() -> Int {

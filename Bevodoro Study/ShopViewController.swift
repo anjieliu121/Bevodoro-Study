@@ -12,7 +12,7 @@ class ShopViewController: BaseViewController {
 
     @IBOutlet weak var shopSegContrl: UISegmentedControl!
     @IBOutlet weak var shopTableView: UITableView!
-    @IBOutlet weak var coinButton: UIButton!
+    @IBOutlet weak var coinLabel: UILabel!
 
     private let catalogRows = ItemCatalog.shopCategories
     private let thumbnailSide: CGFloat = 60
@@ -46,7 +46,7 @@ class ShopViewController: BaseViewController {
 
     private func updateCoinButtonTitle() {
         let count = UserManager.shared.currentUser?.num_coins ?? 0
-        coinButton.setTitle("\(count)", for: .normal)
+        coinLabel.text = "\(count)"
     }
 
     private func categoryIndex() -> Int {
