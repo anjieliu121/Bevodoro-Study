@@ -35,10 +35,13 @@ struct ItemCatalog {
         CatalogItem(key: "scarf", displayName: "Scarf", icon: "🧣", cost: 35),
     ]
 
+    /// Default background; granted at signup (not sold for coins).
+    static let dayBackgroundKey = "day"
+
     static let backgroundItems: [CatalogItem] = [
-        CatalogItem(key: "night", displayName: "Night", icon: "🌙", cost: 100),
-        CatalogItem(key: "day", displayName: "Day", icon: "☀️", cost: 100),
-        CatalogItem(key: "ocean", displayName: "Ocean", icon: "🌊", cost: 120),
+        CatalogItem(key: "night", displayName: "Night", icon: "bkgnight", cost: 100),
+        CatalogItem(key: dayBackgroundKey, displayName: "Day", icon: "bkgday", cost: 0),
+        CatalogItem(key: "sky", displayName: "Sky", icon: "bkgsky", cost: 120),
     ]
 
     static let shopCategories: [[CatalogItem]] = [

@@ -55,7 +55,7 @@ struct User: Codable {
         food: [String: Int] = [:],
         medicine: [String]? = nil,
         hats: [String] = [],
-        backgrounds: [String] = [],
+        backgrounds: [String] = [ItemCatalog.dayBackgroundKey],
         equippedHat: String? = nil,
         equippedBkg: String? = nil,
         lastLogin: Timestamp = Timestamp(date: Date()),
@@ -112,7 +112,15 @@ struct User: Codable {
             }
 
             do {
-                let user = try Firestore.Decoder().decode(User.self, from: data)
+                var user = try Firestore.Decoder().decode(User.self, from: data)
+                if !user.backgrounds.contains(ItemCatalog.dayBackgroundKey) {
+                    user.backgrounds.append(ItemCatalog.dayBackgroundKey)
+                    user.saveToFirestore { err in
+                        if let err {
+                            print("Error saving starter background:", err.localizedDescription)
+                        }
+                    }
+                }
                 completion(user)
             } catch {
                 print("Error decoding user:", error.localizedDescription)

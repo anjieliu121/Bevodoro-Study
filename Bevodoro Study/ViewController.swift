@@ -104,7 +104,7 @@ class ViewController: BaseViewController {
     }
     
     private func setupBackground() {
-        let backgroundImageView = UIImageView(image: UIImage(named: "bkgDday"))
+        let backgroundImageView = UIImageView(image: UIImage(named: "bkgday"))
         backgroundImageView.contentMode = .scaleAspectFill
         backgroundImageView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(backgroundImageView)
