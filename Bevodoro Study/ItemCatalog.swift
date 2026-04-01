@@ -16,9 +16,11 @@ struct CatalogItem {
 
 struct ItemCatalog {
     static let foodItems: [CatalogItem] = [
-        CatalogItem(key: "apple", displayName: "Apple", icon: "🍎", cost: 10),
-        CatalogItem(key: "banana", displayName: "Banana", icon: "🍌", cost: 15),
-        CatalogItem(key: "cookie", displayName: "Cookie", icon: "🍪", cost: 20),
+        CatalogItem(key: "apple", displayName: "Apple", icon: "apple", cost: 10),
+        CatalogItem(key: "banana", displayName: "Banana", icon: "banana", cost: 15),
+        CatalogItem(key: "cookie", displayName: "Cookie", icon: "cookie", cost: 20),
+        CatalogItem(key: "mango", displayName: "Mango", icon: "mango", cost: 25),
+        CatalogItem(key: "orange", displayName: "Orange", icon: "orange", cost: 20),
     ]
 
     static let medicineItems: [CatalogItem] = [
@@ -43,13 +45,13 @@ struct ItemCatalog {
         foodItems, medicineItems, hatItems, backgroundItems
     ]
 
+    private static let allItems: [CatalogItem] = foodItems + medicineItems + hatItems + backgroundItems
+
     static func icon(forKey key: String) -> String {
-        let all = foodItems + medicineItems + hatItems + backgroundItems
-        return all.first(where: { $0.key == key })?.icon ?? "❓"
+        return allItems.first(where: { $0.key == key })?.icon ?? "❓"
     }
 
     static func displayName(forKey key: String) -> String {
-        let all = foodItems + medicineItems + hatItems + backgroundItems
-        return all.first(where: { $0.key == key })?.displayName ?? key
+        return allItems.first(where: { $0.key == key })?.displayName ?? key
     }
 }
