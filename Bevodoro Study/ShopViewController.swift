@@ -171,23 +171,26 @@ class ShopViewController: BaseViewController, UITableViewDelegate, UITableViewDa
         coinButton.setTitle(nil, for: .normal)
         coinButton.setImage(nil, for: .normal)
 
-        let emojiLabel = UILabel()
-        emojiLabel.text = "\u{1FA99}"
-        emojiLabel.font = font
-        emojiLabel.textColor = color
+        let coinImageView = UIImageView(image: UIImage(named: "Coin"))
+        coinImageView.contentMode = .scaleAspectFit
+        coinImageView.translatesAutoresizingMaskIntoConstraints = false
+        coinImageView.setContentHuggingPriority(.required, for: .horizontal)
+
         coinCountLabel.font = font
         coinCountLabel.textColor = color
 
-        let row = UIStackView(arrangedSubviews: [emojiLabel, coinCountLabel])
+        let row = UIStackView(arrangedSubviews: [coinImageView, coinCountLabel])
         row.axis = .horizontal
         row.alignment = .center
-        row.spacing = 2
+        row.spacing = 4
         row.isUserInteractionEnabled = false
         row.translatesAutoresizingMaskIntoConstraints = false
         coinButton.addSubview(row)
         NSLayoutConstraint.activate([
             row.centerXAnchor.constraint(equalTo: coinButton.centerXAnchor),
             row.centerYAnchor.constraint(equalTo: coinButton.centerYAnchor),
+            coinImageView.widthAnchor.constraint(equalToConstant: 18),
+            coinImageView.heightAnchor.constraint(equalToConstant: 18),
         ])
     }
 
