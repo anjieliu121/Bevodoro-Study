@@ -39,6 +39,8 @@ struct User: Codable {
     var user: String
     var num_coins: Int
     var food: [String: Int]
+    /// Keys of medicine items owned at most once (see `ItemCatalog.medicineItems`).
+    var medicine: [String]?
     var hats: [String]
     var backgrounds: [String]
     var equippedHat: String?
@@ -51,6 +53,7 @@ struct User: Codable {
         user: String,
         num_coins: Int = 0,
         food: [String: Int] = [:],
+        medicine: [String]? = nil,
         hats: [String] = [],
         backgrounds: [String] = [],
         equippedHat: String? = nil,
@@ -62,6 +65,7 @@ struct User: Codable {
         self.user = user
         self.num_coins = num_coins
         self.food = food
+        self.medicine = medicine
         self.hats = hats
         self.backgrounds = backgrounds
         self.equippedHat = equippedHat
