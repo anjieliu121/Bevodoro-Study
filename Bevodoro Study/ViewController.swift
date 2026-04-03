@@ -18,6 +18,7 @@ class ViewController: BaseViewController {
     private var menuStackView: UIStackView?
     private var isMenuOpen = false
     private var bevoImageView: UIImageView?
+    private var bevoHatImageView: UIImageView?
     private var foodTroughImageView: UIImageView?
     private var mangoImageView: UIImageView?
     private var mangoHomeCenter: CGPoint?
@@ -47,6 +48,7 @@ class ViewController: BaseViewController {
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         applyBevoSceneBackgroundFromUser()
+        applyBevoHatFromUser()
     }
 
     override func viewDidLayoutSubviews() {
@@ -138,6 +140,23 @@ class ViewController: BaseViewController {
         bgView.image = UIImage(named: asset) ?? UIImage(named: "bkgday")
     }
 
+    private func applyBevoHatFromUser() {
+        guard let hatView = bevoHatImageView else { return }
+        guard let user = UserManager.shared.currentUser else {
+            hatView.image = nil
+            hatView.isHidden = true
+            return
+        }
+        guard let key = user.equippedHat, user.hats.contains(key) else {
+            hatView.image = nil
+            hatView.isHidden = true
+            return
+        }
+        let asset = ItemCatalog.icon(forKey: key)
+        hatView.image = UIImage(named: asset)
+        hatView.isHidden = (hatView.image == nil)
+    }
+
     private func setupFoodTrough() {
         let imageView = UIImageView(image: UIImage(named: "FoodTrough"))
         imageView.contentMode = .scaleToFill
@@ -199,6 +218,19 @@ class ViewController: BaseViewController {
         }
 
         NSLayoutConstraint.activate(constraints)
+
+        let hatView = UIImageView()
+        hatView.contentMode = .scaleAspectFit
+        hatView.translatesAutoresizingMaskIntoConstraints = false
+        hatView.isUserInteractionEnabled = false
+        imageView.addSubview(hatView)
+        NSLayoutConstraint.activate([
+            hatView.topAnchor.constraint(equalTo: imageView.topAnchor),
+            hatView.leadingAnchor.constraint(equalTo: imageView.leadingAnchor),
+            hatView.trailingAnchor.constraint(equalTo: imageView.trailingAnchor),
+            hatView.bottomAnchor.constraint(equalTo: imageView.bottomAnchor)
+        ])
+        bevoHatImageView = hatView
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleBevoTap))
         imageView.addGestureRecognizer(tapGesture)
@@ -368,11 +400,13 @@ class ViewController: BaseViewController {
               let normalImage = UIImage(named: "normalFullBody") else { return }
 
         bevoEatRevertWorkItem?.cancel()
+        bevoHatImageView?.isHidden = true
         bevo.image = eatImage
 
         let work = DispatchWorkItem { [weak self] in
             guard let self, let bevo = self.bevoImageView else { return }
             bevo.image = normalImage
+            self.applyBevoHatFromUser()
             self.bevoEatRevertWorkItem = nil
         }
         bevoEatRevertWorkItem = work

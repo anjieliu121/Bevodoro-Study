@@ -99,16 +99,34 @@ extension InventoryViewController: UITableViewDataSource {
         let row = ownedRows()[indexPath.row]
         let cat = categoryIndex()
         let showsQuantity = cat == 0 || cat == 1
-        let onUse: (() -> Void)? = cat == 3 ? { [weak self] in
-            self?.equipBackground(key: row.0.key)
-        } : nil
+        let onUse: (() -> Void)?
+        switch cat {
+        case 2:
+            onUse = { [weak self] in self?.equipHat(key: row.0.key) }
+        case 3:
+            onUse = { [weak self] in self?.equipBackground(key: row.0.key) }
+        default:
+            onUse = nil
+        }
         let canUse: Bool
-        if cat == 3, let user = UserManager.shared.currentUser {
-            let fallback = ItemCatalog.dayBackgroundKey
-            let chosen = user.equippedBkg ?? fallback
-            let effectiveEquipped = user.backgrounds.contains(chosen) ? chosen : fallback
-            canUse = row.0.key != effectiveEquipped
-        } else {
+        switch cat {
+        case 2:
+            if let user = UserManager.shared.currentUser {
+                let effectiveHat = user.equippedHat.flatMap { user.hats.contains($0) ? $0 : nil }
+                canUse = row.0.key != effectiveHat
+            } else {
+                canUse = true
+            }
+        case 3:
+            if let user = UserManager.shared.currentUser {
+                let fallback = ItemCatalog.dayBackgroundKey
+                let chosen = user.equippedBkg ?? fallback
+                let effectiveEquipped = user.backgrounds.contains(chosen) ? chosen : fallback
+                canUse = row.0.key != effectiveEquipped
+            } else {
+                canUse = true
+            }
+        default:
             canUse = true
         }
         cell.configure(
@@ -124,6 +142,19 @@ extension InventoryViewController: UITableViewDataSource {
 }
 
 extension InventoryViewController {
+    private func equipHat(key: String) {
+        guard var user = UserManager.shared.currentUser else { return }
+        guard user.hats.contains(key) else { return }
+        user.equippedHat = key
+        UserManager.shared.currentUser = user
+        inventoryTableView.reloadData()
+        user.saveToFirestore { err in
+            if let err {
+                print("save equipped hat:", err.localizedDescription)
+            }
+        }
+    }
+
     private func equipBackground(key: String) {
         guard var user = UserManager.shared.currentUser else { return }
         guard user.backgrounds.contains(key) else { return }
