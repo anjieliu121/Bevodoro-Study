@@ -9,6 +9,10 @@
 import Foundation
 import FirebaseFirestore
 
+let SECONDS_PER_DAYS = 1.0 * 60 * 60 * 24
+let BEVO_SICK_THRESHOLD_DAYS = 3.0  // after how many days since last login that bevo will be considered sick
+let BEVO_SICK_THRESHOLD_SECONDS = 30.0
+
 struct UserSettings: Codable {
     var bkgMusic: Bool
     var timerStudyMins: Int
@@ -119,5 +123,35 @@ struct User: Codable {
                 completion(nil)
             }
         }
+    }
+    
+    // updates the last login timestamp to the current time
+    mutating func updateLastLoginNow() {
+        lastLogin = Timestamp(date: Date())
+    }
+    
+//    // True if more than threshold time has passed since last login
+//    func isSick() -> Bool {
+//        let timeSinceLastLogin = Date().timeIntervalSince(lastLogin.dateValue())
+//        return timeSinceLastLogin >= BEVO_SICK_THRESHOLD_SECONDS
+//    }
+    
+    func isSick() -> Bool {
+        let lastLoginDate = lastLogin.dateValue()
+        let now = Date()
+
+        print("""
+        🐞 isSick check
+        lastLogin: \(lastLoginDate)
+        now:       \(now)
+        delta:     \(now.timeIntervalSince(lastLoginDate))
+        """)
+
+        guard lastLoginDate <= now else {
+            print("🚫 lastLogin is in the future")
+            return false
+        }
+
+        return now.timeIntervalSince(lastLoginDate) >= BEVO_SICK_THRESHOLD_SECONDS
     }
 }

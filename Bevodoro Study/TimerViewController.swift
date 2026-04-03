@@ -53,6 +53,9 @@ class TimerViewController: UIViewController {
                 )
                 self.endMsg.text =
                     "\(endStudyMessage) You earned 🪙 \(earned). Let's take a break!"
+                // refresh last study time.
+                UserManager.shared.currentUser?.updateLastLoginNow()
+                UserManager.shared.currentUser?.saveToFirestore()
             }
         }
         
