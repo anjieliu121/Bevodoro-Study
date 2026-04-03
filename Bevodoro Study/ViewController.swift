@@ -476,12 +476,15 @@ class ViewController: BaseViewController {
     
     private func closeMenuAndPresent(_ viewController: UIViewController) {
         guard let menuWidthConstraint = menuWidthConstraint else { return }
-        viewController.navigationItem.leftBarButtonItem = UIBarButtonItem(
-            title: "Back",
+        let backImage = UIImage(systemName: "chevron.backward")
+        let backItem = UIBarButtonItem(
+            image: backImage,
             style: .plain,
             target: viewController,
             action: #selector(UIViewController.dismissModalBack)
         )
+        backItem.accessibilityLabel = "Back"
+        viewController.navigationItem.leftBarButtonItem = backItem
         let nav = UINavigationController(rootViewController: viewController)
         nav.modalPresentationStyle = .fullScreen
         guard isMenuOpen else {
