@@ -50,6 +50,7 @@ struct User: Codable {
     var equippedHat: String?
     var equippedBkg: String?
     var lastLogin: Timestamp
+    var lastStudy: Timestamp?  // may be null
     var settings: UserSettings
 
     init(
@@ -63,6 +64,7 @@ struct User: Codable {
         equippedHat: String? = nil,
         equippedBkg: String? = nil,
         lastLogin: Timestamp = Timestamp(date: Date()),
+        lastStudy: Timestamp? = nil,
         settings: UserSettings = UserSettings()
     ) {
         self.userID = userID
@@ -75,6 +77,7 @@ struct User: Codable {
         self.equippedHat = equippedHat
         self.equippedBkg = equippedBkg
         self.lastLogin = lastLogin
+        self.lastStudy = lastStudy
         self.settings = settings
     }
 
@@ -126,28 +129,29 @@ struct User: Codable {
     }
     
     // updates the last login timestamp to the current time
-    mutating func updateLastLoginNow() {
-        lastLogin = Timestamp(date: Date())
+    mutating func updateLastStudyNow() {
+        lastStudy = Timestamp(date: Date())
     }
     
     // True if more than threshold time has passed since last login
     func isSick() -> Bool {
-        let lastLoginDate = lastLogin.dateValue()
+        guard lastStudy != nil else { return false }  // nil for new users
+        let lastStudyDate = lastStudy!.dateValue()
         let now = Date()
         let threshold = SettingViewController.isDemoModeEnabled ? 30.0 : bevoSickThresholdSeconds
 
         print("""
         DEBUG: isSick check
-        lastLogin: \(lastLoginDate)
+        lastStudy: \(lastStudyDate)
         now:       \(now)
-        delta:     \(now.timeIntervalSince(lastLoginDate))
-        threshold: \(threshold), see bevoSickAlertCooldownSeconds
+        delta:     \(now.timeIntervalSince(lastStudyDate))
+        threshold: \(threshold), but limited every \(bevoSickAlertCooldownSeconds) sec
         """)
 
-        guard lastLoginDate <= now else {
-            print("error: isSick error lastLogin is in the future!")
+        guard lastStudyDate <= now else {
+            print("error: isSick error lastStudy cutoff is in the future!")
             return false
         }
-        return  now.timeIntervalSince(lastLoginDate) >= threshold
+        return now.timeIntervalSince(lastStudyDate) >= threshold
     }
 }

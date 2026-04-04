@@ -7,17 +7,6 @@
 
 import UIKit
 
-// demo mode settings
-let demoModeStudySeconds = 7
-let demoModeBreakSeconds = 5
-let demoModeCoinsPerMinute = 60.0
-let bevoSickAlertCooldownSeconds: TimeInterval = SettingViewController.isDemoModeEnabled ? 2 * 60 : 5 * 60 // rate limit to show alert every 5 minutes
-
-// 1 coin per minute earning rate
-var coinsPerMinute: Double {
-    SettingViewController.isDemoModeEnabled ? demoModeCoinsPerMinute : 1.0
-}
-
 let endStudyMessage: String = "Study complete!"
 let endBreakMessage: String = "Great break. Let's get back to it!"
 let endMessage: String = "Session ended."
@@ -56,10 +45,7 @@ class TimerViewController: UIViewController {
             if inStudyMode {
                 self.endMsg.text = endBreakMessage
             } else {
-                let earned = addCoins(
-                    timeInSeconds: timerManager.initialStudyTimeSeconds
-                )
-                
+                let earned = self.timerManager.lastStudyEarnedCoins
                 let attributed = NSMutableAttributedString(string: "\(endStudyMessage) You earned ")
 
                 let attachment = NSTextAttachment()
@@ -71,10 +57,6 @@ class TimerViewController: UIViewController {
 
                 endMsg.attributedText = attributed
                 endMsg.numberOfLines = 0
-                
-                // refresh last study time.
-                UserManager.shared.currentUser?.updateLastLoginNow()
-                UserManager.shared.currentUser?.saveToFirestore()
             }
         }
         
@@ -172,22 +154,6 @@ class TimerViewController: UIViewController {
         // why do i need this? no clue but it sounds like it makes sense.
         guard let user = UserManager.shared.currentUser else { return }
         print("TimerViewController Warning: didReceiveMemoryWarning was triggered for user \(user.user)")
-    }
-    
-    func addCoins(timeInSeconds: Int) -> Int {
-        let coinsPerSecond: Double = coinsPerMinute / 60.0   // divide by 60 to get
-        let earned: Int = Int(Double(timeInSeconds) * coinsPerSecond)  // round down
-        // NOTE: this also means that any study time less than 1 minute will earn NO coins
-        guard var user = UserManager.shared.currentUser else {
-            print("error adding coins: user was null")
-            return 0
-        }
-        print("user starts with \(user.num_coins) coins")  // TODO change to label
-        user.addCoins(earned)
-        UserManager.shared.currentUser = user  // save back to shared user, user is a copy
-        user.saveToFirestore()  // save to firestore
-        print("user earned \(earned) coins, now has \(user.num_coins) coins")  // TODO change to label
-        return earned
     }
 }
 

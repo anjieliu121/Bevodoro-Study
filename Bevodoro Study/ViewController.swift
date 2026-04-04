@@ -565,6 +565,7 @@ class ViewController: BaseViewController {
         // make sure the user is valid and bevo is sick
         guard let user = UserManager.shared.currentUser else { return }
         guard user.isSick() else { return }
+        guard user.lastStudy != nil else { return } // nil for new users
         
         // Don't be annoying. rate-limit the alert to every sickAlertCooldown seconds.
         if let lastShown = ViewController.lastBevoSickAlertShownAt {
@@ -575,8 +576,8 @@ class ViewController: BaseViewController {
         }
         
         // construct the alert
-        let lastLoginDate = user.lastLogin.dateValue()
-        let sickAfterDate = lastLoginDate.addingTimeInterval(bevoSickThresholdSeconds)
+        let lastStudyDate = user.lastStudy!.dateValue()
+        let sickAfterDate = lastStudyDate.addingTimeInterval(bevoSickThresholdSeconds)
         
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -587,7 +588,7 @@ class ViewController: BaseViewController {
         \(normalMessage)
         
         Debug Mode info:
-        Last login: \(formatter.string(from: lastLoginDate))
+        Last login: \(formatter.string(from: lastStudyDate))
         Sick if after: \(formatter.string(from: sickAfterDate))
         """
         

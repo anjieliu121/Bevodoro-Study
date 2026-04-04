@@ -32,7 +32,7 @@ class SettingViewController: BaseViewController {
             case .bevosSound: return "speaker.wave.2.fill"
             case .pomodoroStudyTimer: return "clock"
             case .pomodoroBreakTimer: return "clock"
-            case .demoMode: return ""
+            case .demoMode: return "testtube.2" 
             }
         }
     }
@@ -268,9 +268,37 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
     
     @objc private func demoModeChanged(_ sender: UISwitch) {
         Self.isDemoModeEnabled = sender.isOn
+        
+        // CHANGES: shown in the alert
         // shorten timer and rate to demonstrate working timers
         // change the timer values: moved to TimerManager.swift
         // change the earning rate: moved to TimerViewController.swift
+        
+        if sender.isOn {
+            showDemoModeAlert()
+        }
+    }
+    
+    private func showDemoModeAlert() {
+        let message = """
+        Features:
+        Shorter study time: \(demoModeStudySeconds) seconds
+        Shorter break time: \(demoModeBreakSeconds) seconds
+        Higher earning rate: \(demoModeCoinsPerMinute) coins per minute
+        Lower Sick threshold: \(bevoSickThresholdSeconds) seconds
+        
+        ... and additional information in displays
+        """
+
+        let alert = UIAlertController(
+            title: "Demo Mode Enabled",
+            message: message,
+            preferredStyle: .alert
+        )
+
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+
+        present(alert, animated: true)
     }
 }
 
