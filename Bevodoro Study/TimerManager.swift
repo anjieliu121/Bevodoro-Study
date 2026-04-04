@@ -65,7 +65,7 @@ class TimerManager {
         }
         
         if SettingViewController.isDemoModeEnabled {
-            secondsRemaining = defaultTimerStudyMins
+            secondsRemaining = demoModeStudySeconds
         }
     }
     
@@ -175,6 +175,9 @@ class TimerManager {
 
     // when time was changed in settings
     func refreshFromSettings() {
+        // demo mode ignore firebase's values
+        guard !SettingViewController.isDemoModeEnabled else { return }
+        
         let minutes =
             UserManager.shared.currentUser?.settings.timerStudyMins
             ?? defaultTimerStudyMins

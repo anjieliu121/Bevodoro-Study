@@ -137,7 +137,11 @@ class SettingViewController: BaseViewController {
 
         pickerVC.onSelect = { [weak self] minutes in
             guard let self else { return }
+            
+            // Automatically exit demo mode
+            SettingViewController.isDemoModeEnabled = false
 
+            // save the new timer study minute duration to firestore
             self.selectedPomodoroMinutes = minutes
             UserManager.shared.currentUser?.settings.timerStudyMins = minutes
             UserManager.shared.currentUser?.saveToFirestore()
@@ -163,7 +167,11 @@ class SettingViewController: BaseViewController {
 
         pickerVC.onSelect = { [weak self] minutes in
             guard let self else { return }
+            
+            // Automatically exit demo mode
+            SettingViewController.isDemoModeEnabled = false
 
+            // save the new timer break minute duration to firestore
             UserManager.shared.currentUser?.settings.timerBreakMins = minutes
             UserManager.shared.currentUser?.saveToFirestore()
             self.settingsTableView.reloadData()
