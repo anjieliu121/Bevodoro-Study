@@ -5,14 +5,13 @@
 //  Created by Yim, Isabella H on 3/5/26.
 //
 
-// BUG! my debug values arent show up!!!! this is because it reads from firebase. change firebase.
-
 import UIKit
 
 // demo mode settings
 let demoModeStudySeconds = 7
 let demoModeBreakSeconds = 5
 let demoModeCoinsPerMinute = 60.0
+let bevoSickAlertCooldownSeconds: TimeInterval = SettingViewController.isDemoModeEnabled ? 2 * 60 : 5 * 60 // rate limit to show alert every 5 minutes
 
 // 1 coin per minute earning rate
 var coinsPerMinute: Double {

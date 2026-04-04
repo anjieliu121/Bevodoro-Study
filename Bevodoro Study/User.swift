@@ -9,9 +9,9 @@
 import Foundation
 import FirebaseFirestore
 
-let SECONDS_PER_DAYS = 1.0 * 60 * 60 * 24
-let BEVO_SICK_THRESHOLD_DAYS = 3.0  // after how many days since last login that bevo will be considered sick
-let BEVO_SICK_THRESHOLD_SECONDS = 30.0
+let secondsPerDays = 1.0 * 60 * 60 * 24
+let bevoSickThresholdDays = 3.0  // after how many days since last login that bevo will be considered sick
+let bevoSickThresholdSeconds = 30.0
 
 struct UserSettings: Codable {
     var bkgMusic: Bool
@@ -130,28 +130,24 @@ struct User: Codable {
         lastLogin = Timestamp(date: Date())
     }
     
-//    // True if more than threshold time has passed since last login
-//    func isSick() -> Bool {
-//        let timeSinceLastLogin = Date().timeIntervalSince(lastLogin.dateValue())
-//        return timeSinceLastLogin >= BEVO_SICK_THRESHOLD_SECONDS
-//    }
-    
+    // True if more than threshold time has passed since last login
     func isSick() -> Bool {
         let lastLoginDate = lastLogin.dateValue()
         let now = Date()
+        let threshold = SettingViewController.isDemoModeEnabled ? 30.0 : bevoSickThresholdSeconds
 
         print("""
-        🐞 isSick check
+        DEBUG: isSick check
         lastLogin: \(lastLoginDate)
         now:       \(now)
         delta:     \(now.timeIntervalSince(lastLoginDate))
+        threshold: \(threshold), see bevoSickAlertCooldownSeconds
         """)
 
         guard lastLoginDate <= now else {
-            print("🚫 lastLogin is in the future")
+            print("error: isSick error lastLogin is in the future!")
             return false
         }
-
-        return now.timeIntervalSince(lastLoginDate) >= BEVO_SICK_THRESHOLD_SECONDS
+        return  now.timeIntervalSince(lastLoginDate) >= threshold
     }
 }

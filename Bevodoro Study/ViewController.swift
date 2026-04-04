@@ -33,6 +33,9 @@ class ViewController: BaseViewController {
     /// Cancels prior revert when Bevo is fed again before the 3s eating pose ends.
     private var bevoEatRevertWorkItem: DispatchWorkItem?
     
+    private static var lastBevoSickAlertShownAt: Date? = nil
+    private static let sickAlertCooldown: TimeInterval = 5 * 60  // 5 minutes. rate limit the sick alert so it isnt annoying.
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -41,7 +44,6 @@ class ViewController: BaseViewController {
         setupMango()
         setupBevo()
         setupHamburgerMenu()
-        showBevoSickAlertIfNeeded()
     }
     
     override func viewDidAppear(_ animated: Bool) {
@@ -558,48 +560,48 @@ class ViewController: BaseViewController {
             self.menuStackView?.alpha = self.isMenuOpen ? 1 : 0
         }, completion: nil)
     }
-    //    
-    //    func showBevoSickAlertIfNeeded() {
-    //        guard UserManager.shared.currentUser?.isSick() != nil else { return }
-    //
-    //        let alert = UIAlertController(
-    //            title: "Bevo is Sick",
-    //            message: "It’s been a while since your last login. Study more to buy a pill to treat Bevo!",
-    //            preferredStyle: .alert
-    //        )
-    //
-    //        let dismissAction = UIAlertAction(title: "OK", style: .default)
-    //        alert.addAction(dismissAction)
-    //
-    //        present(alert, animated: true)
-    //    }
-    
     
     func showBevoSickAlertIfNeeded() {
+        // make sure the user is valid and bevo is sick
         guard let user = UserManager.shared.currentUser else { return }
+        guard user.isSick() else { return }
         
+        // Don't be annoying. rate-limit the alert to every sickAlertCooldown seconds.
+        if let lastShown = ViewController.lastBevoSickAlertShownAt {
+            let elapsed = Date().timeIntervalSince(lastShown)
+            guard elapsed >= ViewController.sickAlertCooldown else {
+                return
+            }
+        }
+        
+        // construct the alert
         let lastLoginDate = user.lastLogin.dateValue()
-        let sickAfterDate = lastLoginDate.addingTimeInterval(BEVO_SICK_THRESHOLD_SECONDS)
+        let sickAfterDate = lastLoginDate.addingTimeInterval(bevoSickThresholdSeconds)
         
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .medium
         
-        let message = """
-        It’s been a while since your last login. Study more to buy medicine to treat Bevo!
+        let normalMessage = "It’s been a while since you last studied. Study more to buy medicine to treat Bevo!"
+        let debugMessage = """
+        \(normalMessage)
         
+        Debug Mode info:
         Last login: \(formatter.string(from: lastLoginDate))
         Sick if after: \(formatter.string(from: sickAfterDate))
         """
         
         let alert = UIAlertController(
             title: "Bevo is Sick!",
-            message: message,
+            message: SettingViewController.isDemoModeEnabled ? debugMessage : normalMessage,
             preferredStyle: .alert
         )
         
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
+        
+        // update rate-limit cooldown, when it was last shown
+        ViewController.lastBevoSickAlertShownAt = Date()
     }
 }
 
