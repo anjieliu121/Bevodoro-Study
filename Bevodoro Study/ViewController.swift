@@ -586,14 +586,14 @@ class ViewController: BaseViewController {
         formatter.timeStyle = .medium
         
         let message = """
-        It’s been a while since your last login.
+        It’s been a while since your last login. Study more to buy medicine to treat Bevo!
         
         Last login: \(formatter.string(from: lastLoginDate))
         Sick if after: \(formatter.string(from: sickAfterDate))
         """
         
         let alert = UIAlertController(
-            title: "Bevo is Sick",
+            title: "Bevo is Sick!",
             message: message,
             preferredStyle: .alert
         )

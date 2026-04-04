@@ -9,10 +9,19 @@
 
 import UIKit
 
-let coinsPerMinute: Double = 60 //1.0 // 1 coin per minute earning rate
+// demo mode settings
+let demoModeStudySeconds = 7
+let demoModeBreakSeconds = 5
+let demoModeCoinsPerMinute = 60.0
+
+// 1 coin per minute earning rate
+var coinsPerMinute: Double {
+    SettingViewController.isDemoModeEnabled ? demoModeCoinsPerMinute : 1.0
+}
+
 let endStudyMessage: String = "Study complete!"
 let endBreakMessage: String = "Great break. Let's get back to it!"
-let endMessage: String = "Session ended. No coins earned"
+let endMessage: String = "Session ended."
 
 class TimerViewController: UIViewController {
     @IBOutlet weak var timerLabel: UILabel!  // displays the current time
@@ -51,8 +60,19 @@ class TimerViewController: UIViewController {
                 let earned = addCoins(
                     timeInSeconds: timerManager.initialStudyTimeSeconds
                 )
-                self.endMsg.text =
-                    "\(endStudyMessage) You earned 🪙 \(earned). Let's take a break!"
+                
+                let attributed = NSMutableAttributedString(string: "\(endStudyMessage) You earned ")
+
+                let attachment = NSTextAttachment()
+                attachment.image = UIImage(named: "Coin")
+                attachment.bounds = CGRect(x: 0, y: -4, width: 18, height: 18)
+
+                attributed.append(NSAttributedString(attachment: attachment))
+                attributed.append(NSAttributedString(string: " \(earned)! Let's take a break!"))
+
+                endMsg.attributedText = attributed
+                endMsg.numberOfLines = 0
+                
                 // refresh last study time.
                 UserManager.shared.currentUser?.updateLastLoginNow()
                 UserManager.shared.currentUser?.saveToFirestore()
@@ -96,6 +116,7 @@ class TimerViewController: UIViewController {
         endView.isHidden = true
         endMsg.text = ""  // clear any previous end message
 
+        // fill the timer with the correct number of seconds
         switch timerManager.state {
         case .notStarted, .paused:
             timerManager.start()
@@ -107,12 +128,26 @@ class TimerViewController: UIViewController {
             timerManager.reset()
             timerManager.start()
         }
+        
+        // fill the correct number of seconds in the label
+        self.timerLabel.text = seconds2String(seconds: timerManager.getSecondsRemaining())
     }
     
     @IBAction func endButtonPressed(_ sender: Any) {
         // show message only if ending a study session
         if timerManager.inStudyMode {
-            endMsg.text = endMessage
+            let attributed = NSMutableAttributedString(string: "\(endMessage) No ")
+
+            let attachment = NSTextAttachment()
+            attachment.image = UIImage(named: "Coin")
+            attachment.bounds = CGRect(x: 0, y: -4, width: 18, height: 18)
+
+            attributed.append(NSAttributedString(attachment: attachment))
+            attributed.append(NSAttributedString(string: " earned"))
+
+            endMsg.attributedText = attributed
+            endMsg.numberOfLines = 0
+
             endView.isHidden = false
         } else {
             endMsg.text = ""

@@ -34,9 +34,11 @@ class TimerManager {
 
     // use computed properties to get initial study time seconds in case currentUser is null
     var initialStudyTimeSeconds: Int {
+        SettingViewController.isDemoModeEnabled ? 7 :
         (UserManager.shared.currentUser?.settings.timerStudyMins ?? defaultTimerStudyMins) * secondsPerMin
     }
     var initialBreakTimeSeconds: Int {
+        SettingViewController.isDemoModeEnabled ? 5 :
         (UserManager.shared.currentUser?.settings.timerBreakMins ?? defaultTimerBreakMins) * secondsPerMin
     }
     var isRunning: Bool {
@@ -55,11 +57,15 @@ class TimerManager {
     
     private init() {
         // initialize variables
-        secondsRemaining = defaultTimerBreakMins
+        secondsRemaining = defaultTimerStudyMins
         if let studyMins = UserManager.shared.currentUser?.settings.timerStudyMins {
                 secondsRemaining = studyMins * secondsPerMin
         } else {
             print("TimerManager ERROR: user is nil")
+        }
+        
+        if SettingViewController.isDemoModeEnabled {
+            secondsRemaining = defaultTimerStudyMins
         }
     }
     
