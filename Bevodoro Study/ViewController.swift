@@ -7,6 +7,8 @@
 
 import UIKit
 import AVFoundation
+import FirebaseAuth
+import FirebaseFirestore
 
 class ViewController: BaseViewController {
     
@@ -19,9 +21,20 @@ class ViewController: BaseViewController {
     private var isMenuOpen = false
     private var bevoImageView: UIImageView?
     private var foodTroughImageView: UIImageView?
-    private var mangoImageView: UIImageView?
-    private var mangoHomeCenter: CGPoint?
+    /// Foods loaded from Firestore (`users/{uid}` → `food` or `foods` map). Quantity shows on each cell.
+    private var troughFoods: [FoodItem] = []
+    private var troughFoodCollectionView: UICollectionView?
+    /// Paging pan: only begins when touch starts on empty space (`indexPathForItem(at:)` is nil).
+    private var troughGapPanGesture: UIPanGestureRecognizer?
+
+    /// While dragging food out of the trough, this is the floating copy; cell image is hidden until reload.
+    private var troughFoodDragProxy: UIImageView?
+    private var troughFoodDragHomeFrameInView: CGRect = .zero
+    private var troughFoodDragIndexPath: IndexPath?
+
     private var audioPlayer: AVAudioPlayer?
+    /// Switches Bevo to EatFullBody then back; cancelled if fed again before the pose ends.
+    private var bevoEatRevertWorkItem: DispatchWorkItem?
 
     private var hamburgerButton: UIButton?
     private var menuContainerView: UIView?
@@ -29,17 +42,26 @@ class ViewController: BaseViewController {
     private var hamburgerTrailingConstraint: NSLayoutConstraint?
     private var isPhotoModeActive = false
     private var photoModeOverlay: UIView?
-    /// Cancels prior revert when Bevo is fed again before the 3s eating pose ends.
-    private var bevoEatRevertWorkItem: DispatchWorkItem?
+    /// Foods per page (3 → first page full, second page has 2 items).
+    private static let troughItemsPerPage = 3
+    private static let troughInterFoodSpacing: CGFloat = 14
+    /// How long Bevo stays on the EatFullBody asset after being fed.
+    private static let bevoEatFullBodyDuration: TimeInterval = 1.5
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         setupBackground()
         setupFoodTrough()
-        setupMango()
         setupBevo()
         setupHamburgerMenu()
+        bringTroughFoodCollectionToFront()
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // Load / refresh from Firestore (first appear + return from Shop / Inventory).
+        loadTroughFoodFromFirestore()
     }
 
     override func viewDidLayoutSubviews() {
@@ -131,29 +153,350 @@ class ViewController: BaseViewController {
             imageView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: 10),
             imageView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.28)
         ])
+
+        setupTroughFoodCollectionView(pinnedTo: imageView)
     }
 
-    private func setupMango() {
-        guard let trough = foodTroughImageView else { return }
-        guard let mangoImage = UIImage(named: "mango") else { return }
+    // MARK: - Food trough (2 pages: 3 + 2 foods)
 
-        let imageView = UIImageView(image: mangoImage)
-        imageView.contentMode = .scaleAspectFit
-        imageView.translatesAutoresizingMaskIntoConstraints = false
-        imageView.isUserInteractionEnabled = true
-        view.addSubview(imageView)
-        mangoImageView = imageView
+    private func makeTroughFoodCompositionalLayout() -> UICollectionViewCompositionalLayout {
+        let perPage = Self.troughItemsPerPage
+        let spacing = Self.troughInterFoodSpacing
 
-        // Place it on top of the trough.
+        let sectionProvider: UICollectionViewCompositionalLayoutSectionProvider = { [weak self] sectionIndex, _ in
+            guard let self else {
+                let s = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1))
+                let item = NSCollectionLayoutItem(layoutSize: s)
+                let g = NSCollectionLayoutGroup.horizontal(layoutSize: s, subitem: item, count: 1)
+                return NSCollectionLayoutSection(group: g)
+            }
+            let itemCount = self.troughNumberOfItems(inSection: sectionIndex)
+            guard itemCount > 0 else {
+                let s = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1))
+                let item = NSCollectionLayoutItem(layoutSize: s)
+                let g = NSCollectionLayoutGroup.horizontal(layoutSize: s, subitem: item, count: 1)
+                return NSCollectionLayoutSection(group: g)
+            }
+
+            // Always reserve `perPage` slots (e.g. 3 columns). Last page may show only 2 foods — the extra
+            // column stays empty. That gives a large non-cell area on the right so gap-swipe (and swipe-back)
+            // still gets `indexPathForItem(at:) == nil`. If we only used 2 wide cells, the row would fill and
+            // swipes back would usually start on the left food → paging pan would never begin.
+            let itemSize = NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1.0 / CGFloat(perPage)),
+                heightDimension: .fractionalHeight(0.92)
+            )
+            let item = NSCollectionLayoutItem(layoutSize: itemSize)
+            let groupSize = NSCollectionLayoutSize(
+                widthDimension: .fractionalWidth(1.0),
+                heightDimension: .fractionalHeight(1.0)
+            )
+            let group = NSCollectionLayoutGroup.horizontal(
+                layoutSize: groupSize,
+                subitem: item,
+                count: perPage
+            )
+            group.interItemSpacing = .fixed(spacing)
+
+            let section = NSCollectionLayoutSection(group: group)
+            section.contentInsets = NSDirectionalEdgeInsets(top: 4, leading: 10, bottom: 4, trailing: 10)
+            return section
+        }
+
+        var config = UICollectionViewCompositionalLayoutConfiguration()
+        config.scrollDirection = .horizontal
+        return UICollectionViewCompositionalLayout(sectionProvider: sectionProvider, configuration: config)
+    }
+
+    private func troughNumberOfItems(inSection section: Int) -> Int {
+        let start = section * Self.troughItemsPerPage
+        guard start < troughFoods.count else { return 0 }
+        return min(Self.troughItemsPerPage, troughFoods.count - start)
+    }
+
+    private var troughPageCount: Int {
+        guard !troughFoods.isEmpty else { return 0 }
+        return (troughFoods.count + Self.troughItemsPerPage - 1) / Self.troughItemsPerPage
+    }
+
+    private func troughGlobalIndex(section: Int, item: Int) -> Int {
+        section * Self.troughItemsPerPage + item
+    }
+
+    /// Nearest page from scroll offset (handles non-integer offsets after animation).
+    private func troughCurrentPageIndex(_ cv: UICollectionView, pageWidth w: CGFloat) -> Int {
+        guard w > 0, troughPageCount > 0 else { return 0 }
+        let x = cv.contentOffset.x
+        let p = Int((x + w * 0.5) / w)
+        return max(0, min(troughPageCount - 1, p))
+    }
+
+    private func setupTroughFoodCollectionView(pinnedTo trough: UIImageView) {
+        let layout = makeTroughFoodCompositionalLayout()
+        let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
+        cv.translatesAutoresizingMaskIntoConstraints = false
+        cv.backgroundColor = .clear
+        cv.showsHorizontalScrollIndicator = false
+        cv.showsVerticalScrollIndicator = false
+        cv.isScrollEnabled = false
+        // Avoid the scroll view’s built-in pan competing with our gap-only paging pan.
+        cv.panGestureRecognizer.isEnabled = false
+        cv.dataSource = self
+        cv.register(FoodCell.self, forCellWithReuseIdentifier: FoodCell.reuseIdentifier)
+
+        view.addSubview(cv)
+        troughFoodCollectionView = cv
+
         NSLayoutConstraint.activate([
-            imageView.centerXAnchor.constraint(equalTo: trough.centerXAnchor),
-            imageView.centerYAnchor.constraint(equalTo: trough.centerYAnchor, constant: -6),
-            imageView.widthAnchor.constraint(equalTo: trough.widthAnchor, multiplier: 0.16),
-            imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor)
+            cv.centerXAnchor.constraint(equalTo: trough.centerXAnchor),
+            cv.centerYAnchor.constraint(equalTo: trough.centerYAnchor, constant: -6),
+            cv.widthAnchor.constraint(equalTo: trough.widthAnchor, multiplier: 0.88),
+            cv.heightAnchor.constraint(equalTo: trough.heightAnchor, multiplier: 0.38)
         ])
 
-        let pan = UIPanGestureRecognizer(target: self, action: #selector(handleMangoPan(_:)))
-        imageView.addGestureRecognizer(pan)
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(handleTroughGapPan(_:)))
+        pan.delegate = self
+        pan.cancelsTouchesInView = false
+        cv.addGestureRecognizer(pan)
+        troughGapPanGesture = pan
+
+        cv.reloadData()
+    }
+
+    @objc private func handleTroughGapPan(_ gesture: UIPanGestureRecognizer) {
+        guard let cv = troughFoodCollectionView else { return }
+        let w = cv.bounds.width
+        guard w > 0, troughPageCount > 1 else { return }
+
+        switch gesture.state {
+        case .ended, .cancelled, .failed:
+            let translation = gesture.translation(in: cv)
+            let threshold: CGFloat = 48
+            var page = troughCurrentPageIndex(cv, pageWidth: w)
+            if translation.x < -threshold { page += 1 }
+            else if translation.x > threshold { page -= 1 }
+            page = max(0, min(troughPageCount - 1, page))
+            cv.setContentOffset(CGPoint(x: CGFloat(page) * w, y: 0), animated: true)
+        default:
+            break
+        }
+    }
+
+    private func bringTroughFoodCollectionToFront() {
+        if let cv = troughFoodCollectionView {
+            view.bringSubviewToFront(cv)
+        }
+    }
+
+    // MARK: - Firestore food trough
+
+    /// Loads `food` or `foods` map from `users/{uid}` and fills `troughFoods`.
+    private func loadTroughFoodFromFirestore() {
+        guard let uid = Auth.auth().currentUser?.uid else {
+            troughFoods = []
+            troughFoodCollectionView?.reloadData()
+            return
+        }
+
+        Firestore.firestore().collection("users").document(uid).getDocument { [weak self] snapshot, error in
+            DispatchQueue.main.async {
+                guard let self else { return }
+                if let error = error {
+                    print("Food trough: load error — \(error.localizedDescription)")
+                    self.troughFoods = []
+                    self.troughFoodCollectionView?.reloadData()
+                    return
+                }
+                let map = FoodItem.parseFoodMap(from: snapshot?.data())
+                self.troughFoods = FoodItem.troughItems(fromFoodMap: map)
+                self.troughFoodCollectionView?.reloadData()
+            }
+        }
+    }
+
+    /// After Bevo eats, update local list and merge into Firestore (keeps other `food` keys from Shop, etc.).
+    private func applyEatFromTrough(atGlobalIndex globalIndex: Int) {
+        guard troughFoods.indices.contains(globalIndex) else { return }
+        let name = troughFoods[globalIndex].imageName
+        if troughFoods[globalIndex].quantity <= 1 {
+            troughFoods.remove(at: globalIndex)
+            mergePushFoodMap(updating: name, newQuantity: 0)
+        } else {
+            troughFoods[globalIndex].quantity -= 1
+            mergePushFoodMap(updating: name, newQuantity: troughFoods[globalIndex].quantity)
+        }
+    }
+
+    private func mergePushFoodMap(updating foodKey: String, newQuantity: Int) {
+        guard let uid = Auth.auth().currentUser?.uid else { return }
+        let doc = Firestore.firestore().collection("users").document(uid)
+        doc.getDocument { snapshot, _ in
+            var food = FoodItem.parseFoodMap(from: snapshot?.data())
+            if newQuantity <= 0 {
+                food.removeValue(forKey: foodKey)
+            } else {
+                food[foodKey] = newQuantity
+            }
+            doc.setData(["food": food], merge: true) { error in
+                if let error = error {
+                    print("Food trough: save error — \(error.localizedDescription)")
+                }
+            }
+        }
+    }
+
+    /// Keeps menu / hamburger usable while a food is dragged.
+    private func bringMenuChromeAboveDraggingFood() {
+        if let menu = menuContainerView { view.bringSubviewToFront(menu) }
+        if let ham = hamburgerButton { view.bringSubviewToFront(ham) }
+    }
+
+    // MARK: - Drag food from trough
+
+    private func attachTroughFoodDragPan(to cell: FoodCell, indexPath: IndexPath) {
+        cell.foodImageView.gestureRecognizers?.forEach { cell.foodImageView.removeGestureRecognizer($0) }
+        let pan = UIPanGestureRecognizer(target: self, action: #selector(handleTroughFoodPan(_:)))
+        pan.maximumNumberOfTouches = 1
+        pan.cancelsTouchesInView = false
+        objc_setAssociatedObject(
+            pan,
+            &TroughFoodPanAssociated.indexKey,
+            TroughFoodPanIndexBox(indexPath),
+            .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+        )
+        cell.foodImageView.addGestureRecognizer(pan)
+    }
+
+    @objc private func handleTroughFoodPan(_ gesture: UIPanGestureRecognizer) {
+        guard let box = objc_getAssociatedObject(gesture, &TroughFoodPanAssociated.indexKey) as? TroughFoodPanIndexBox else { return }
+        let indexPath = box.indexPath
+        guard let foodIV = gesture.view as? UIImageView,
+              let cv = troughFoodCollectionView else { return }
+
+        switch gesture.state {
+        case .began:
+            guard troughFoodDragProxy == nil else { return }
+            view.layoutIfNeeded()
+            let home = foodIV.convert(foodIV.bounds, to: view)
+            guard home.width > 0, home.height > 0 else { return }
+
+            let proxy = UIImageView(image: foodIV.image)
+            proxy.contentMode = .scaleAspectFit
+            proxy.frame = home
+            proxy.isUserInteractionEnabled = false
+            view.addSubview(proxy)
+            view.bringSubviewToFront(proxy)
+            bringMenuChromeAboveDraggingFood()
+
+            troughFoodDragProxy = proxy
+            troughFoodDragHomeFrameInView = home
+            troughFoodDragIndexPath = indexPath
+            foodIV.isHidden = true
+            if let foodCell = foodIV.superview?.superview as? FoodCell {
+                foodCell.setQuantityBadgeHidden(true)
+            }
+
+        case .changed:
+            guard let proxy = troughFoodDragProxy else { return }
+            let t = gesture.translation(in: view)
+            gesture.setTranslation(.zero, in: view)
+            proxy.center = CGPoint(x: proxy.center.x + t.x, y: proxy.center.y + t.y)
+
+        case .ended, .cancelled, .failed:
+            guard let proxy = troughFoodDragProxy else { return }
+            let dropFrame = proxy.frame
+            let fedToBevo = isFoodFrameTouchingOrNearBevo(dropFrame)
+
+            if fedToBevo {
+                showBevoEatingFullBodyTemporarily()
+
+                let sparkleCenter = CGPoint(x: dropFrame.midX, y: dropFrame.midY)
+                let sparkleSide = max(36, min(dropFrame.width, dropFrame.height) * 0.85)
+                let sparkle = UIImageView(image: UIImage(systemName: "sparkles"))
+                sparkle.translatesAutoresizingMaskIntoConstraints = true
+                sparkle.bounds = CGRect(x: 0, y: 0, width: sparkleSide, height: sparkleSide)
+                sparkle.center = sparkleCenter
+                sparkle.contentMode = .scaleAspectFit
+                sparkle.tintColor = UIColor.white.withAlphaComponent(0.92)
+                sparkle.alpha = 0
+                self.view.addSubview(sparkle)
+                self.view.bringSubviewToFront(sparkle)
+                self.bringMenuChromeAboveDraggingFood()
+
+                UIView.animate(withDuration: 0.12, animations: {
+                    proxy.transform = CGAffineTransform(scaleX: 1.1, y: 1.1)
+                }, completion: { _ in
+                    UIView.animate(withDuration: 0.28, animations: {
+                        proxy.transform = CGAffineTransform(scaleX: 0.05, y: 0.05)
+                        proxy.alpha = 0
+                        sparkle.alpha = 1
+                        sparkle.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
+                    }, completion: { _ in
+                        UIView.animate(withDuration: 0.18, animations: {
+                            sparkle.alpha = 0
+                            sparkle.transform = CGAffineTransform(scaleX: 1.6, y: 1.6)
+                        }, completion: { _ in
+                            sparkle.removeFromSuperview()
+                            proxy.removeFromSuperview()
+                            let global = self.troughGlobalIndex(section: indexPath.section, item: indexPath.item)
+                            self.clearTroughFoodDragState()
+                            self.applyEatFromTrough(atGlobalIndex: global)
+                            cv.reloadData()
+                        })
+                    })
+                })
+            } else {
+                UIView.animate(
+                    withDuration: 0.38,
+                    delay: 0,
+                    usingSpringWithDamping: 0.78,
+                    initialSpringVelocity: 0.65,
+                    options: [.curveEaseInOut],
+                    animations: {
+                        proxy.frame = self.troughFoodDragHomeFrameInView
+                    },
+                    completion: { _ in
+                        proxy.removeFromSuperview()
+                        self.clearTroughFoodDragState()
+                        cv.reloadItems(at: [indexPath])
+                    }
+                )
+            }
+
+        default:
+            break
+        }
+    }
+
+    private func clearTroughFoodDragState() {
+        troughFoodDragProxy = nil
+        troughFoodDragHomeFrameInView = .zero
+        troughFoodDragIndexPath = nil
+    }
+
+    private func isFoodFrameTouchingOrNearBevo(_ foodFrame: CGRect) -> Bool {
+        guard let bevo = bevoImageView else { return false }
+        let feedPadding = max(16, min(view.bounds.width, view.bounds.height) * 0.04)
+        let expandedBevoFrame = bevo.frame.insetBy(dx: -feedPadding, dy: -feedPadding)
+        return expandedBevoFrame.intersects(foodFrame)
+    }
+
+    /// Same `UIImageView` and constraints as normal pose — only the asset changes, so size stays identical.
+    private func showBevoEatingFullBodyTemporarily() {
+        guard let bevo = bevoImageView else { return }
+        guard let eatImage = UIImage(named: "EatFullBody"),
+              let normalImage = UIImage(named: "normalFullBody") else { return }
+
+        bevoEatRevertWorkItem?.cancel()
+        bevo.image = eatImage
+
+        let work = DispatchWorkItem { [weak self] in
+            guard let self, let bevo = self.bevoImageView else { return }
+            bevo.image = normalImage
+            self.bevoEatRevertWorkItem = nil
+        }
+        bevoEatRevertWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.bevoEatFullBodyDuration, execute: work)
     }
     
     private func setupBevo() {
@@ -293,112 +636,6 @@ class ViewController: BaseViewController {
         playBevoMooSound()
     }
 
-    @objc private func handleMangoPan(_ gesture: UIPanGestureRecognizer) {
-        guard let mango = mangoImageView else { return }
-
-        switch gesture.state {
-        case .began:
-            if mangoHomeCenter == nil {
-                mangoHomeCenter = mango.center
-            }
-            // Make sure it drags above other views.
-            view.bringSubviewToFront(mango)
-
-        case .changed:
-            let translation = gesture.translation(in: view)
-            gesture.setTranslation(.zero, in: view)
-            mango.center = CGPoint(x: mango.center.x + translation.x, y: mango.center.y + translation.y)
-
-        case .ended, .cancelled, .failed:
-            if isMangoTouchingOrNearBevo(mangoFrame: mango.frame) {
-                animateMangoEatenAndRemove(mango)
-            } else if let home = mangoHomeCenter {
-                UIView.animate(
-                    withDuration: 0.35,
-                    delay: 0,
-                    usingSpringWithDamping: 0.75,
-                    initialSpringVelocity: 0.7,
-                    options: [.curveEaseInOut]
-                ) {
-                    mango.center = home
-                }
-            }
-
-        default:
-            break
-        }
-    }
-
-    private func isMangoTouchingOrNearBevo(mangoFrame: CGRect) -> Bool {
-        guard let bevo = bevoImageView else { return false }
-
-        // Rule: Only "eat" if the dropped food is touching Bevo OR close enough.
-        // Tunable: bigger = easier to feed even if not perfectly touching.
-        let feedPadding = max(16, min(view.bounds.width, view.bounds.height) * 0.04)
-
-        let expandedBevoFrame = bevo.frame.insetBy(dx: -feedPadding, dy: -feedPadding)
-        return expandedBevoFrame.intersects(mangoFrame)
-    }
-
-    /// Same `UIImageView` and constraints as normal pose — only the asset changes, so size stays identical.
-    private func showBevoEatingFullBodyForThreeSeconds() {
-        guard let bevo = bevoImageView else { return }
-        guard let eatImage = UIImage(named: "EatFullBody"),
-              let normalImage = UIImage(named: "normalFullBody") else { return }
-
-        bevoEatRevertWorkItem?.cancel()
-        bevo.image = eatImage
-
-        let work = DispatchWorkItem { [weak self] in
-            guard let self, let bevo = self.bevoImageView else { return }
-            bevo.image = normalImage
-            self.bevoEatRevertWorkItem = nil
-        }
-        bevoEatRevertWorkItem = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: work)
-    }
-
-    private func animateMangoEatenAndRemove(_ mango: UIImageView) {
-        mango.isUserInteractionEnabled = false
-        showBevoEatingFullBodyForThreeSeconds()
-
-        // Optional tiny "sparkle" using SF Symbol (no extra assets needed).
-        let sparkle = UIImageView(image: UIImage(systemName: "sparkles"))
-        sparkle.translatesAutoresizingMaskIntoConstraints = false
-        sparkle.tintColor = UIColor.white.withAlphaComponent(0.9)
-        sparkle.alpha = 0
-        view.addSubview(sparkle)
-        NSLayoutConstraint.activate([
-            sparkle.centerXAnchor.constraint(equalTo: mango.centerXAnchor),
-            sparkle.centerYAnchor.constraint(equalTo: mango.centerYAnchor),
-            sparkle.widthAnchor.constraint(equalTo: mango.widthAnchor, multiplier: 0.8),
-            sparkle.heightAnchor.constraint(equalTo: sparkle.widthAnchor)
-        ])
-
-        UIView.animate(withDuration: 0.12, animations: {
-            mango.transform = CGAffineTransform(scaleX: 1.12, y: 1.12)
-        }, completion: { _ in
-            UIView.animate(withDuration: 0.28, animations: {
-                mango.transform = CGAffineTransform(scaleX: 0.05, y: 0.05)
-                mango.alpha = 0
-                sparkle.alpha = 1
-                sparkle.transform = CGAffineTransform(scaleX: 1.2, y: 1.2)
-            }, completion: { _ in
-                UIView.animate(withDuration: 0.18, animations: {
-                    sparkle.alpha = 0
-                    sparkle.transform = CGAffineTransform(scaleX: 1.6, y: 1.6)
-                }, completion: { _ in
-                    sparkle.removeFromSuperview()
-                    mango.removeFromSuperview()
-                    self.mangoImageView = nil
-                    self.mangoHomeCenter = nil
-                    // Infinite mango: respawn a fresh mango back on the trough after it's eaten.
-                    self.setupMango()
-                })
-            })
-        })
-    }
-    
     private func playBevoMooSound() {
         guard SettingViewController.isBevosSoundEnabled else { return }
         
@@ -551,6 +788,68 @@ class ViewController: BaseViewController {
             // Fade in/out the icons as the menu opens/closes
             self.menuStackView?.alpha = self.isMenuOpen ? 1 : 0
         }, completion: nil)
+    }
+}
+
+// MARK: - UICollectionViewDataSource
+
+extension ViewController: UICollectionViewDataSource {
+
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        troughPageCount
+    }
+
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        troughNumberOfItems(inSection: section)
+    }
+
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        guard let cell = collectionView.dequeueReusableCell(
+            withReuseIdentifier: FoodCell.reuseIdentifier,
+            for: indexPath
+        ) as? FoodCell else {
+            return UICollectionViewCell()
+        }
+        let global = troughGlobalIndex(section: indexPath.section, item: indexPath.item)
+        cell.configure(with: troughFoods[global])
+        attachTroughFoodDragPan(to: cell, indexPath: indexPath)
+        return cell
+    }
+}
+
+// MARK: - objc: store IndexPath on each food pan recognizer
+
+private enum TroughFoodPanAssociated {
+    static var indexKey: UInt8 = 0
+}
+
+private final class TroughFoodPanIndexBox: NSObject {
+    let indexPath: IndexPath
+    init(_ indexPath: IndexPath) { self.indexPath = indexPath }
+}
+
+// MARK: - Gap-only paging (touch start location)
+
+extension ViewController: UIGestureRecognizerDelegate {
+
+    /// Touch start decides if this is a **page swipe** vs **food drag**:
+    /// - Not on any item → allow paging (true gaps between cells, empty column, insets).
+    /// - On a cell but **outside** `foodImageView` (cell padding) → allow paging so the trough is easy to swipe.
+    /// - **Inside** `foodImageView` → do not page; the food’s own pan handles drag.
+    ///
+    /// Note: `indexPathForItem(at:)` alone is not enough — it returns a path for the whole **cell** frame,
+    /// including transparent padding around the art, which blocked paging after drag was added.
+    func gestureRecognizerShouldBegin(_ gestureRecognizer: UIGestureRecognizer) -> Bool {
+        guard gestureRecognizer === troughGapPanGesture,
+              let cv = troughFoodCollectionView else { return true }
+        let point = gestureRecognizer.location(in: cv)
+        guard let indexPath = cv.indexPathForItem(at: point),
+              let cell = cv.cellForItem(at: indexPath) as? FoodCell else {
+            return true
+        }
+        let pointInFood = cell.foodImageView.convert(point, from: cv)
+        let beganOnFoodImage = cell.foodImageView.bounds.contains(pointInFood)
+        return !beganOnFoodImage
     }
 }
 
