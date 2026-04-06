@@ -259,6 +259,8 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
             let toggle = UISwitch()
             toggle.isOn = Self.isDemoModeEnabled
             toggle.addTarget(self, action: #selector(demoModeChanged(_:)), for: .valueChanged)
+            cell.accessoryView = toggle
+            cell.selectionStyle = .none
         case .notifications:
             cell.accessoryType = .none
             let toggle = UISwitch()
@@ -328,7 +330,8 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
         )
 
         alert.addAction(UIAlertAction(title: "OK", style: .default))
-
+        present(alert, animated: true)
+    }
 
     @objc private func toggleNotif(_ sender: UISwitch) {
         if sender.isOn {
