@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  MainViewController.swift
 //  Bevodoro Study
 //
 //  Created by Anjie on 2/22/26.
@@ -11,7 +11,7 @@ import FirebaseCore
 import FirebaseAuth
 import FirebaseFirestore
 
-class ViewController: BaseViewController {
+class MainViewController: BaseViewController {
     
     /// Target width when there is room; actual width is clamped so the bar stays inside the safe area.
     private let preferredMenuWidth: CGFloat = 400
@@ -723,7 +723,7 @@ class ViewController: BaseViewController {
             ?? Bundle.main.url(forResource: "chewing", withExtension: "mp3")
         guard let url else {
             #if DEBUG
-            print("ViewController: chewing.mp3 not found — add Bevodoro Study/Audio/chewing.mp3 to the app bundle.")
+            print("MainViewController: chewing.mp3 not found — add Bevodoro Study/Audio/chewing.mp3 to the app bundle.")
             #endif
             return
         }
@@ -918,9 +918,9 @@ class ViewController: BaseViewController {
         guard user.lastStudy != nil else { return } // nil for new users
         
         // Don't be annoying. rate-limit the alert to every sickAlertCooldown seconds.
-        if let lastShown = ViewController.lastBevoSickAlertShownAt {
+        if let lastShown = MainViewController.lastBevoSickAlertShownAt {
             let elapsed = Date().timeIntervalSince(lastShown)
-            guard elapsed >= ViewController.sickAlertCooldown else {
+            guard elapsed >= MainViewController.sickAlertCooldown else {
                 return
             }
         }
@@ -952,13 +952,13 @@ class ViewController: BaseViewController {
         present(alert, animated: true)
         
         // update rate-limit cooldown, when it was last shown
-        ViewController.lastBevoSickAlertShownAt = Date()
+        MainViewController.lastBevoSickAlertShownAt = Date()
     }
 }
 
 // MARK: - UICollectionViewDataSource
 
-extension ViewController: UICollectionViewDataSource {
+extension MainViewController: UICollectionViewDataSource {
 
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         troughPageCount
@@ -995,7 +995,7 @@ private final class TroughFoodPanIndexBox: NSObject {
 
 // MARK: - Gap-only paging (touch start location)
 
-extension ViewController: UIGestureRecognizerDelegate {
+extension MainViewController: UIGestureRecognizerDelegate {
 
     /// Touch start decides if this is a **page swipe** vs **food drag**:
     /// - Not on any item → allow paging (true gaps between cells, empty column, insets).
