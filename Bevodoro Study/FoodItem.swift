@@ -38,20 +38,32 @@ extension FoodItem {
         return nil
     }
 
-    /// Read `foods` or `food` map from a user document’s raw `[String: Any]`.
+    /// Read `food` (canonical, matches `User`) or legacy `foods` from a user document’s raw `[String: Any]`.
+    ///
+    /// **`food` must win when both exist:** the app persists counts only under `food` (`User.saveToFirestore`).
+    /// If we preferred `foods` first, a stale duplicate field would keep showing items after the last one was eaten.
     static func parseFoodMap(from documentData: [String: Any]?) -> [String: Int] {
         guard let data = documentData else { return [:] }
 
-        let rawMap: [String: Any]? =
-            (data["foods"] as? [String: Any])
-            ?? (data["food"] as? [String: Any])
-
-        guard let rawMap else {
-            if let legacy = data["food"] as? [String: Int] { return legacy }
-            if let legacy = data["foods"] as? [String: Int] { return legacy }
-            return [:]
+        if data["food"] != nil {
+            if let rawMap = data["food"] as? [String: Any] {
+                return intCounts(fromFirestoreAnyMap: rawMap)
+            }
+            if let legacy = data["food"] as? [String: Int] {
+                return legacy
+            }
         }
 
+        if let rawMap = data["foods"] as? [String: Any] {
+            return intCounts(fromFirestoreAnyMap: rawMap)
+        }
+        if let legacy = data["foods"] as? [String: Int] {
+            return legacy
+        }
+        return [:]
+    }
+
+    private static func intCounts(fromFirestoreAnyMap rawMap: [String: Any]) -> [String: Int] {
         var out: [String: Int] = [:]
         for (key, value) in rawMap {
             if let q = intFromFirestore(value) {

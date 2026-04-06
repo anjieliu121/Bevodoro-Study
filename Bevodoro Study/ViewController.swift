@@ -26,6 +26,11 @@ class ViewController: BaseViewController {
     /// Foods loaded from Firestore (`users/{uid}` → `food` or `foods` map). Quantity shows on each cell.
     private var troughFoods: [FoodItem] = []
     private var troughFoodCollectionView: UICollectionView?
+    /// Horizontal page indicator at the bottom of the trough (only when `troughPageCount > 1`).
+    private var troughPagingScrollBarContainer: UIView?
+    private var troughPagingScrollThumbView: UIView?
+    private var troughPagingScrollThumbLeading: NSLayoutConstraint?
+    private var troughPagingScrollThumbWidth: NSLayoutConstraint?
     /// Paging pan: only begins when touch starts on empty space (`indexPathForItem(at:)` is nil).
     private var troughGapPanGesture: UIPanGestureRecognizer?
 
@@ -53,7 +58,14 @@ class ViewController: BaseViewController {
     /// How long Bevo stays on the EatFullBody asset after being fed.
     private static let bevoEatFullBodyDuration: TimeInterval = 1.5
 
-    
+    /// Trough page indicator: size, contrast, and vertical spacing from the food row.
+    private static let troughPagingBarHeight: CGFloat = 8
+    private static let troughPagingBarWidthMultiplier: CGFloat = 0.58
+    /// Inset from the trough image’s bottom edge (bar sits just above the rim).
+    private static let troughPagingBarBottomInset: CGFloat = 7
+    /// Nudge food row upward so there’s clear space above the paging bar.
+    private static let troughFoodCollectionCenterYOffset: CGFloat = -14
+
     private static var lastBevoSickAlertShownAt: Date? = nil
     private static let sickAlertCooldown: TimeInterval = 5 * 60  // 5 minutes. rate limit the sick alert so it isnt annoying.
     
@@ -80,6 +92,9 @@ class ViewController: BaseViewController {
         super.viewDidLayoutSubviews()
         if isMenuOpen {
             refreshOpenMenuGeometry()
+        }
+        if foodTroughImageView != nil {
+            updateTroughPagingScrollBar()
         }
     }
     
@@ -197,6 +212,7 @@ class ViewController: BaseViewController {
             imageView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.28)
         ])
 
+        setupTroughPagingScrollBar(pinnedTo: imageView)
         setupTroughFoodCollectionView(pinnedTo: imageView)
     }
     
@@ -274,6 +290,48 @@ class ViewController: BaseViewController {
         return max(0, min(troughPageCount - 1, p))
     }
 
+    private func setupTroughPagingScrollBar(pinnedTo trough: UIImageView) {
+        let container = UIView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.layer.cornerCurve = .continuous
+        container.layer.cornerRadius = Self.troughPagingBarHeight / 2
+        container.clipsToBounds = true
+        // Dark track reads clearly on light trough art; reads as a proper “scrollbar” track.
+        container.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+        container.layer.borderWidth = 0.5
+        container.layer.borderColor = UIColor.white.withAlphaComponent(0.35).cgColor
+        container.isHidden = true
+
+        let thumb = UIView()
+        thumb.translatesAutoresizingMaskIntoConstraints = false
+        thumb.layer.cornerCurve = .continuous
+        thumb.layer.cornerRadius = (Self.troughPagingBarHeight - 4) / 2
+        thumb.clipsToBounds = true
+        thumb.backgroundColor = UIColor.white.withAlphaComponent(0.95)
+        thumb.isUserInteractionEnabled = false
+
+        container.addSubview(thumb)
+        view.addSubview(container)
+
+        troughPagingScrollBarContainer = container
+        troughPagingScrollThumbView = thumb
+
+        let barInset: CGFloat = 2
+        NSLayoutConstraint.activate([
+            container.centerXAnchor.constraint(equalTo: trough.centerXAnchor),
+            container.bottomAnchor.constraint(equalTo: trough.bottomAnchor, constant: -Self.troughPagingBarBottomInset),
+            container.widthAnchor.constraint(equalTo: trough.widthAnchor, multiplier: Self.troughPagingBarWidthMultiplier),
+            container.heightAnchor.constraint(equalToConstant: Self.troughPagingBarHeight),
+            thumb.topAnchor.constraint(equalTo: container.topAnchor, constant: barInset),
+            thumb.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -barInset)
+        ])
+        let lead = thumb.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: barInset)
+        let widthC = thumb.widthAnchor.constraint(equalToConstant: 24)
+        NSLayoutConstraint.activate([lead, widthC])
+        troughPagingScrollThumbLeading = lead
+        troughPagingScrollThumbWidth = widthC
+    }
+
     private func setupTroughFoodCollectionView(pinnedTo trough: UIImageView) {
         let layout = makeTroughFoodCompositionalLayout()
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -285,6 +343,7 @@ class ViewController: BaseViewController {
         // Avoid the scroll view’s built-in pan competing with our gap-only paging pan.
         cv.panGestureRecognizer.isEnabled = false
         cv.dataSource = self
+        cv.delegate = self
         cv.register(FoodCell.self, forCellWithReuseIdentifier: FoodCell.reuseIdentifier)
 
         view.addSubview(cv)
@@ -292,7 +351,7 @@ class ViewController: BaseViewController {
 
         NSLayoutConstraint.activate([
             cv.centerXAnchor.constraint(equalTo: trough.centerXAnchor),
-            cv.centerYAnchor.constraint(equalTo: trough.centerYAnchor, constant: -6),
+            cv.centerYAnchor.constraint(equalTo: trough.centerYAnchor, constant: Self.troughFoodCollectionCenterYOffset),
             cv.widthAnchor.constraint(equalTo: trough.widthAnchor, multiplier: 0.88),
             cv.heightAnchor.constraint(equalTo: trough.heightAnchor, multiplier: 0.38)
         ])
@@ -304,6 +363,37 @@ class ViewController: BaseViewController {
         troughGapPanGesture = pan
 
         cv.reloadData()
+    }
+
+    /// Track + thumb reflect horizontal page position (custom gap pan updates `contentOffset`).
+    private func updateTroughPagingScrollBar() {
+        guard let container = troughPagingScrollBarContainer,
+              let thumbLead = troughPagingScrollThumbLeading,
+              let thumbWidth = troughPagingScrollThumbWidth,
+              let cv = troughFoodCollectionView else { return }
+
+        let pages = troughPageCount
+        if pages <= 1 {
+            container.isHidden = true
+            return
+        }
+
+        container.isHidden = false
+        view.layoutIfNeeded()
+        let horizontalInset: CGFloat = 2
+        let trackUsable = container.bounds.width - 2 * horizontalInset
+        guard trackUsable > 0 else { return }
+
+        let w = cv.bounds.width
+        guard w > 0 else { return }
+
+        let thumbW = max(22, min(trackUsable, trackUsable / CGFloat(pages)))
+        let slack = max(0, trackUsable - thumbW)
+        let maxScrollX = CGFloat(pages - 1) * w
+        let progress = maxScrollX > 0 ? min(1, max(0, cv.contentOffset.x / maxScrollX)) : 0
+
+        thumbWidth.constant = thumbW
+        thumbLead.constant = horizontalInset + progress * slack
     }
 
     @objc private func handleTroughGapPan(_ gesture: UIPanGestureRecognizer) {
@@ -338,6 +428,7 @@ class ViewController: BaseViewController {
         guard let uid = Auth.auth().currentUser?.uid else {
             troughFoods = []
             troughFoodCollectionView?.reloadData()
+            updateTroughPagingScrollBar()
             return
         }
 
@@ -348,42 +439,53 @@ class ViewController: BaseViewController {
                     print("Food trough: load error — \(error.localizedDescription)")
                     self.troughFoods = []
                     self.troughFoodCollectionView?.reloadData()
+                    self.updateTroughPagingScrollBar()
                     return
                 }
                 let map = FoodItem.parseFoodMap(from: snapshot?.data())
                 self.troughFoods = FoodItem.troughItems(fromFoodMap: map)
                 self.troughFoodCollectionView?.reloadData()
+                self.troughFoodCollectionView?.layoutIfNeeded()
+                self.updateTroughPagingScrollBar()
             }
         }
     }
 
-    /// After Bevo eats, update local list and merge into Firestore (keeps other `food` keys from Shop, etc.).
+    /// After Bevo eats, update local list, write back `UserManager`, and persist with `saveToFirestore`.
     private func applyEatFromTrough(atGlobalIndex globalIndex: Int) {
         guard troughFoods.indices.contains(globalIndex) else { return }
         let name = troughFoods[globalIndex].imageName
         if troughFoods[globalIndex].quantity <= 1 {
             troughFoods.remove(at: globalIndex)
-            mergePushFoodMap(updating: name, newQuantity: 0)
+            syncUserManagerFood(foodKey: name, newQuantity: 0)
         } else {
             troughFoods[globalIndex].quantity -= 1
-            mergePushFoodMap(updating: name, newQuantity: troughFoods[globalIndex].quantity)
+            let newQty = troughFoods[globalIndex].quantity
+            syncUserManagerFood(foodKey: name, newQuantity: newQty)
         }
     }
 
-    private func mergePushFoodMap(updating foodKey: String, newQuantity: Int) {
-        guard let uid = Auth.auth().currentUser?.uid else { return }
-        let doc = Firestore.firestore().collection("users").document(uid)
-        doc.getDocument { snapshot, _ in
-            var food = FoodItem.parseFoodMap(from: snapshot?.data())
-            if newQuantity <= 0 {
-                food.removeValue(forKey: foodKey)
-            } else {
-                food[foodKey] = newQuantity
-            }
-            doc.setData(["food": food], merge: true) { error in
-                if let error = error {
-                    print("Food trough: save error — \(error.localizedDescription)")
-                }
+    /// `User` is a struct: mutations must be written back. Persist `food` with `updateData` so the **entire** map
+    /// is replaced. `setData(..., merge: true)` only merges nested keys under `food`, so removed keys (count 0)
+    /// would otherwise stay on the server and reappear when the trough reloads.
+    ///
+    /// We also remove legacy `foods` if present so `parseFoodMap` cannot read a stale duplicate field.
+    private func syncUserManagerFood(foodKey: String, newQuantity: Int) {
+        guard var user = UserManager.shared.currentUser else { return }
+        if newQuantity <= 0 {
+            user.food.removeValue(forKey: foodKey)
+        } else {
+            user.food[foodKey] = newQuantity
+        }
+        UserManager.shared.currentUser = user
+
+        let doc = Firestore.firestore().collection("users").document(user.userID)
+        doc.updateData([
+            "food": user.food,
+            "foods": FieldValue.delete()
+        ]) { error in
+            if let error {
+                print("Food trough: save error — \(error.localizedDescription)")
             }
         }
     }
@@ -485,6 +587,8 @@ class ViewController: BaseViewController {
                             self.clearTroughFoodDragState()
                             self.applyEatFromTrough(atGlobalIndex: global)
                             cv.reloadData()
+                            cv.layoutIfNeeded()
+                            self.updateTroughPagingScrollBar()
                         })
                     })
                 })
@@ -834,6 +938,8 @@ class ViewController: BaseViewController {
         foodTroughImageView?.alpha = 0
         troughFoodCollectionView?.transform = t
         troughFoodCollectionView?.alpha = 0
+        troughPagingScrollBarContainer?.transform = t
+        troughPagingScrollBarContainer?.alpha = 0
     }
 
     /// Brings trough + foods back to normal layout (after leaving photo mode).
@@ -842,6 +948,8 @@ class ViewController: BaseViewController {
         foodTroughImageView?.alpha = 1
         troughFoodCollectionView?.transform = .identity
         troughFoodCollectionView?.alpha = 1
+        troughPagingScrollBarContainer?.transform = .identity
+        troughPagingScrollBarContainer?.alpha = 1
     }
 
     @objc private func enterPhotoModeFromMenu() {
@@ -953,6 +1061,16 @@ class ViewController: BaseViewController {
         
         // update rate-limit cooldown, when it was last shown
         ViewController.lastBevoSickAlertShownAt = Date()
+    }
+}
+
+// MARK: - UICollectionViewDelegate (trough paging indicator)
+
+extension ViewController: UICollectionViewDelegate {
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard scrollView === troughFoodCollectionView else { return }
+        updateTroughPagingScrollBar()
     }
 }
 
