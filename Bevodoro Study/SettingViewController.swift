@@ -39,10 +39,10 @@ class SettingViewController: BaseViewController {
 
     static let pomodoroDurations = [1, 5, 10, 15, 20, 25, 30, 45, 60] // minutes
 
-    /// UserDefaults key for Bevo's moo sound on/off. Use this when playing the moo sound.
+    /// UserDefaults key for Bevo's sound effects (moo, eating) on/off.
     private static let bevosSoundKey = "bevosSoundEnabled"
 
-    /// Whether Bevo's moo sound is enabled. Check this before playing the moo (e.g. on timer complete).
+    /// Whether Bevo's sound effects are enabled (moo tap, chewing when fed). Check before playing any Bevo SFX.
     static var isBevosSoundEnabled: Bool {
         get {
             if UserDefaults.standard.object(forKey: bevosSoundKey) == nil {
