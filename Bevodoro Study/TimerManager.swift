@@ -64,6 +64,9 @@ class TimerManager {
     var onStateChange: ((TimerState) -> Void)? // running / not running
     var onModeChange: ((Bool) -> Void)?  // study / break
     
+    // Called when the timer hits zero.
+    var onTimerComplete: ((Bool) -> Void)?
+    
     // prevent timer drifting
     private var correctionInterval: Int = 60  // correct every one minute
     private var endDate: Date?
@@ -131,6 +134,8 @@ class TimerManager {
                 // ended study mode
                 transitionToBreak()
             }
+            // fire notification signal before toggling mode
+            onTimerComplete?(inStudyMode)
 
             inStudyMode.toggle()
             onModeChange?(inStudyMode)

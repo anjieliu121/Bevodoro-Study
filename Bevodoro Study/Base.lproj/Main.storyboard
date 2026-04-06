@@ -24,7 +24,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Password" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="AH1-Jr-Zjd">
-                                <rect key="frame" x="179.66666666666666" y="354" width="80.999999999999972" height="24"/>
+                                <rect key="frame" x="180.33333333333334" y="357" width="79.666666666666657" height="21"/>
                                 <fontDescription key="fontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="18"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
@@ -46,13 +46,13 @@
                                 <textInputTraits key="textInputTraits"/>
                             </textField>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Bevodoro Study" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Bsu-Tt-fix">
-                                <rect key="frame" x="73.333333333333343" y="115" width="293.33333333333326" height="52"/>
+                                <rect key="frame" x="75" y="117.66666666666667" width="290" height="46.666666666666671"/>
                                 <fontDescription key="fontDescription" name="SourGummy-Black_SemiBold" family="Sour Gummy" pointSize="40"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="LKr-Qp-SCa">
-                                <rect key="frame" x="182" y="497.99999999999994" width="76" height="37.333333333333314"/>
+                                <rect key="frame" x="180" y="499" width="80" height="35"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="Sign In">
                                     <fontDescription key="titleFontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="18"/>
@@ -64,7 +64,7 @@
                                 </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="UIz-f5-fCY">
-                                <rect key="frame" x="178" y="572" width="84.333333333333314" height="37.333333333333371"/>
+                                <rect key="frame" x="175.66666666666666" y="573" width="88.999999999999972" height="35"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="Sign Up">
                                     <fontDescription key="titleFontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="18"/>
@@ -86,7 +86,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Email" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="pC7-ar-YRu">
-                                <rect key="frame" x="198" y="242" width="44" height="24"/>
+                                <rect key="frame" x="198" y="245" width="44.333333333333343" height="21"/>
                                 <fontDescription key="fontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="18"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
@@ -122,7 +122,7 @@
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="q3b-eC-0O4" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="798" y="105"/>
+            <point key="canvasLocation" x="797.72727272727275" y="104.81171548117155"/>
         </scene>
         <!--Sign Up View Controller-->
         <scene sceneID="Ut0-NE-ZEk">
@@ -133,13 +133,13 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Email" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="5aU-9R-MXN">
-                                <rect key="frame" x="198.33333333333334" y="213" width="43.666666666666657" height="23.333333333333343"/>
+                                <rect key="frame" x="198" y="214" width="44.333333333333343" height="21"/>
                                 <fontDescription key="fontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="18"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Password" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1se-9g-QW7">
-                                <rect key="frame" x="179.66666666666666" y="381" width="80.666666666666657" height="23.333333333333314"/>
+                                <rect key="frame" x="179.66666666666666" y="382" width="80.666666666666657" height="21"/>
                                 <fontDescription key="fontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="18"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
@@ -161,12 +161,12 @@
                                 <textInputTraits key="textInputTraits"/>
                             </textField>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Bevodoro Study" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="2Z8-Tx-XK2">
-                                <rect key="frame" x="73.333333333333343" y="84" width="293.33333333333326" height="52"/>
+                                <rect key="frame" x="75" y="86.666666666666671" width="290" height="46.666666666666671"/>
                                 <fontDescription key="fontDescription" name="SourGummy-Black_SemiBold" family="Sour Gummy" pointSize="40"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="" textAlignment="natural" lineBreakMode="tailTruncation" numberOfLines="4" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="L3C-uv-dTo">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="4" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="L3C-uv-dTo">
                                 <rect key="frame" x="70" y="704" width="300" height="32"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="300" id="8cp-Iy-zk8" userLabel="width = 304"/>
@@ -176,7 +176,7 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Username" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hGr-Rk-JDi">
-                                <rect key="frame" x="178.66666666666666" y="295" width="82.666666666666657" height="23.333333333333314"/>
+                                <rect key="frame" x="178.66666666666666" y="296" width="82.999999999999972" height="21"/>
                                 <fontDescription key="fontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="18"/>
                                 <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
@@ -189,8 +189,25 @@
                                 <fontDescription key="fontDescription" type="system" pointSize="14"/>
                                 <textInputTraits key="textInputTraits"/>
                             </textField>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Confirm Password" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="fn0-g6-tVS">
+                                <rect key="frame" x="145" y="466" width="150" height="21"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="150" id="BTa-ye-npK"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="18"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <textField opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="248" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="b7i-kY-OLN">
+                                <rect key="frame" x="68" y="495" width="304" height="34"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="304" id="Kbs-Yx-pYW"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                <textInputTraits key="textInputTraits"/>
+                            </textField>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="muR-w1-Awx">
-                                <rect key="frame" x="174.33333333333334" y="502.99999999999994" width="91.333333333333343" height="37.333333333333314"/>
+                                <rect key="frame" x="174.33333333333334" y="573" width="91.333333333333343" height="35"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="filled" title="Register">
                                     <fontDescription key="titleFontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="18"/>
@@ -209,15 +226,19 @@
                             <constraint firstItem="hGr-Rk-JDi" firstAttribute="centerY" secondItem="BR8-WS-4Ot" secondAttribute="centerY" constant="-140.5" id="6wu-6c-JuM"/>
                             <constraint firstItem="1se-9g-QW7" firstAttribute="centerY" secondItem="BR8-WS-4Ot" secondAttribute="centerY" constant="-54.5" id="EFG-EO-42e"/>
                             <constraint firstItem="LWr-9w-s2d" firstAttribute="centerX" secondItem="BR8-WS-4Ot" secondAttribute="centerX" id="El2-iJ-RxS"/>
+                            <constraint firstItem="fn0-g6-tVS" firstAttribute="centerY" secondItem="BR8-WS-4Ot" secondAttribute="centerY" constant="29.5" id="Giy-Tk-UFR"/>
                             <constraint firstItem="2ul-DB-206" firstAttribute="centerY" secondItem="BR8-WS-4Ot" secondAttribute="centerY" constant="-19" id="Iua-eF-hR6"/>
                             <constraint firstItem="L3C-uv-dTo" firstAttribute="centerY" secondItem="BR8-WS-4Ot" secondAttribute="centerY" constant="257.5" id="JhD-HN-bXX"/>
+                            <constraint firstItem="fn0-g6-tVS" firstAttribute="centerX" secondItem="BR8-WS-4Ot" secondAttribute="centerX" id="MDY-zs-mBM"/>
                             <constraint firstItem="1se-9g-QW7" firstAttribute="centerX" secondItem="BR8-WS-4Ot" secondAttribute="centerX" id="Msf-IE-hcm"/>
-                            <constraint firstItem="muR-w1-Awx" firstAttribute="centerY" secondItem="BR8-WS-4Ot" secondAttribute="centerY" constant="74.5" id="SIO-e9-9Rc"/>
                             <constraint firstItem="NpD-FM-AVs" firstAttribute="centerX" secondItem="BR8-WS-4Ot" secondAttribute="centerX" id="U0g-nG-gfV"/>
                             <constraint firstItem="2Z8-Tx-XK2" firstAttribute="centerX" secondItem="BR8-WS-4Ot" secondAttribute="centerX" id="gcp-zH-mSa"/>
                             <constraint firstItem="L3C-uv-dTo" firstAttribute="centerX" secondItem="BR8-WS-4Ot" secondAttribute="centerX" id="glq-Tl-dk5"/>
                             <constraint firstItem="NpD-FM-AVs" firstAttribute="centerY" secondItem="BR8-WS-4Ot" secondAttribute="centerY" constant="-187" id="h5K-aY-eT8"/>
                             <constraint firstItem="hGr-Rk-JDi" firstAttribute="centerX" secondItem="BR8-WS-4Ot" secondAttribute="centerX" id="k2s-MZ-DK1"/>
+                            <constraint firstItem="muR-w1-Awx" firstAttribute="centerY" secondItem="BR8-WS-4Ot" secondAttribute="centerY" constant="143.5" id="mR2-M4-E6b"/>
+                            <constraint firstItem="b7i-kY-OLN" firstAttribute="centerX" secondItem="BR8-WS-4Ot" secondAttribute="centerX" id="oPa-Zk-5I5"/>
+                            <constraint firstItem="b7i-kY-OLN" firstAttribute="centerY" secondItem="BR8-WS-4Ot" secondAttribute="centerY" constant="65" id="ohc-g0-gPB"/>
                             <constraint firstItem="muR-w1-Awx" firstAttribute="centerX" secondItem="BR8-WS-4Ot" secondAttribute="centerX" id="tch-KE-Flg"/>
                             <constraint firstItem="5aU-9R-MXN" firstAttribute="centerY" secondItem="BR8-WS-4Ot" secondAttribute="centerY" constant="-222.5" id="uGs-c2-h0c"/>
                             <constraint firstItem="2Z8-Tx-XK2" firstAttribute="centerY" secondItem="BR8-WS-4Ot" secondAttribute="centerY" constant="-337" id="uMS-Xt-QCs"/>
@@ -228,6 +249,7 @@
                     </view>
                     <navigationItem key="navigationItem" id="ItF-jI-oGs"/>
                     <connections>
+                        <outlet property="confirmPasswordField" destination="b7i-kY-OLN" id="7ec-yp-HcV"/>
                         <outlet property="emailField" destination="NpD-FM-AVs" id="AUd-Me-c4Y"/>
                         <outlet property="errorMsgLabel" destination="L3C-uv-dTo" id="FLZ-7q-Cvt"/>
                         <outlet property="passwordField" destination="2ul-DB-206" id="B6a-hR-ZjM"/>

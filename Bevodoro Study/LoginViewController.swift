@@ -15,6 +15,7 @@ class LoginViewController: BaseViewController, UITextFieldDelegate {
     @IBOutlet weak var passwordField: UITextField!
     @IBOutlet weak var errorMsgLabel: UILabel!
     
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         errorMsgLabel.text = ""
@@ -37,7 +38,17 @@ class LoginViewController: BaseViewController, UITextFieldDelegate {
         Auth.auth().signIn(withEmail: emailField.text!, password: passwordField.text!) {
             authResult, error in
             if let error = error as NSError? {
-                self.errorMsgLabel.text = "Error: \(error.localizedDescription)"
+                let authError = AuthErrorCode(rawValue: error.code)
+                switch authError {
+                case .userNotFound:
+                    self.errorMsgLabel.text = "Email not registered to an account."
+                case .wrongPassword:
+                    self.errorMsgLabel.text = "Incorrect password. Please try again."
+                case .invalidEmail:
+                    self.errorMsgLabel.text = "Please enter a valid email."
+                default:
+                    self.errorMsgLabel.text = "Error: \(error.localizedDescription)"
+                }
                 return
             }
 

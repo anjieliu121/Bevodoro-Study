@@ -14,8 +14,9 @@ class SignUpViewController: BaseViewController, UITextFieldDelegate {
     @IBOutlet weak var emailField: UITextField!
     @IBOutlet weak var usernameField: UITextField!
     @IBOutlet weak var passwordField: UITextField!
+    @IBOutlet weak var confirmPasswordField: UITextField!
     @IBOutlet weak var errorMsgLabel: UILabel!
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         errorMsgLabel.text = ""
@@ -37,12 +38,16 @@ class SignUpViewController: BaseViewController, UITextFieldDelegate {
 
 
     @IBAction func registerButton(_ sender: Any) {
-        guard let email = emailField.text, !email.isEmpty,
-              let username = usernameField.text, !username.isEmpty,
-              let password = passwordField.text, !password.isEmpty else {
-            errorMsgLabel.text = "Please fill in all fields."
+        guard let email = emailField.text, !email.isEmpty, let username = usernameField.text, !username.isEmpty, let password = passwordField.text, !password.isEmpty, let confirmPassword = confirmPasswordField.text, !confirmPassword.isEmpty else {
+                errorMsgLabel.text = "Please fill in all fields."
+                return
+            }
+        guard password == confirmPassword else {
+            errorMsgLabel.text = "Passwords do not match."
             return
         }
+            
+        errorMsgLabel.text = ""
 
         Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
             if let error = error as NSError? {
