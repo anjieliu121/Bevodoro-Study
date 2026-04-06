@@ -33,6 +33,7 @@ class ViewController: BaseViewController {
     private var troughFoodDragIndexPath: IndexPath?
 
     private var audioPlayer: AVAudioPlayer?
+    private var chewingAudioPlayer: AVAudioPlayer?
     /// Switches Bevo to EatFullBody then back; cancelled if fed again before the pose ends.
     private var bevoEatRevertWorkItem: DispatchWorkItem?
 
@@ -489,6 +490,7 @@ class ViewController: BaseViewController {
 
         bevoEatRevertWorkItem?.cancel()
         bevo.image = eatImage
+        playBevoChewingSound()
 
         let work = DispatchWorkItem { [weak self] in
             guard let self, let bevo = self.bevoImageView else { return }
@@ -653,6 +655,28 @@ class ViewController: BaseViewController {
             audioPlayer?.play()
         } catch {
             // If the sound fails to load, we just skip playing it.
+        }
+    }
+
+    /// Plays `Audio/chewing.mp3` while Bevo shows the eat-full-body pose (same toggle as moo).
+    private func playBevoChewingSound() {
+        guard SettingViewController.isBevosSoundEnabled else { return }
+        if let player = chewingAudioPlayer, player.isPlaying {
+            player.stop()
+        }
+        let url = Bundle.main.url(forResource: "chewing", withExtension: "mp3", subdirectory: "Audio")
+            ?? Bundle.main.url(forResource: "chewing", withExtension: "mp3")
+        guard let url else {
+            #if DEBUG
+            print("ViewController: chewing.mp3 not found — add Bevodoro Study/Audio/chewing.mp3 to the app bundle.")
+            #endif
+            return
+        }
+        do {
+            chewingAudioPlayer = try AVAudioPlayer(contentsOf: url)
+            chewingAudioPlayer?.prepareToPlay()
+            chewingAudioPlayer?.play()
+        } catch {
         }
     }
     
