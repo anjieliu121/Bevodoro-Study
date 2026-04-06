@@ -5,14 +5,11 @@
 //  Created by Yim, Isabella H on 3/5/26.
 //
 
-// BUG! my debug values arent show up!!!! this is because it reads from firebase. change firebase.
-
 import UIKit
 
-let coinsPerMinute: Double = 60 //1.0 // 1 coin per minute earning rate
 let endStudyMessage: String = "Study complete!"
 let endBreakMessage: String = "Great break. Let's get back to it!"
-let endMessage: String = "Session ended. No coins earned"
+let endMessage: String = "Session ended."
 
 class TimerViewController: UIViewController {
     @IBOutlet weak var timerLabel: UILabel!  // displays the current time
@@ -48,11 +45,18 @@ class TimerViewController: UIViewController {
             if inStudyMode {
                 self.endMsg.text = endBreakMessage
             } else {
-                let earned = addCoins(
-                    timeInSeconds: timerManager.initialStudyTimeSeconds
-                )
-                self.endMsg.text =
-                    "\(endStudyMessage) You earned 🪙 \(earned). Let's take a break!"
+                let earned = self.timerManager.lastStudyEarnedCoins
+                let attributed = NSMutableAttributedString(string: "\(endStudyMessage) You earned ")
+
+                let attachment = NSTextAttachment()
+                attachment.image = UIImage(named: "Coin")
+                attachment.bounds = CGRect(x: 0, y: -4, width: 18, height: 18)
+
+                attributed.append(NSAttributedString(attachment: attachment))
+                attributed.append(NSAttributedString(string: " \(earned)! Let's take a break!"))
+
+                endMsg.attributedText = attributed
+                endMsg.numberOfLines = 0
             }
         }
         
@@ -93,6 +97,7 @@ class TimerViewController: UIViewController {
         endView.isHidden = true
         endMsg.text = ""  // clear any previous end message
 
+        // fill the timer with the correct number of seconds
         switch timerManager.state {
         case .notStarted, .paused:
             timerManager.start()
@@ -104,12 +109,26 @@ class TimerViewController: UIViewController {
             timerManager.reset()
             timerManager.start()
         }
+        
+        // fill the correct number of seconds in the label
+        self.timerLabel.text = seconds2String(seconds: timerManager.getSecondsRemaining())
     }
     
     @IBAction func endButtonPressed(_ sender: Any) {
         // show message only if ending a study session
         if timerManager.inStudyMode {
-            endMsg.text = endMessage
+            let attributed = NSMutableAttributedString(string: "\(endMessage) No ")
+
+            let attachment = NSTextAttachment()
+            attachment.image = UIImage(named: "Coin")
+            attachment.bounds = CGRect(x: 0, y: -4, width: 18, height: 18)
+
+            attributed.append(NSAttributedString(attachment: attachment))
+            attributed.append(NSAttributedString(string: " earned"))
+
+            endMsg.attributedText = attributed
+            endMsg.numberOfLines = 0
+
             endView.isHidden = false
         } else {
             endMsg.text = ""
@@ -135,22 +154,6 @@ class TimerViewController: UIViewController {
         // why do i need this? no clue but it sounds like it makes sense.
         guard let user = UserManager.shared.currentUser else { return }
         print("TimerViewController Warning: didReceiveMemoryWarning was triggered for user \(user.user)")
-    }
-    
-    func addCoins(timeInSeconds: Int) -> Int {
-        let coinsPerSecond: Double = coinsPerMinute / 60.0   // divide by 60 to get
-        let earned: Int = Int(Double(timeInSeconds) * coinsPerSecond)  // round down
-        // NOTE: this also means that any study time less than 1 minute will earn NO coins
-        guard var user = UserManager.shared.currentUser else {
-            print("error adding coins: user was null")
-            return 0
-        }
-        print("user starts with \(user.num_coins) coins")  // TODO change to label
-        user.addCoins(earned)
-        UserManager.shared.currentUser = user  // save back to shared user, user is a copy
-        user.saveToFirestore()  // save to firestore
-        print("user earned \(earned) coins, now has \(user.num_coins) coins")  // TODO change to label
-        return earned
     }
 }
 

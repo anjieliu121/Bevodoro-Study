@@ -8,6 +8,17 @@
 
 import Foundation
 
+// demo mode settings
+let demoModeStudySeconds = 7
+let demoModeBreakSeconds = 5
+let demoModeCoinsPerMinute = 60.0
+let bevoSickAlertCooldownSeconds: TimeInterval = SettingViewController.isDemoModeEnabled ? 2 * 60 : 5 * 60 // rate limit to show alert every 5 minutes
+
+// 1 coin per minute earning rate
+var coinsPerMinute: Double {
+    SettingViewController.isDemoModeEnabled ? demoModeCoinsPerMinute : 1.0
+}
+
 // defaults
 let defaultTimerStudyMins = 25
 let defaultTimerBreakMins = 5
@@ -25,6 +36,9 @@ enum TimerState {
 // manages one timer, which toggles between two modes: study and break. Uses settings from the UserManager object, or defaults
 class TimerManager {
     static let shared = TimerManager()  // the manager is a singleton object
+    
+    // study complete: save coins and timestamp
+    var lastStudyEarnedCoins: Int = -1  // last earned study coins
 
     // timer data
     private var timer: Timer?
@@ -34,9 +48,11 @@ class TimerManager {
 
     // use computed properties to get initial study time seconds in case currentUser is null
     var initialStudyTimeSeconds: Int {
+        SettingViewController.isDemoModeEnabled ? demoModeStudySeconds :
         (UserManager.shared.currentUser?.settings.timerStudyMins ?? defaultTimerStudyMins) * secondsPerMin
     }
     var initialBreakTimeSeconds: Int {
+        SettingViewController.isDemoModeEnabled ? demoModeBreakSeconds :
         (UserManager.shared.currentUser?.settings.timerBreakMins ?? defaultTimerBreakMins) * secondsPerMin
     }
     var isRunning: Bool {
@@ -55,11 +71,15 @@ class TimerManager {
     
     private init() {
         // initialize variables
-        secondsRemaining = defaultTimerBreakMins
+        secondsRemaining = defaultTimerStudyMins
         if let studyMins = UserManager.shared.currentUser?.settings.timerStudyMins {
                 secondsRemaining = studyMins * secondsPerMin
         } else {
             print("TimerManager ERROR: user is nil")
+        }
+        
+        if SettingViewController.isDemoModeEnabled {
+            secondsRemaining = demoModeStudySeconds
         }
     }
     
@@ -106,6 +126,11 @@ class TimerManager {
 
             state = .finished
             onStateChange?(state)
+            
+            if inStudyMode {
+                // ended study mode
+                transitionToBreak()
+            }
 
             inStudyMode.toggle()
             onModeChange?(inStudyMode)
@@ -136,6 +161,7 @@ class TimerManager {
         onStateChange?(state)
     }
     
+    // Note to self:  `reset()` is the ONLY place that sets secondsRemaining. Timer completion logic must never refill time.
     // stops the current timer and "refills" its seconds based on the current mode
     func reset() {
         timer?.invalidate()
@@ -169,6 +195,9 @@ class TimerManager {
 
     // when time was changed in settings
     func refreshFromSettings() {
+        // demo mode ignore firebase's values
+        guard !SettingViewController.isDemoModeEnabled else { return }
+        
         let minutes =
             UserManager.shared.currentUser?.settings.timerStudyMins
             ?? defaultTimerStudyMins
@@ -179,5 +208,22 @@ class TimerManager {
         if state == .notStarted || state == .finished {
             secondsRemaining = newSeconds
         }
+    }
+    
+    // study just ended
+    private func transitionToBreak() {
+        // compute coins once
+        let earned = UserManager.shared.addCoins(
+            timeInSeconds: initialStudyTimeSeconds
+        )
+
+        lastStudyEarnedCoins = earned
+
+        // tell UserManager to persist
+        UserManager.shared.handleStudyCompleted(
+            timeInSeconds: initialStudyTimeSeconds
+        )
+
+        // onModeChange?(false)
     }
 }

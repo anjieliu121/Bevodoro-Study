@@ -2,7 +2,7 @@
 //  SettingViewController.swift
 //  Bevodoro Study
 //
-//  Created by 阿清 on 2/28/26. Modified by Isabella 3-30-26
+//  Created by 阿清 on 2/28/26. Modified by Isabella 3-30-26 and 4-4-26
 //
 
 import UIKit
@@ -12,13 +12,17 @@ class SettingViewController: BaseViewController {
     enum SettingRow: Int, CaseIterable {
         case backgroundMusic = 0
         case bevosSound = 1
-        case pomodoroTimer = 2
+        case pomodoroStudyTimer = 2
+        case pomodoroBreakTimer = 3
+        case demoMode = 4
 
         var title: String {
             switch self {
             case .backgroundMusic: return "Background Music"
             case .bevosSound: return "Bevo's Sound"
-            case .pomodoroTimer: return "Pomodoro Timer"
+            case .pomodoroStudyTimer: return "Pomodoro Study Timer"
+            case .pomodoroBreakTimer: return "Pomodoro Break Timer"
+            case .demoMode: return "Demo Mode"
             }
         }
 
@@ -26,7 +30,9 @@ class SettingViewController: BaseViewController {
             switch self {
             case .backgroundMusic: return "music.note"
             case .bevosSound: return "speaker.wave.2.fill"
-            case .pomodoroTimer: return "clock"
+            case .pomodoroStudyTimer: return "clock"
+            case .pomodoroBreakTimer: return "clock"
+            case .demoMode: return "testtube.2" 
             }
         }
     }
@@ -46,6 +52,22 @@ class SettingViewController: BaseViewController {
         }
         set {
             UserDefaults.standard.set(newValue, forKey: bevosSoundKey)
+        }
+    }
+    
+    /// UserDefaults key for Demo Mode on/off.
+    private static let demoModeKey = "demoModeEnabled"
+
+    /// Whether Demo Mode is enabled. Use this throughout the app.
+    static var isDemoModeEnabled: Bool {
+        get {
+            if UserDefaults.standard.object(forKey: demoModeKey) == nil {
+                return false // default: demo mode OFF
+            }
+            return UserDefaults.standard.bool(forKey: demoModeKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: demoModeKey)
         }
     }
 
@@ -109,19 +131,59 @@ class SettingViewController: BaseViewController {
         settingsTableView.register(UITableViewCell.self, forCellReuseIdentifier: "SettingCell")
     }
 
-    private func showPomodoroPicker() {
+    private func showPomodoroStudyPicker() {
         let pickerVC = PomodoroPickerViewController()
         pickerVC.selectedMinutes = selectedPomodoroMinutes
+
         pickerVC.onSelect = { [weak self] minutes in
-            self?.selectedPomodoroMinutes = minutes
-            self?.settingsTableView.reloadData()
+            guard let self else { return }
+            
+            // Automatically exit demo mode
+            SettingViewController.isDemoModeEnabled = false
+
+            // save the new timer study minute duration to firestore
+            self.selectedPomodoroMinutes = minutes
+            UserManager.shared.currentUser?.settings.timerStudyMins = minutes
+            UserManager.shared.currentUser?.saveToFirestore()
+            self.settingsTableView.reloadData()
         }
+
         if let sheet = pickerVC.sheetPresentationController {
             let pickerSheetHeight: CGFloat = 280
-            let detent = UISheetPresentationController.Detent.custom(resolver: { _ in pickerSheetHeight })
+            let detent = UISheetPresentationController.Detent.custom { _ in pickerSheetHeight }
             sheet.detents = [detent]
             sheet.prefersGrabberVisible = true
         }
+
+        present(pickerVC, animated: true)
+    }
+    
+    private func showPomodoroBreakPicker() {
+        let pickerVC = PomodoroPickerViewController()
+
+        pickerVC.selectedMinutes =
+            UserManager.shared.currentUser?.settings.timerBreakMins
+            ?? defaultTimerBreakMins
+
+        pickerVC.onSelect = { [weak self] minutes in
+            guard let self else { return }
+            
+            // Automatically exit demo mode
+            SettingViewController.isDemoModeEnabled = false
+
+            // save the new timer break minute duration to firestore
+            UserManager.shared.currentUser?.settings.timerBreakMins = minutes
+            UserManager.shared.currentUser?.saveToFirestore()
+            self.settingsTableView.reloadData()
+        }
+
+        if let sheet = pickerVC.sheetPresentationController {
+            let pickerSheetHeight: CGFloat = 280
+            let detent = UISheetPresentationController.Detent.custom { _ in pickerSheetHeight }
+            sheet.detents = [detent]
+            sheet.prefersGrabberVisible = true
+        }
+
         present(pickerVC, animated: true)
     }
 }
@@ -160,9 +222,19 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
             toggle.addTarget(self, action: #selector(bevosSoundChanged(_:)), for: .valueChanged)
             cell.accessoryView = toggle
             cell.selectionStyle = .none
-        case .pomodoroTimer:
+        case .pomodoroStudyTimer:
             cell.accessoryView = nil
             cell.accessoryType = .disclosureIndicator
+        case .pomodoroBreakTimer:
+            cell.accessoryView = nil
+            cell.accessoryType = .disclosureIndicator
+        case .demoMode:
+            cell.accessoryType = .none
+            let toggle = UISwitch()
+            toggle.isOn = Self.isDemoModeEnabled
+            toggle.addTarget(self, action: #selector(demoModeChanged(_:)), for: .valueChanged)
+            cell.accessoryView = toggle
+            cell.selectionStyle = .none
         }
         return cell
     }
@@ -170,8 +242,14 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         settingsTableView.deselectRow(at: indexPath, animated: true)
         guard let row = SettingRow(rawValue: indexPath.row) else { return }
-        if row == .pomodoroTimer {
-            showPomodoroPicker()
+
+        switch row {
+        case .pomodoroStudyTimer:
+            showPomodoroStudyPicker()
+        case .pomodoroBreakTimer:
+            showPomodoroBreakPicker()
+        default:
+            break
         }
     }
 
@@ -186,6 +264,41 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
     @objc private func bevosSoundChanged(_ sender: UISwitch) {
         bevosSoundOn = sender.isOn
         // Setting is persisted via isBevosSoundEnabled; any moo playback should check SettingViewController.isBevosSoundEnabled
+    }
+    
+    @objc private func demoModeChanged(_ sender: UISwitch) {
+        Self.isDemoModeEnabled = sender.isOn
+        
+        // CHANGES: shown in the alert
+        // shorten timer and rate to demonstrate working timers
+        // change the timer values: moved to TimerManager.swift
+        // change the earning rate: moved to TimerViewController.swift
+        
+        if sender.isOn {
+            showDemoModeAlert()
+        }
+    }
+    
+    private func showDemoModeAlert() {
+        let message = """
+        Features:
+        Shorter study time: \(demoModeStudySeconds) seconds
+        Shorter break time: \(demoModeBreakSeconds) seconds
+        Higher earning rate: \(demoModeCoinsPerMinute) coins per minute
+        Lower Sick threshold: \(bevoSickThresholdSeconds) seconds
+        
+        ... and additional information in displays
+        """
+
+        let alert = UIAlertController(
+            title: "Demo Mode Enabled",
+            message: message,
+            preferredStyle: .alert
+        )
+
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+
+        present(alert, animated: true)
     }
 }
 
@@ -228,8 +341,6 @@ final class PomodoroPickerViewController: UIViewController {
     }
 
     @objc private func doneTapped() {
-        UserManager.shared.currentUser?.settings.timerStudyMins = selectedMinutes
-        UserManager.shared.currentUser?.saveToFirestore()
         onSelect?(selectedMinutes)
         dismiss(animated: true)
     }

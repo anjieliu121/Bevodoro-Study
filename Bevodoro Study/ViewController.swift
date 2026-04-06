@@ -7,6 +7,7 @@
 
 import UIKit
 import AVFoundation
+import FirebaseCore
 
 class ViewController: BaseViewController {
     
@@ -23,7 +24,7 @@ class ViewController: BaseViewController {
     private var mangoImageView: UIImageView?
     private var mangoHomeCenter: CGPoint?
     private var audioPlayer: AVAudioPlayer?
-
+    
     private var hamburgerButton: UIButton?
     private var menuContainerView: UIView?
     /// `hamburger.trailing = safeArea.trailing + constant` (default -12).
@@ -35,6 +36,10 @@ class ViewController: BaseViewController {
     /// Full-screen image behind Bevo (not the `BaseViewController` chrome).
     private var bevoSceneBackgroundImageView: UIImageView?
 
+    
+    private static var lastBevoSickAlertShownAt: Date? = nil
+    private static let sickAlertCooldown: TimeInterval = 5 * 60  // 5 minutes. rate limit the sick alert so it isnt annoying.
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -49,15 +54,16 @@ class ViewController: BaseViewController {
         super.viewWillAppear(animated)
         applyBevoSceneBackgroundFromUser()
         applyBevoHatFromUser()
+        showBevoSickAlertIfNeeded()
     }
-
+    
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         if isMenuOpen {
             refreshOpenMenuGeometry()
         }
     }
-
+    
     /// Max width so the menu’s leading edge stays at or past the safe-area inset.
     private func maximumMenuWidthForCurrentLayout() -> CGFloat {
         view.layoutIfNeeded()
@@ -67,11 +73,11 @@ class ViewController: BaseViewController {
         let maxWidth = menuTrailingX - safeLeft - menuLeadingInset
         return max(0, floor(maxWidth))
     }
-
+    
     private func widthToUseWhenMenuOpen() -> CGFloat {
         min(preferredMenuWidth, maximumMenuWidthForCurrentLayout())
     }
-
+    
     /// Fits five icons inside the current open width by adjusting spacing and icon size on narrow screens.
     private func applyMenuStackLayout(forOpenWidth w: CGFloat) {
         guard let stack = menuStackView else { return }
@@ -80,7 +86,7 @@ class ViewController: BaseViewController {
         let count = CGFloat(stack.arrangedSubviews.count)
         guard count > 0 else { return }
         let gaps = count - 1
-
+        
         let inner = max(0, w - 2 * pad)
         // Solve for icon side S and gap G: count*S + gaps*G = inner, with S<=44, G>=minGap
         var side = gaps > 0 ? (inner - gaps * minGap) / count : inner / count
@@ -93,7 +99,7 @@ class ViewController: BaseViewController {
             side = min(44, max(30, floor(spare / count)))
         }
         stack.spacing = gap
-
+        
         for case let button as UIButton in stack.arrangedSubviews {
             for c in button.constraints where c.firstAttribute == .width && c.secondItem == nil {
                 c.constant = side
@@ -104,7 +110,7 @@ class ViewController: BaseViewController {
             button.layer.cornerRadius = side / 2
         }
     }
-
+    
     private func refreshOpenMenuGeometry() {
         guard let menuWidthConstraint = menuWidthConstraint, isMenuOpen else { return }
         let w = widthToUseWhenMenuOpen()
@@ -163,7 +169,7 @@ class ViewController: BaseViewController {
         imageView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(imageView)
         foodTroughImageView = imageView
-
+        
         let safeArea = view.safeAreaLayoutGuide
         NSLayoutConstraint.activate([
             imageView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -4),
@@ -172,18 +178,18 @@ class ViewController: BaseViewController {
             imageView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.28)
         ])
     }
-
+    
     private func setupMango() {
         guard let trough = foodTroughImageView else { return }
         guard let mangoImage = UIImage(named: "mango") else { return }
-
+        
         let imageView = UIImageView(image: mangoImage)
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.isUserInteractionEnabled = true
         view.addSubview(imageView)
         mangoImageView = imageView
-
+        
         // Place it on top of the trough.
         NSLayoutConstraint.activate([
             imageView.centerXAnchor.constraint(equalTo: trough.centerXAnchor),
@@ -191,7 +197,7 @@ class ViewController: BaseViewController {
             imageView.widthAnchor.constraint(equalTo: trough.widthAnchor, multiplier: 0.16),
             imageView.heightAnchor.constraint(equalTo: imageView.widthAnchor)
         ])
-
+        
         let pan = UIPanGestureRecognizer(target: self, action: #selector(handleMangoPan(_:)))
         imageView.addGestureRecognizer(pan)
     }
@@ -203,20 +209,20 @@ class ViewController: BaseViewController {
         imageView.isUserInteractionEnabled = true
         view.addSubview(imageView)
         bevoImageView = imageView
-
+        
         var constraints: [NSLayoutConstraint] = [
             imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             imageView.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: 0.8),
             imageView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.6)
         ]
-
+        
         if let trough = foodTroughImageView {
             constraints.append(imageView.bottomAnchor.constraint(equalTo: trough.topAnchor, constant: 10))
             constraints.append(imageView.topAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.topAnchor, constant: 24))
         } else {
             constraints.append(imageView.centerYAnchor.constraint(equalTo: view.centerYAnchor, constant: 80))
         }
-
+        
         NSLayoutConstraint.activate(constraints)
 
         let hatView = UIImageView()
@@ -249,10 +255,10 @@ class ViewController: BaseViewController {
         hamburgerButton.addTarget(self, action: #selector(toggleMenu), for: .touchUpInside)
         view.addSubview(hamburgerButton)
         self.hamburgerButton = hamburgerButton
-
+        
         let trailing = hamburgerButton.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: -12)
         hamburgerTrailingConstraint = trailing
-
+        
         NSLayoutConstraint.activate([
             hamburgerButton.topAnchor.constraint(equalTo: safeArea.topAnchor, constant: 4),
             trailing,
@@ -329,7 +335,7 @@ class ViewController: BaseViewController {
         stackView.addArrangedSubview(settingsButton)
         stackView.addArrangedSubview(photoButton)
     }
-
+    
     @objc private func handleBevoTap() {
         guard let imageView = bevoImageView else { return }
         
@@ -345,10 +351,10 @@ class ViewController: BaseViewController {
         
         playBevoMooSound()
     }
-
+    
     @objc private func handleMangoPan(_ gesture: UIPanGestureRecognizer) {
         guard let mango = mangoImageView else { return }
-
+        
         switch gesture.state {
         case .began:
             if mangoHomeCenter == nil {
@@ -356,12 +362,12 @@ class ViewController: BaseViewController {
             }
             // Make sure it drags above other views.
             view.bringSubviewToFront(mango)
-
+            
         case .changed:
             let translation = gesture.translation(in: view)
             gesture.setTranslation(.zero, in: view)
             mango.center = CGPoint(x: mango.center.x + translation.x, y: mango.center.y + translation.y)
-
+            
         case .ended, .cancelled, .failed:
             if isMangoTouchingOrNearBevo(mangoFrame: mango.frame) {
                 animateMangoEatenAndRemove(mango)
@@ -376,33 +382,33 @@ class ViewController: BaseViewController {
                     mango.center = home
                 }
             }
-
+            
         default:
             break
         }
     }
-
+    
     private func isMangoTouchingOrNearBevo(mangoFrame: CGRect) -> Bool {
         guard let bevo = bevoImageView else { return false }
-
+        
         // Rule: Only "eat" if the dropped food is touching Bevo OR close enough.
         // Tunable: bigger = easier to feed even if not perfectly touching.
         let feedPadding = max(16, min(view.bounds.width, view.bounds.height) * 0.04)
-
+        
         let expandedBevoFrame = bevo.frame.insetBy(dx: -feedPadding, dy: -feedPadding)
         return expandedBevoFrame.intersects(mangoFrame)
     }
-
+    
     /// Same `UIImageView` and constraints as normal pose — only the asset changes, so size stays identical.
     private func showBevoEatingFullBodyForThreeSeconds() {
         guard let bevo = bevoImageView else { return }
         guard let eatImage = UIImage(named: "EatFullBody"),
               let normalImage = UIImage(named: "normalFullBody") else { return }
-
+        
         bevoEatRevertWorkItem?.cancel()
         bevoHatImageView?.isHidden = true
         bevo.image = eatImage
-
+        
         let work = DispatchWorkItem { [weak self] in
             guard let self, let bevo = self.bevoImageView else { return }
             bevo.image = normalImage
@@ -412,11 +418,11 @@ class ViewController: BaseViewController {
         bevoEatRevertWorkItem = work
         DispatchQueue.main.asyncAfter(deadline: .now() + 3, execute: work)
     }
-
+    
     private func animateMangoEatenAndRemove(_ mango: UIImageView) {
         mango.isUserInteractionEnabled = false
         showBevoEatingFullBodyForThreeSeconds()
-
+        
         // Optional tiny "sparkle" using SF Symbol (no extra assets needed).
         let sparkle = UIImageView(image: UIImage(systemName: "sparkles"))
         sparkle.translatesAutoresizingMaskIntoConstraints = false
@@ -429,7 +435,7 @@ class ViewController: BaseViewController {
             sparkle.widthAnchor.constraint(equalTo: mango.widthAnchor, multiplier: 0.8),
             sparkle.heightAnchor.constraint(equalTo: sparkle.widthAnchor)
         ])
-
+        
         UIView.animate(withDuration: 0.12, animations: {
             mango.transform = CGAffineTransform(scaleX: 1.12, y: 1.12)
         }, completion: { _ in
@@ -549,11 +555,11 @@ class ViewController: BaseViewController {
             completion: { _ in self.installPhotoModeTapOverlay() }
         )
     }
-
+    
     @objc private func enterPhotoModeFromMenu() {
         enterPhotoMode()
     }
-
+    
     private func installPhotoModeTapOverlay() {
         guard photoModeOverlay == nil else { return }
         let overlay = UIView()
@@ -571,7 +577,7 @@ class ViewController: BaseViewController {
         ])
         photoModeOverlay = overlay
     }
-
+    
     @objc private func handlePhotoModeOverlayTap() {
         guard isPhotoModeActive else { return }
         photoModeOverlay?.removeFromSuperview()
@@ -587,7 +593,7 @@ class ViewController: BaseViewController {
             completion: { _ in self.isPhotoModeActive = false }
         )
     }
-
+    
     @objc private func toggleMenu() {
         guard !isPhotoModeActive else { return }
         guard let menuWidthConstraint = menuWidthConstraint else { return }
@@ -598,7 +604,7 @@ class ViewController: BaseViewController {
         } else {
             menuWidthConstraint.constant = 0
         }
-
+        
         UIView.animate(withDuration: 0.3,
                        delay: 0,
                        usingSpringWithDamping: 0.8,
@@ -609,6 +615,50 @@ class ViewController: BaseViewController {
             // Fade in/out the icons as the menu opens/closes
             self.menuStackView?.alpha = self.isMenuOpen ? 1 : 0
         }, completion: nil)
+    }
+    
+    func showBevoSickAlertIfNeeded() {
+        // make sure the user is valid and bevo is sick
+        guard let user = UserManager.shared.currentUser else { return }
+        guard user.isSick() else { return }
+        guard user.lastStudy != nil else { return } // nil for new users
+        
+        // Don't be annoying. rate-limit the alert to every sickAlertCooldown seconds.
+        if let lastShown = ViewController.lastBevoSickAlertShownAt {
+            let elapsed = Date().timeIntervalSince(lastShown)
+            guard elapsed >= ViewController.sickAlertCooldown else {
+                return
+            }
+        }
+        
+        // construct the alert
+        let lastStudyDate = user.lastStudy!.dateValue()
+        let sickAfterDate = lastStudyDate.addingTimeInterval(bevoSickThresholdSeconds)
+        
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .medium
+        
+        let normalMessage = "It’s been a while since you last studied. Study more to buy medicine to treat Bevo!"
+        let debugMessage = """
+        \(normalMessage)
+        
+        Debug Mode info:
+        Last login: \(formatter.string(from: lastStudyDate))
+        Sick if after: \(formatter.string(from: sickAfterDate))
+        """
+        
+        let alert = UIAlertController(
+            title: "Bevo is Sick!",
+            message: SettingViewController.isDemoModeEnabled ? debugMessage : normalMessage,
+            preferredStyle: .alert
+        )
+        
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+        
+        // update rate-limit cooldown, when it was last shown
+        ViewController.lastBevoSickAlertShownAt = Date()
     }
 }
 
