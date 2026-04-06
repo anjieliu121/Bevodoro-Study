@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import UserNotifications
 
 class SettingViewController: BaseViewController {
 
@@ -13,12 +14,14 @@ class SettingViewController: BaseViewController {
         case backgroundMusic = 0
         case bevosSound = 1
         case pomodoroTimer = 2
+        case notifications = 3
 
         var title: String {
             switch self {
             case .backgroundMusic: return "Background Music"
             case .bevosSound: return "Bevo's Sound"
             case .pomodoroTimer: return "Pomodoro Timer"
+            case .notifications: return "Notifications"
             }
         }
 
@@ -27,6 +30,7 @@ class SettingViewController: BaseViewController {
             case .backgroundMusic: return "music.note"
             case .bevosSound: return "speaker.wave.2.fill"
             case .pomodoroTimer: return "clock"
+            case .notifications: return "bell.fill"
             }
         }
     }
@@ -49,6 +53,22 @@ class SettingViewController: BaseViewController {
         }
     }
 
+    /// UserDefaults key for app notifications being enabled.
+    private static let notificationsKey = "notificationsEnabled"
+
+    /// Whether notifications are enabled in-app. Check this before scheduling any local notifications.
+    static var isNotificationsEnabled: Bool {
+        get {
+            if UserDefaults.standard.object(forKey: notificationsKey) == nil {
+                return true // default: notifications on
+            }
+            return UserDefaults.standard.bool(forKey: notificationsKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: notificationsKey)
+        }
+    }
+
     @IBOutlet weak var tableView: UITableView!
 
     /// Resolves table view from outlet or from view hierarchy (avoids crash if outlet not connected).
@@ -62,6 +82,12 @@ class SettingViewController: BaseViewController {
         get { Self.isBevosSoundEnabled }
         set { Self.isBevosSoundEnabled = newValue }
     }
+
+    private var notificationsOn: Bool {
+        get { Self.isNotificationsEnabled }
+        set { Self.isNotificationsEnabled = newValue }
+    }
+
     private var selectedPomodoroMinutes = UserManager.shared.currentUser?.settings.timerStudyMins ?? defaultTimerStudyMins
 
     override func viewDidLoad() {
@@ -163,6 +189,13 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
         case .pomodoroTimer:
             cell.accessoryView = nil
             cell.accessoryType = .disclosureIndicator
+        case .notifications:
+            cell.accessoryType = .none
+            let toggle = UISwitch()
+            toggle.isOn = notificationsOn
+            toggle.addTarget(self, action: #selector(toggleNotif(_:)), for: .valueChanged)
+            cell.accessoryView = toggle
+            cell.selectionStyle = .none
         }
         return cell
     }
@@ -186,6 +219,55 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
     @objc private func bevosSoundChanged(_ sender: UISwitch) {
         bevosSoundOn = sender.isOn
         // Setting is persisted via isBevosSoundEnabled; any moo playback should check SettingViewController.isBevosSoundEnabled
+    }
+
+    @objc private func toggleNotif(_ sender: UISwitch) {
+        if sender.isOn {
+            reqNotifPermission(toggle: sender)
+        } else {
+            notificationsOn = false
+        }
+    }
+
+    private func reqNotifPermission(toggle: UISwitch) {
+        let center = UNUserNotificationCenter.current()
+        center.getNotificationSettings { [weak self] settings in
+            DispatchQueue.main.async {
+                switch settings.authorizationStatus {
+                case .notDetermined:
+                    center.requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+                        DispatchQueue.main.async {
+                            self?.notificationsOn = granted
+                            toggle.setOn(granted, animated: true)
+                            if !granted { self?.showNotifDeniedAlert() }
+                        }
+                    }
+                case .denied:
+                    self?.notificationsOn = false
+                    toggle.setOn(false, animated: true)
+                    self?.showNotifDeniedAlert()
+                case .authorized, .provisional, .ephemeral:
+                    self?.notificationsOn = toggle.isOn
+                @unknown default:
+                    self?.notificationsOn = toggle.isOn
+                }
+            }
+        }
+    }
+
+    private func showNotifDeniedAlert() {
+        let alert = UIAlertController(
+            title: "Notifications Disabled",
+            message: "To receive notifications, please enable them in Settings > Notifications > Bevodoro Study.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Open Settings", style: .default) { _ in
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                UIApplication.shared.open(url)
+            }
+        })
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        present(alert, animated: true)
     }
 }
 

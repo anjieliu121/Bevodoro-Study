@@ -8,6 +8,7 @@
 // BUG! my debug values arent show up!!!! this is because it reads from firebase. change firebase.
 
 import UIKit
+import UserNotifications
 
 let coinsPerMinute: Double = 60 //1.0 // 1 coin per minute earning rate
 let endStudyMessage: String = "Study complete!"
@@ -53,6 +54,22 @@ class TimerViewController: UIViewController {
                 )
                 self.endMsg.text =
                     "\(endStudyMessage) You earned 🪙 \(earned). Let's take a break!"
+            }
+        }
+        
+        // fire a local notification when the timer finishes
+        timerManager.onTimerComplete = { [weak self] completedStudyMode in
+            guard self != nil else { return }
+            if completedStudyMode {
+                TimerViewController.sendNotif(
+                    title: "Study session complete!",
+                    body: "Great work! Time to take a break."
+                )
+            } else {
+                TimerViewController.sendNotif(
+                    title: "Break's over!",
+                    body: "Ready to get back to studying?"
+                )
             }
         }
         
@@ -152,5 +169,27 @@ class TimerViewController: UIViewController {
         print("user earned \(earned) coins, now has \(user.num_coins) coins")  // TODO change to label
         return earned
     }
-}
+    
+    // Sends notifcsations
+    private static func sendNotif(title: String, body: String) {
+        guard SettingViewController.isNotificationsEnabled else { return }
 
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+            
+            // fire immediately (0.1s delay required by the API)
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
+            let request = UNNotificationRequest(
+                identifier: UUID().uuidString,
+                content: content,
+                trigger: trigger
+            )
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error {
+                    print("TimerViewController: failed to send notification: \(error)")
+                }
+            }
+        }
+}
