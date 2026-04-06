@@ -15,8 +15,9 @@ class SettingViewController: BaseViewController {
         case bevosSound = 1
         case pomodoroStudyTimer = 2
         case pomodoroBreakTimer = 3
-        case demoMode = 4
-        case notifications = 5
+        case notifications = 4
+        case logout = 5
+        case demoMode = 6
 
         var title: String {
             switch self {
@@ -24,8 +25,9 @@ class SettingViewController: BaseViewController {
             case .bevosSound: return "Bevo's Sound"
             case .pomodoroStudyTimer: return "Pomodoro Study Timer"
             case .pomodoroBreakTimer: return "Pomodoro Break Timer"
-            case .demoMode: return "Demo Mode"
             case .notifications: return "Notifications"
+            case .logout: return "Log Out"
+            case .demoMode: return "Demo Mode"
             }
         }
 
@@ -35,8 +37,9 @@ class SettingViewController: BaseViewController {
             case .bevosSound: return "speaker.wave.2.fill"
             case .pomodoroStudyTimer: return "clock"
             case .pomodoroBreakTimer: return "clock"
-            case .demoMode: return "testtube.2" 
             case .notifications: return "bell.fill"
+            case .logout: return "rectangle.portrait.and.arrow.right"
+            case .demoMode: return "testtube.2"
             }
         }
     }
@@ -254,18 +257,22 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
         case .pomodoroBreakTimer:
             cell.accessoryView = nil
             cell.accessoryType = .disclosureIndicator
-        case .demoMode:
-            cell.accessoryType = .none
-            let toggle = UISwitch()
-            toggle.isOn = Self.isDemoModeEnabled
-            toggle.addTarget(self, action: #selector(demoModeChanged(_:)), for: .valueChanged)
-            cell.accessoryView = toggle
-            cell.selectionStyle = .none
         case .notifications:
             cell.accessoryType = .none
             let toggle = UISwitch()
             toggle.isOn = notificationsOn
             toggle.addTarget(self, action: #selector(toggleNotif(_:)), for: .valueChanged)
+            cell.accessoryView = toggle
+            cell.selectionStyle = .none
+        case .logout:
+            // TODO implement here
+            cell.accessoryView = nil
+            cell.accessoryType = .disclosureIndicator
+        case .demoMode:
+            cell.accessoryType = .none
+            let toggle = UISwitch()
+            toggle.isOn = Self.isDemoModeEnabled
+            toggle.addTarget(self, action: #selector(demoModeChanged(_:)), for: .valueChanged)
             cell.accessoryView = toggle
             cell.selectionStyle = .none
         }
@@ -313,8 +320,10 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     private func showDemoModeAlert() {
+        let addCoinAmount: Int = 100
         let message = """
         Features:
+        Added \(addCoinAmount) coins to current balance
         Shorter study time: \(demoModeStudySeconds) seconds
         Shorter break time: \(demoModeBreakSeconds) seconds
         Higher earning rate: \(demoModeCoinsPerMinute) coins per minute
@@ -322,6 +331,8 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
         
         ... and additional information in displays
         """
+        UserManager.shared.currentUser?.addCoins(addCoinAmount)
+        UserManager.shared.currentUser?.saveToFirestore()
 
         let alert = UIAlertController(
             title: "Demo Mode Enabled",
