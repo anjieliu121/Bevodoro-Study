@@ -724,9 +724,42 @@ class ViewController: BaseViewController {
             usingSpringWithDamping: 0.88,
             initialSpringVelocity: 0.6,
             options: [.curveEaseInOut],
-            animations: { self.view.layoutIfNeeded() },
+            animations: {
+                self.view.layoutIfNeeded()
+                self.applyTroughHiddenForPhotoMode()
+            },
             completion: { _ in self.installPhotoModeTapOverlay() }
         )
+    }
+
+    // MARK: - Photo mode: hide / show food trough
+
+    /// How far down (pt) to translate the trough + foods so they sit off-screen below.
+    private func troughSlideDownDistanceForPhotoMode() -> CGFloat {
+        guard let trough = foodTroughImageView else { return 400 }
+        view.layoutIfNeeded()
+        let troughFrame = trough.convert(trough.bounds, to: view)
+        // Move until the top of the trough passes the bottom of the screen (+ small margin).
+        let margin: CGFloat = 32
+        return max(view.bounds.maxY - troughFrame.minY + margin, 280)
+    }
+
+    /// Sinks trough art + collection toward the bottom and fades out (photo mode).
+    private func applyTroughHiddenForPhotoMode() {
+        let ty = troughSlideDownDistanceForPhotoMode()
+        let t = CGAffineTransform(translationX: 0, y: ty)
+        foodTroughImageView?.transform = t
+        foodTroughImageView?.alpha = 0
+        troughFoodCollectionView?.transform = t
+        troughFoodCollectionView?.alpha = 0
+    }
+
+    /// Brings trough + foods back to normal layout (after leaving photo mode).
+    private func applyTroughVisibleAfterPhotoMode() {
+        foodTroughImageView?.transform = .identity
+        foodTroughImageView?.alpha = 1
+        troughFoodCollectionView?.transform = .identity
+        troughFoodCollectionView?.alpha = 1
     }
 
     @objc private func enterPhotoModeFromMenu() {
@@ -762,8 +795,14 @@ class ViewController: BaseViewController {
             usingSpringWithDamping: 0.88,
             initialSpringVelocity: 0.6,
             options: [.curveEaseInOut],
-            animations: { self.view.layoutIfNeeded() },
-            completion: { _ in self.isPhotoModeActive = false }
+            animations: {
+                self.view.layoutIfNeeded()
+                self.applyTroughVisibleAfterPhotoMode()
+            },
+            completion: { _ in
+                self.isPhotoModeActive = false
+                self.bringTroughFoodCollectionToFront()
+            }
         )
     }
 
