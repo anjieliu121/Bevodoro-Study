@@ -50,9 +50,16 @@ class TimerManager {
     // timer data
     private var timer: Timer?
     private(set) var state: TimerState = .notStarted
-    private(set) var inStudyMode = true
     private var secondsRemaining: Int
-    private var studySessionCounter: Int = 0  // for Long Break Timer; how many study sesssions were completed during this run of the app.
+    var studySessionCounter: Int = 0  // for Long Break Timer; how many study sesssions were completed during this run of the app.
+    
+    // modes
+    enum TimerMode {
+        case study
+        case breakTime
+        case longBreak
+    }
+    var currentMode: TimerMode = .study
 
     // use computed properties to get initial study time seconds in case currentUser is null
     var initialStudyTimeSeconds: Int {
@@ -79,7 +86,7 @@ class TimerManager {
     // signals
     var onTick: ((Int) -> Void)?
     var onStateChange: ((TimerState) -> Void)? // running / not running
-    var onModeChange: ((Bool) -> Void)?  // study / break
+    var onModeChange: ((TimerMode) -> Void)?  // study / breakTime / longBreak
     
     // Called when the timer hits zero.
     var onTimerComplete: ((Bool) -> Void)?
@@ -131,6 +138,7 @@ class TimerManager {
     }
     
     // advance by one second
+    
     @objc private func tick() {
         if secondsRemaining > 0 {
             secondsRemaining -= 1
@@ -146,16 +154,28 @@ class TimerManager {
 
             state = .finished
             onStateChange?(state)
-            
-            if inStudyMode {
-                // ended study mode
+
+            // capture what just finished
+            let finishedStudy = (currentMode == .study)
+
+            // Study-specific side effects
+            if finishedStudy {
                 transitionToBreak()
             }
-            // fire notification signal before toggling mode
-            onTimerComplete?(inStudyMode)
 
-            inStudyMode.toggle()
-            onModeChange?(inStudyMode)
+            // notify listeners BEFORE mode changes
+            onTimerComplete?(finishedStudy)
+
+            // Now switch modes
+            switch currentMode {
+            case .study:
+                currentMode = (studySessionCounter == 0) ? .longBreak : .breakTime
+
+            case .breakTime, .longBreak:
+                currentMode = .study
+            }
+
+            onModeChange?(currentMode)
             endDate = nil
         }
     }
@@ -190,17 +210,13 @@ class TimerManager {
         timer = nil
         endDate = nil
 
-        // refill time
-        if inStudyMode {
+        switch currentMode {
+        case .study:
             secondsRemaining = initialStudyTimeSeconds
-        } else {
-            if studySessionCounter > 0 {
-                // start normal break
-                secondsRemaining = initialBreakTimeSeconds
-            } else {
-                // start long break; session is a multiple of cycleLength
-                secondsRemaining = initialLongBreakTimeSeconds
-            }
+        case .breakTime:
+            secondsRemaining = initialBreakTimeSeconds
+        case .longBreak:
+            secondsRemaining = initialLongBreakTimeSeconds
         }
 
         state = .notStarted
@@ -214,11 +230,12 @@ class TimerManager {
         endDate = nil
         studySessionCounter = 0  // reset long break counter
 
-        inStudyMode = true
+        currentMode = .study
         secondsRemaining = initialStudyTimeSeconds
 
         state = .notStarted
         onStateChange?(state)
+        onModeChange?(currentMode)
     }
     
     func getSecondsRemaining() -> Int {

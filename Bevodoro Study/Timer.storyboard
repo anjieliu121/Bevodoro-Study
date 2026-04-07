@@ -81,11 +81,18 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Study" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="s0U-81-Pcc">
+                                <rect key="frame" x="192" y="811" width="56" height="27"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="22"/>
+                                <nil key="textColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="jW6-Sk-EuN"/>
                         <color key="backgroundColor" name="AccentColor"/>
                         <constraints>
                             <constraint firstItem="u69-tZ-9hE" firstAttribute="centerX" secondItem="3wu-iC-vHP" secondAttribute="centerX" id="2eO-pf-0Ct"/>
+                            <constraint firstItem="jW6-Sk-EuN" firstAttribute="bottom" secondItem="s0U-81-Pcc" secondAttribute="bottom" constant="50" id="9K1-Dn-kdJ"/>
                             <constraint firstItem="LgU-oH-giN" firstAttribute="top" secondItem="Z0o-nK-0dp" secondAttribute="bottom" constant="30" id="DFq-HO-7NH"/>
                             <constraint firstItem="mF8-c9-q87" firstAttribute="centerY" secondItem="3wu-iC-vHP" secondAttribute="centerY" id="Z0a-Nx-A1g"/>
                             <constraint firstItem="mF8-c9-q87" firstAttribute="top" secondItem="u69-tZ-9hE" secondAttribute="bottom" id="cJE-Fu-NFh"/>
@@ -95,6 +102,7 @@
                             <constraint firstItem="JiK-I9-X8C" firstAttribute="leading" secondItem="jW6-Sk-EuN" secondAttribute="leading" constant="20" id="ihm-lg-OMe"/>
                             <constraint firstItem="jW6-Sk-EuN" firstAttribute="trailing" secondItem="JiK-I9-X8C" secondAttribute="trailing" constant="20" id="kHe-5a-9cd"/>
                             <constraint firstItem="mF8-c9-q87" firstAttribute="centerX" secondItem="3wu-iC-vHP" secondAttribute="centerX" id="rOf-dC-h4n"/>
+                            <constraint firstItem="s0U-81-Pcc" firstAttribute="centerX" secondItem="jW6-Sk-EuN" secondAttribute="centerX" id="uGt-W3-vfC"/>
                             <constraint firstItem="Z0o-nK-0dp" firstAttribute="top" secondItem="mF8-c9-q87" secondAttribute="bottom" constant="10" id="wHp-ys-tFD"/>
                             <constraint firstItem="mF8-c9-q87" firstAttribute="centerX" secondItem="3wu-iC-vHP" secondAttribute="centerX" id="xYc-RF-u5M"/>
                         </constraints>
@@ -104,6 +112,7 @@
                         <outlet property="endButton" destination="LgU-oH-giN" id="POU-UJ-IzF"/>
                         <outlet property="endMsg" destination="3Xz-9K-Urp" id="plQ-wN-eGt"/>
                         <outlet property="endView" destination="JiK-I9-X8C" id="oln-Qx-4hx"/>
+                        <outlet property="modeLabel" destination="s0U-81-Pcc" id="5dd-m4-ApE"/>
                         <outlet property="startButton" destination="Z0o-nK-0dp" id="a9M-YE-BAF"/>
                         <outlet property="timerLabel" destination="u69-tZ-9hE" id="Qeg-IT-MSo"/>
                     </connections>
@@ -115,7 +124,7 @@
     </scenes>
     <resources>
         <namedColor name="AccentColor">
-            <color red="1" green="0.79199999570846558" blue="0.15700000524520874" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+            <color red="0.45882352941176469" green="0.81568627450980391" blue="0.8901960784313725" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <systemColor name="labelColor">
             <color white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>

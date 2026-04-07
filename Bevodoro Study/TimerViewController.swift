@@ -18,9 +18,14 @@ class TimerViewController: UIViewController {
     @IBOutlet weak var endButton: UIButton!  // the end study session button
     @IBOutlet weak var endView: UIView!  // view holding endMsg
     @IBOutlet weak var endMsg: UILabel!  // messages that appear when the timer reaches 0
+    @IBOutlet weak var modeLabel: UILabel! // mode currently in (study, break, long break
+    
     var delegate: UIViewController!  // note: will eventually neeed to segue from main to here.
     
     let timerManager = TimerManager.shared  // timer
+    var modeLabelStudy: String { "Study! \(TimerManager.shared.studySessionCounter + 1)/\(TimerManager.shared.cycleLength)" }
+    let modeLabelBreak: String  = "Break!"
+    let modeLabelLongBreak: String  = "Long Break!"
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -39,25 +44,27 @@ class TimerViewController: UIViewController {
         }
 
         // set end messages when study/break mode switches
-        timerManager.onModeChange = { [weak self] inStudyMode in
+        timerManager.onModeChange = { [weak self] mode in
             guard let self = self else { return }
 
-            self.endView.isHidden = false
-            if inStudyMode {
+            // only show when something FINISHED not only on initial load
+            let shouldShowEndMessage = (timerManager.state == .finished)
+            self.endView.isHidden = !shouldShowEndMessage
+
+            switch mode {
+            case .study:
+                // Break or long break just ended
+                self.modeLabel.text = modeLabelStudy
                 self.endMsg.text = endBreakMessage
-            } else {
-                let earned = self.timerManager.lastStudyEarnedCoins
-                let attributed = NSMutableAttributedString(string: "\(endStudyMessage) You earned ")
+            case .breakTime:
+                // Normal break started = study just completed
+                self.modeLabel.text = modeLabelBreak
+                self.showStudyCompletedMessage(isLongBreak: false)
 
-                let attachment = NSTextAttachment()
-                attachment.image = UIImage(named: "Coin")
-                attachment.bounds = CGRect(x: 0, y: -4, width: 18, height: 18)
-
-                attributed.append(NSAttributedString(attachment: attachment))
-                attributed.append(NSAttributedString(string: " \(earned)! Let's take a break!"))
-
-                endMsg.attributedText = attributed
-                endMsg.numberOfLines = 0
+            case .longBreak:
+                // Long break started = study just completed
+                self.modeLabel.text = modeLabelLongBreak
+                self.showStudyCompletedMessage(isLongBreak: true)
             }
         }
         
@@ -91,6 +98,20 @@ class TimerViewController: UIViewController {
         timerManager.refreshFromSettings()
         timerLabel.text = seconds2String(seconds: timerManager.getSecondsRemaining())
         updateUI(state: timerManager.state)
+        
+        // Always hide end message when re-entering
+        endView.isHidden = true
+        endMsg.text = ""
+
+        // update mode label
+        switch timerManager.currentMode {
+        case .study:
+            modeLabel.text = modeLabelStudy
+        case .breakTime:
+            modeLabel.text = modeLabelBreak
+        case .longBreak:
+            modeLabel.text = modeLabelLongBreak
+        }
     }
     
     func updateUI(state: TimerState) {
@@ -133,7 +154,7 @@ class TimerViewController: UIViewController {
     
     @IBAction func endButtonPressed(_ sender: Any) {
         // show message only if ending a study session
-        if timerManager.inStudyMode {
+        if timerManager.currentMode == .study {
             let attributed = NSMutableAttributedString(string: "\(endMessage) No ")
 
             let attachment = NSTextAttachment()
@@ -198,17 +219,41 @@ class TimerViewController: UIViewController {
         content.body = body
         content.sound = .default
             
-            // fire immediately (0.1s delay required by the API)
-            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
-            let request = UNNotificationRequest(
-                identifier: UUID().uuidString,
-                content: content,
-                trigger: trigger
-            )
-            UNUserNotificationCenter.current().add(request) { error in
-                if let error {
-                    print("TimerViewController: failed to send notification: \(error)")
-                }
+        // fire immediately (0.1s delay required by the API)
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 0.1, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: UUID().uuidString,
+            content: content,
+            trigger: trigger
+        )
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error {
+                print("TimerViewController: failed to send notification: \(error)")
             }
         }
+    }
+    
+    private func showStudyCompletedMessage(isLongBreak: Bool) {
+        let earned = timerManager.lastStudyEarnedCoins
+
+        let attributed = NSMutableAttributedString(
+            string: "\(endStudyMessage) You earned "
+        )
+
+        let attachment = NSTextAttachment()
+        attachment.image = UIImage(named: "Coin")
+        attachment.bounds = CGRect(x: 0, y: -4, width: 18, height: 18)
+
+        attributed.append(NSAttributedString(attachment: attachment))
+        attributed.append(
+            NSAttributedString(
+                string: " \(earned)! " +
+                (isLongBreak ? "Great job finishing a cycle, so now enjoy a long break!" : "Let's take a break!")
+            )
+        )
+
+        endMsg.attributedText = attributed
+        endMsg.numberOfLines = 0
+    }
+
 }
