@@ -659,8 +659,8 @@ class MainViewController: BaseViewController {
         }
         
         let timerButton = makeIconButton(systemName: "timer", accessibilityLabel: "Timer")
-        let shopButton = makeIconButton(systemName: "bag.fill", accessibilityLabel: "Shop")
-        let inventoryButton = makeIconButton(systemName: "tray.fill", accessibilityLabel: "Inventory")
+        let inventoryButton = makeIconButton(systemName: "tray.fill", accessibilityLabel: "Inventory")  //shippingbox.fill
+        let shopButton = makeIconButton(systemName: "bag.fill", accessibilityLabel: "Shop") // cart.fill
         let settingsButton = makeIconButton(systemName: "gearshape.fill", accessibilityLabel: "Settings")
         let photoButton = makeIconButton(systemName: "camera.fill", accessibilityLabel: "Photo mode")
         
@@ -671,8 +671,8 @@ class MainViewController: BaseViewController {
         photoButton.addTarget(self, action: #selector(enterPhotoModeFromMenu), for: .touchUpInside)
         
         stackView.addArrangedSubview(timerButton)
-        stackView.addArrangedSubview(shopButton)
         stackView.addArrangedSubview(inventoryButton)
+        stackView.addArrangedSubview(shopButton)
         stackView.addArrangedSubview(settingsButton)
         stackView.addArrangedSubview(photoButton)
     }
