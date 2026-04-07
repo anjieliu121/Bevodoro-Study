@@ -17,6 +17,8 @@ struct UserSettings: Codable {
     var bkgMusic: Bool
     var timerStudyMins: Int
     var timerBreakMins: Int
+    var timerLongBreakMins: Int
+    var timerCycleLength: Int
     var haptic: Bool
     var breakReminder: Bool
     var notifications: Bool
@@ -25,6 +27,8 @@ struct UserSettings: Codable {
         bkgMusic: Bool = true,
         timerStudyMins: Int = 25,
         timerBreakMins: Int = 5,
+        timerLongBreakMins: Int = 15,
+        timerCycleLength: Int = 4,
         haptic: Bool = true,
         breakReminder: Bool = true,
         notifications: Bool = true
@@ -32,6 +36,8 @@ struct UserSettings: Codable {
         self.bkgMusic = bkgMusic
         self.timerStudyMins = timerStudyMins
         self.timerBreakMins = timerBreakMins
+        self.timerLongBreakMins = timerLongBreakMins
+        self.timerCycleLength = timerCycleLength
         self.haptic = haptic
         self.breakReminder = breakReminder
         self.notifications = notifications
@@ -51,6 +57,7 @@ struct User: Codable {
     var equippedBkg: String?
     var lastLogin: Timestamp
     var lastStudy: Timestamp?  // may be null
+    var numCompletedStudySessions: Int
     var settings: UserSettings
 
     init(
@@ -65,6 +72,7 @@ struct User: Codable {
         equippedBkg: String? = nil,
         lastLogin: Timestamp = Timestamp(date: Date()),
         lastStudy: Timestamp? = nil,
+        numCompletedStudySessions: Int = 0,
         settings: UserSettings = UserSettings()
     ) {
         self.userID = userID
@@ -78,12 +86,14 @@ struct User: Codable {
         self.equippedBkg = equippedBkg
         self.lastLogin = lastLogin
         self.lastStudy = lastStudy
+        self.numCompletedStudySessions = numCompletedStudySessions
         self.settings = settings
     }
 
     enum CodingKeys: String, CodingKey {
         case userID, user, num_coins, food, medicine, hats, backgrounds
-        case equippedHat, equippedBkg, lastLogin, settings
+        case equippedHat, equippedBkg, lastLogin, lastStudy, settings
+        case numCompletedStudySessions
     }
 
     init(from decoder: Decoder) throws {
@@ -98,6 +108,8 @@ struct User: Codable {
         equippedHat = try c.decodeIfPresent(String.self, forKey: .equippedHat)
         equippedBkg = try c.decodeIfPresent(String.self, forKey: .equippedBkg)
         lastLogin = try c.decode(Timestamp.self, forKey: .lastLogin)
+        lastStudy = try c.decodeIfPresent(Timestamp.self, forKey: .lastStudy)
+        numCompletedStudySessions = try c.decodeIfPresent(Int.self, forKey: .numCompletedStudySessions) ?? 0
         settings = try c.decodeIfPresent(UserSettings.self, forKey: .settings) ?? UserSettings()
     }
 
@@ -113,6 +125,8 @@ struct User: Codable {
         try c.encodeIfPresent(equippedHat, forKey: .equippedHat)
         try c.encodeIfPresent(equippedBkg, forKey: .equippedBkg)
         try c.encode(lastLogin, forKey: .lastLogin)
+        try c.encodeIfPresent(lastStudy, forKey: .lastStudy)
+        try c.encode(numCompletedStudySessions, forKey: .numCompletedStudySessions)
         try c.encode(settings, forKey: .settings)
     }
 
@@ -168,6 +182,7 @@ struct User: Codable {
             }
 
             do {
+                // warning comes from threshold call in isSick(). see note there for the fix.
                 var user = try Firestore.Decoder().decode(User.self, from: data)
                 if !user.backgrounds.contains(ItemCatalog.dayBackgroundKey) {
                     user.backgrounds.append(ItemCatalog.dayBackgroundKey)
@@ -195,6 +210,7 @@ struct User: Codable {
         guard lastStudy != nil else { return false }  // nil for new users
         let lastStudyDate = lastStudy!.dateValue()
         let now = Date()
+        // TODO calling SettingViewController here creates a dependency on a VC. move the setting to a new class, modify that class's var in SettingViewController, then set classs User to use the seting in the new class.
         let threshold = SettingViewController.isDemoModeEnabled ? 30.0 : bevoSickThresholdSeconds
 
         print("""

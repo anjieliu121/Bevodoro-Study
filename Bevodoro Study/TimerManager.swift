@@ -11,6 +11,8 @@ import Foundation
 // demo mode settings
 let demoModeStudySeconds = 7
 let demoModeBreakSeconds = 5
+let demoModeLongBreakSeconds = 10
+let demoModeCycleLength = 2
 let demoModeCoinsPerMinute = 60.0
 let bevoSickAlertCooldownSeconds: TimeInterval = SettingViewController.isDemoModeEnabled ? 2 * 60 : 5 * 60 // rate limit to show alert every 5 minutes
 
@@ -20,8 +22,13 @@ var coinsPerMinute: Double {
 }
 
 // defaults
+let pomodoroDurations = [1, 5, 10, 15, 20, 25, 30, 45, 60] // minutes
+let pomodoroCycleLengths = [2, 3, 4, 5, 6]
+
 let defaultTimerStudyMins = 25
 let defaultTimerBreakMins = 5
+let defaultTimerLongBreakMins = 15
+let defaultTimerCycleLength = 4  // how many study sessions must be completed before a long break
 let secondsPerMin = 60
 let minsPerHour = 60
 
@@ -45,6 +52,7 @@ class TimerManager {
     private(set) var state: TimerState = .notStarted
     private(set) var inStudyMode = true
     private var secondsRemaining: Int
+    private var studySessionCounter: Int = 0  // for Long Break Timer; how many study sesssions were completed during this run of the app.
 
     // use computed properties to get initial study time seconds in case currentUser is null
     var initialStudyTimeSeconds: Int {
@@ -55,6 +63,15 @@ class TimerManager {
         SettingViewController.isDemoModeEnabled ? demoModeBreakSeconds :
         (UserManager.shared.currentUser?.settings.timerBreakMins ?? defaultTimerBreakMins) * secondsPerMin
     }
+    var initialLongBreakTimeSeconds: Int {
+        SettingViewController.isDemoModeEnabled ? demoModeLongBreakSeconds :
+        (UserManager.shared.currentUser?.settings.timerLongBreakMins ?? defaultTimerLongBreakMins) * secondsPerMin
+    }
+    var cycleLength: Int {
+        SettingViewController.isDemoModeEnabled ? demoModeCycleLength :
+        (UserManager.shared.currentUser?.settings.timerCycleLength ?? defaultTimerCycleLength) * secondsPerMin
+    }
+    
     var isRunning: Bool {
         timer?.isValid == true
     }
@@ -173,9 +190,18 @@ class TimerManager {
         timer = nil
         endDate = nil
 
-        secondsRemaining = inStudyMode
-            ? initialStudyTimeSeconds
-            : initialBreakTimeSeconds
+        // refill time
+        if inStudyMode {
+            secondsRemaining = initialStudyTimeSeconds
+        } else {
+            if studySessionCounter > 0 {
+                // start normal break
+                secondsRemaining = initialBreakTimeSeconds
+            } else {
+                // start long break; session is a multiple of cycleLength
+                secondsRemaining = initialLongBreakTimeSeconds
+            }
+        }
 
         state = .notStarted
         onStateChange?(state)
@@ -186,6 +212,7 @@ class TimerManager {
         timer?.invalidate()
         timer = nil
         endDate = nil
+        studySessionCounter = 0  // reset long break counter
 
         inStudyMode = true
         secondsRemaining = initialStudyTimeSeconds
@@ -229,6 +256,8 @@ class TimerManager {
             timeInSeconds: initialStudyTimeSeconds
         )
 
-        // onModeChange?(false)
+        // update counter
+        studySessionCounter = (studySessionCounter + 1) % cycleLength
+        print("study session counter now at \(studySessionCounter) (CL=\(cycleLength))")
     }
 }

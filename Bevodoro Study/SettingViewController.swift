@@ -11,13 +11,15 @@ import UserNotifications
 class SettingViewController: BaseViewController {
 
     enum SettingRow: Int, CaseIterable {
-        case backgroundMusic = 0
-        case bevosSound = 1
-        case pomodoroStudyTimer = 2
-        case pomodoroBreakTimer = 3
-        case notifications = 4
-        case logout = 5
-        case demoMode = 6
+        case backgroundMusic
+        case bevosSound
+        case pomodoroStudyTimer
+        case pomodoroBreakTimer
+        case pomodoroLongBreakTimer
+        case pomodoroCycleLength
+        case notifications
+        case logout
+        case demoMode
 
         var title: String {
             switch self {
@@ -25,6 +27,8 @@ class SettingViewController: BaseViewController {
             case .bevosSound: return "Bevo's Sound"
             case .pomodoroStudyTimer: return "Pomodoro Study Timer"
             case .pomodoroBreakTimer: return "Pomodoro Break Timer"
+            case .pomodoroLongBreakTimer: return "Pomodoro Long Break Timer"
+            case .pomodoroCycleLength: return "Pomodoro Cycle Length"
             case .notifications: return "Notifications"
             case .logout: return "Log Out"
             case .demoMode: return "Demo Mode"
@@ -37,15 +41,15 @@ class SettingViewController: BaseViewController {
             case .bevosSound: return "speaker.wave.2.fill"
             case .pomodoroStudyTimer: return "clock"
             case .pomodoroBreakTimer: return "clock"
+            case .pomodoroLongBreakTimer: return "clock"
+            case .pomodoroCycleLength: return "arrow.clockwise"
             case .notifications: return "bell.fill"
             case .logout: return "rectangle.portrait.and.arrow.right"
             case .demoMode: return "testtube.2"
             }
         }
     }
-
-    static let pomodoroDurations = [1, 5, 10, 15, 20, 25, 30, 45, 60] // minutes
-
+    
     /// UserDefaults key for Bevo's sound effects (moo, eating) on/off.
     private static let bevosSoundKey = "bevosSoundEnabled"
 
@@ -162,8 +166,10 @@ class SettingViewController: BaseViewController {
 
     private func showPomodoroStudyPicker() {
         let pickerVC = PomodoroPickerViewController()
-        pickerVC.selectedMinutes = selectedPomodoroMinutes
-
+        pickerVC.values = pomodoroDurations
+        pickerVC.unitLabel = "min"
+        pickerVC.selectedValue = UserManager.shared.currentUser?.settings.timerStudyMins ?? defaultTimerStudyMins
+        
         pickerVC.onSelect = { [weak self] minutes in
             guard let self else { return }
             
@@ -189,10 +195,9 @@ class SettingViewController: BaseViewController {
     
     private func showPomodoroBreakPicker() {
         let pickerVC = PomodoroPickerViewController()
-
-        pickerVC.selectedMinutes =
-            UserManager.shared.currentUser?.settings.timerBreakMins
-            ?? defaultTimerBreakMins
+        pickerVC.values = pomodoroDurations
+        pickerVC.unitLabel = "min"
+        pickerVC.selectedValue = UserManager.shared.currentUser?.settings.timerBreakMins ?? defaultTimerBreakMins
 
         pickerVC.onSelect = { [weak self] minutes in
             guard let self else { return }
@@ -202,6 +207,62 @@ class SettingViewController: BaseViewController {
 
             // save the new timer break minute duration to firestore
             UserManager.shared.currentUser?.settings.timerBreakMins = minutes
+            UserManager.shared.currentUser?.saveToFirestore()
+            self.settingsTableView.reloadData()
+        }
+
+        if let sheet = pickerVC.sheetPresentationController {
+            let pickerSheetHeight: CGFloat = 280
+            let detent = UISheetPresentationController.Detent.custom { _ in pickerSheetHeight }
+            sheet.detents = [detent]
+            sheet.prefersGrabberVisible = true
+        }
+
+        present(pickerVC, animated: true)
+    }
+    
+    private func showPomodoroLongBreakPicker() {
+        let pickerVC = PomodoroPickerViewController()
+        pickerVC.values = pomodoroDurations
+        pickerVC.unitLabel = "min"
+        pickerVC.selectedValue = UserManager.shared.currentUser?.settings.timerLongBreakMins ?? defaultTimerLongBreakMins
+
+        pickerVC.onSelect = { [weak self] minutes in
+            guard let self else { return }
+            
+            // Automatically exit demo mode
+            SettingViewController.isDemoModeEnabled = false
+
+            // save the new timer break minute duration to firestore
+            UserManager.shared.currentUser?.settings.timerLongBreakMins = minutes
+            UserManager.shared.currentUser?.saveToFirestore()
+            self.settingsTableView.reloadData()
+        }
+
+        if let sheet = pickerVC.sheetPresentationController {
+            let pickerSheetHeight: CGFloat = 280
+            let detent = UISheetPresentationController.Detent.custom { _ in pickerSheetHeight }
+            sheet.detents = [detent]
+            sheet.prefersGrabberVisible = true
+        }
+
+        present(pickerVC, animated: true)
+    }
+    
+    private func showPomodoroCycleLengthPicker() {
+        let pickerVC = PomodoroPickerViewController()
+        pickerVC.values = pomodoroCycleLengths
+        pickerVC.unitLabel = "cycles"
+        pickerVC.selectedValue = UserManager.shared.currentUser?.settings.timerCycleLength ?? defaultTimerCycleLength
+
+        pickerVC.onSelect = { [weak self] cycles in
+            guard let self else { return }
+            
+            // Automatically exit demo mode
+            SettingViewController.isDemoModeEnabled = false
+
+            // save the new timer break minute duration to firestore
+            UserManager.shared.currentUser?.settings.timerCycleLength = cycles
             UserManager.shared.currentUser?.saveToFirestore()
             self.settingsTableView.reloadData()
         }
@@ -257,6 +318,12 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
         case .pomodoroBreakTimer:
             cell.accessoryView = nil
             cell.accessoryType = .disclosureIndicator
+        case .pomodoroLongBreakTimer:
+            cell.accessoryView = nil
+            cell.accessoryType = .disclosureIndicator
+        case .pomodoroCycleLength:
+            cell.accessoryView = nil
+            cell.accessoryType = .disclosureIndicator
         case .notifications:
             cell.accessoryType = .none
             let toggle = UISwitch()
@@ -288,6 +355,10 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
             showPomodoroStudyPicker()
         case .pomodoroBreakTimer:
             showPomodoroBreakPicker()
+        case .pomodoroLongBreakTimer:
+            showPomodoroLongBreakPicker()
+        case .pomodoroCycleLength:
+            showPomodoroCycleLengthPicker()
         default:
             break
         }
@@ -326,6 +397,8 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
         Added \(addCoinAmount) coins to current balance
         Shorter study time: \(demoModeStudySeconds) seconds
         Shorter break time: \(demoModeBreakSeconds) seconds
+        Shorter long break time: \(demoModeLongBreakSeconds) seconds
+        Shorter cycle: \(demoModeCycleLength) seconds
         Higher earning rate: \(demoModeCoinsPerMinute) coins per minute
         Lower Sick threshold: \(bevoSickThresholdSeconds) seconds
         
@@ -397,8 +470,9 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
 // MARK: - Pomodoro Picker (Apple built-in picker wheel, bottom sheet)
 final class PomodoroPickerViewController: UIViewController {
 
-    // selected minutes should be whatever the user already has
-    var selectedMinutes: Int = defaultTimerStudyMins
+    var values: [Int] = []              // e.g. [5, 10, 15] OR [1, 2, 3]
+    var unitLabel: String = ""          // "min" or "cycles"
+    var selectedValue: Int = 0          // initial value should be what the user already has
     var onSelect: ((Int) -> Void)?
 
     private let picker = UIPickerView()
@@ -411,9 +485,11 @@ final class PomodoroPickerViewController: UIViewController {
         picker.translatesAutoresizingMaskIntoConstraints = false
         picker.delegate = self
         picker.dataSource = self
-        if let index = SettingViewController.pomodoroDurations.firstIndex(of: selectedMinutes) {
+        
+        if let index = values.firstIndex(of: selectedValue) {
             picker.selectRow(index, inComponent: 0, animated: false)
         }
+        
         view.addSubview(picker)
 
         doneButton.translatesAutoresizingMaskIntoConstraints = false
@@ -433,26 +509,25 @@ final class PomodoroPickerViewController: UIViewController {
     }
 
     @objc private func doneTapped() {
-        onSelect?(selectedMinutes)
+        onSelect?(selectedValue)
         dismiss(animated: true)
     }
 }
 
 extension PomodoroPickerViewController: UIPickerViewDataSource, UIPickerViewDelegate {
-
+    
     func numberOfComponents(in pickerView: UIPickerView) -> Int { 1 }
-
+    
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        SettingViewController.pomodoroDurations.count
+        values.count
     }
-
+    
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        "\(SettingViewController.pomodoroDurations[row]) min"
+        "\(values[row]) \(unitLabel)"
     }
 
-    func pickerView(_ pickerView: UIPickerView,
-                    didSelectRow row: Int,
-                    inComponent component: Int) {
-        selectedMinutes = SettingViewController.pomodoroDurations[row]
+    func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
+        selectedValue = values[row]
     }
 }
+

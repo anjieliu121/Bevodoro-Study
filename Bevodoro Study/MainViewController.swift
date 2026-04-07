@@ -938,7 +938,7 @@ class MainViewController: BaseViewController {
         \(normalMessage)
         
         Debug Mode info:
-        Last login: \(formatter.string(from: lastStudyDate))
+        Last study date: \(formatter.string(from: lastStudyDate))
         Sick if after: \(formatter.string(from: sickAfterDate))
         """
         
