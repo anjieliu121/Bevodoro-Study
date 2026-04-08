@@ -21,12 +21,11 @@ struct ItemCatalog {
         CatalogItem(key: "cookie", displayName: "Cookie", icon: "cookie", cost: 20),
         CatalogItem(key: "mango", displayName: "Mango", icon: "mango", cost: 25),
         CatalogItem(key: "orange", displayName: "Orange", icon: "orange", cost: 20),
+        CatalogItem(key: "pill", displayName: "Pill", icon: "pill", cost: 60),
     ]
 
     static let medicineItems: [CatalogItem] = [
-        CatalogItem(key: "pill", displayName: "Pill", icon: "💊", cost: 60),
-        CatalogItem(key: "syringe", displayName: "Syringe", icon: "💉", cost: 80),
-        CatalogItem(key: "herb", displayName: "Herb", icon: "🌿", cost: 40),
+        CatalogItem(key: "pill", displayName: "Pill", icon: "pill", cost: 60),
     ]
 
     static let hatItems: [CatalogItem] = [
@@ -43,13 +42,15 @@ struct ItemCatalog {
     static let dayBackgroundKey = "day"
 
     static let backgroundItems: [CatalogItem] = [
-        CatalogItem(key: dayBackgroundKey, displayName: "Day", icon: "bkgday", cost: 0),
-        CatalogItem(key: "night", displayName: "Night", icon: "bkgnight", cost: 100),
-        CatalogItem(key: "sky", displayName: "Sky", icon: "bkgsky", cost: 120),
+        CatalogItem(key: dayBackgroundKey, displayName: "Day", icon: "Background_Day", cost: 0),
+        CatalogItem(key: "night", displayName: "Night", icon: "Background_Night", cost: 100),
+        CatalogItem(key: "sky", displayName: "Sky", icon: "Background_Sky", cost: 120),
+        CatalogItem(key: "blossom", displayName: "Blossom", icon: "Background_Blossom", cost: 150),
+        CatalogItem(key: "sunset", displayName: "Sunset", icon: "Background_Sunset", cost: 130),
     ]
 
     static let shopCategories: [[CatalogItem]] = [
-        foodItems, medicineItems, hatItems, backgroundItems
+        foodItems, hatItems, backgroundItems
     ]
 
     private static let allItems: [CatalogItem] = foodItems + medicineItems + hatItems + backgroundItems
@@ -64,6 +65,6 @@ struct ItemCatalog {
 
     /// Asset name in the asset catalog (same as `icon` for background rows).
     static func backgroundAssetName(forKey key: String) -> String {
-        backgroundItems.first(where: { $0.key == key })?.icon ?? "bkgday"
+        backgroundItems.first(where: { $0.key == key })?.icon ?? "Background_Day"
     }
 }

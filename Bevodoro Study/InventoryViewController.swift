@@ -57,7 +57,7 @@ class InventoryViewController: BaseViewController {
         return i
     }
 
-    /// Catalog order; food and medicine use stacked counts on the user model.
+    /// Catalog order; food uses stacked counts on the user model.
     private func ownedRows() -> [(CatalogItem, Int)] {
         guard let user = UserManager.shared.currentUser else { return [] }
         switch categoryIndex() {
@@ -67,14 +67,9 @@ class InventoryViewController: BaseViewController {
                 return n > 0 ? (item, n) : nil
             }
         case 1:
-            return ItemCatalog.medicineItems.compactMap { item in
-                let n = user.medicine[item.key, default: 0]
-                return n > 0 ? (item, n) : nil
-            }
-        case 2:
             let owned = Set(user.hats)
             return ItemCatalog.hatItems.filter { owned.contains($0.key) }.map { ($0, 1) }
-        case 3:
+        case 2:
             let owned = Set(user.backgrounds)
             return ItemCatalog.backgroundItems.filter { owned.contains($0.key) }.map { ($0, 1) }
         default:
@@ -98,26 +93,26 @@ extension InventoryViewController: UITableViewDataSource {
         }
         let row = ownedRows()[indexPath.row]
         let cat = categoryIndex()
-        let showsQuantity = cat == 0 || cat == 1
+        let showsQuantity = cat == 0
         let onUse: (() -> Void)?
         switch cat {
-        case 2:
+        case 1:
             onUse = { [weak self] in self?.equipHat(key: row.0.key) }
-        case 3:
+        case 2:
             onUse = { [weak self] in self?.equipBackground(key: row.0.key) }
         default:
             onUse = nil
         }
         let canUse: Bool
         switch cat {
-        case 2:
+        case 1:
             if let user = UserManager.shared.currentUser {
                 let effectiveHat = user.equippedHat.flatMap { user.hats.contains($0) ? $0 : nil }
                 canUse = row.0.key != effectiveHat
             } else {
                 canUse = true
             }
-        case 3:
+        case 2:
             if let user = UserManager.shared.currentUser {
                 let fallback = ItemCatalog.dayBackgroundKey
                 let chosen = user.equippedBkg ?? fallback
