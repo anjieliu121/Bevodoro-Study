@@ -53,6 +53,7 @@ class SettingViewController: BaseViewController {
     
     /// UserDefaults key for Bevo's sound effects (moo, eating) on/off.
     private static let bevosSoundKey = "bevosSoundEnabled"
+    private static let bevosSoundVolumeKey = "bevosSoundVolume"
 
     /// Whether Bevo's sound effects are enabled (moo tap, chewing when fed). Check before playing any Bevo SFX.
     static var isBevosSoundEnabled: Bool {
@@ -64,6 +65,28 @@ class SettingViewController: BaseViewController {
         }
         set {
             UserDefaults.standard.set(newValue, forKey: bevosSoundKey)
+        }
+    }
+
+    /// Bevo SFX volume (0 = mute). Persisted in UserDefaults.
+    static var bevosSoundVolume: Float {
+        get {
+            if let v = UserDefaults.standard.object(forKey: bevosSoundVolumeKey) as? Float {
+                return max(0, min(1, v))
+            }
+            if let n = UserDefaults.standard.object(forKey: bevosSoundVolumeKey) as? NSNumber {
+                return max(0, min(1, n.floatValue))
+            }
+            // Backward compat: if the old toggle was off, start muted.
+            if UserDefaults.standard.object(forKey: bevosSoundKey) != nil, isBevosSoundEnabled == false {
+                return 0
+            }
+            return 1
+        }
+        set {
+            UserDefaults.standard.set(max(0, min(1, newValue)), forKey: bevosSoundVolumeKey)
+            // Keep old toggle consistent so older code paths still "work".
+            isBevosSoundEnabled = newValue > 0
         }
     }
     
@@ -162,7 +185,7 @@ class SettingViewController: BaseViewController {
         settingsTableView.dataSource = self
         settingsTableView.backgroundColor = .systemBackground
         settingsTableView.separatorInset = UIEdgeInsets(top: 0, left: 56, bottom: 0, right: 0)
-        settingsTableView.register(UITableViewCell.self, forCellReuseIdentifier: "SettingCell")
+        settingsTableView.register(VolumeSliderCell.self, forCellReuseIdentifier: VolumeSliderCell.reuseIdentifier)
     }
 
     private func showPomodoroStudyPicker() {
@@ -302,64 +325,139 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = settingsTableView.dequeueReusableCell(withIdentifier: "SettingCell", for: indexPath)
-        cell.backgroundColor = .systemBackground
-        cell.selectionStyle = .default
-
-        guard let row = SettingRow(rawValue: indexPath.row) else { return cell }
-
-        cell.textLabel?.text = row.title
-        cell.textLabel?.font = .systemFont(ofSize: 17)
-        cell.imageView?.image = UIImage(systemName: row.iconName)
-        cell.imageView?.tintColor = .label
+        guard let row = SettingRow(rawValue: indexPath.row) else { return UITableViewCell() }
 
         switch row {
         case .backgroundMusic:
-            cell.accessoryType = .none
-            let toggle = UISwitch()
-            toggle.isOn = MusicManager.shared.isMusicEnabled
-            toggle.addTarget(self, action: #selector(backgroundMusicChanged(_:)), for: .valueChanged)
-            cell.accessoryView = toggle
-            cell.selectionStyle = .none
+            guard let cell = settingsTableView.dequeueReusableCell(
+                withIdentifier: VolumeSliderCell.reuseIdentifier,
+                for: indexPath
+            ) as? VolumeSliderCell else {
+                return UITableViewCell()
+            }
+            cell.backgroundColor = .systemBackground
+            let v = MusicManager.shared.musicVolume
+            cell.configure(
+                iconSystemName: row.iconName,
+                title: row.title,
+                value: v,
+                percentText: volumeText(v)
+            )
+            cell.slider.tag = row.rawValue
+            cell.slider.addTarget(self, action: #selector(volumeSliderChanged(_:)), for: .valueChanged)
+            return cell
+
         case .bevosSound:
-            cell.accessoryType = .none
-            let toggle = UISwitch()
-            toggle.isOn = bevosSoundOn
-            toggle.addTarget(self, action: #selector(bevosSoundChanged(_:)), for: .valueChanged)
-            cell.accessoryView = toggle
-            cell.selectionStyle = .none
+            guard let cell = settingsTableView.dequeueReusableCell(
+                withIdentifier: VolumeSliderCell.reuseIdentifier,
+                for: indexPath
+            ) as? VolumeSliderCell else {
+                return UITableViewCell()
+            }
+            cell.backgroundColor = .systemBackground
+            let v = Self.bevosSoundVolume
+            cell.configure(
+                iconSystemName: row.iconName,
+                title: row.title,
+                value: v,
+                percentText: volumeText(v)
+            )
+            cell.slider.tag = row.rawValue
+            cell.slider.addTarget(self, action: #selector(volumeSliderChanged(_:)), for: .valueChanged)
+            return cell
+
         case .pomodoroStudyTimer:
+            let cell = settingsTableView.dequeueReusableCell(withIdentifier: "SettingCell")
+                ?? UITableViewCell(style: .default, reuseIdentifier: "SettingCell")
+            cell.backgroundColor = .systemBackground
+            cell.selectionStyle = .default
+            cell.textLabel?.text = row.title
+            cell.textLabel?.font = .systemFont(ofSize: 17)
+            cell.imageView?.image = UIImage(systemName: row.iconName)
+            cell.imageView?.tintColor = .label
             cell.accessoryView = nil
             cell.accessoryType = .disclosureIndicator
+            return cell
         case .pomodoroBreakTimer:
+            let cell = settingsTableView.dequeueReusableCell(withIdentifier: "SettingCell")
+                ?? UITableViewCell(style: .default, reuseIdentifier: "SettingCell")
+            cell.backgroundColor = .systemBackground
+            cell.selectionStyle = .default
+            cell.textLabel?.text = row.title
+            cell.textLabel?.font = .systemFont(ofSize: 17)
+            cell.imageView?.image = UIImage(systemName: row.iconName)
+            cell.imageView?.tintColor = .label
             cell.accessoryView = nil
             cell.accessoryType = .disclosureIndicator
+            return cell
         case .pomodoroLongBreakTimer:
+            let cell = settingsTableView.dequeueReusableCell(withIdentifier: "SettingCell")
+                ?? UITableViewCell(style: .default, reuseIdentifier: "SettingCell")
+            cell.backgroundColor = .systemBackground
+            cell.selectionStyle = .default
+            cell.textLabel?.text = row.title
+            cell.textLabel?.font = .systemFont(ofSize: 17)
+            cell.imageView?.image = UIImage(systemName: row.iconName)
+            cell.imageView?.tintColor = .label
             cell.accessoryView = nil
             cell.accessoryType = .disclosureIndicator
+            return cell
         case .pomodoroCycleLength:
+            let cell = settingsTableView.dequeueReusableCell(withIdentifier: "SettingCell")
+                ?? UITableViewCell(style: .default, reuseIdentifier: "SettingCell")
+            cell.backgroundColor = .systemBackground
+            cell.selectionStyle = .default
+            cell.textLabel?.text = row.title
+            cell.textLabel?.font = .systemFont(ofSize: 17)
+            cell.imageView?.image = UIImage(systemName: row.iconName)
+            cell.imageView?.tintColor = .label
             cell.accessoryView = nil
             cell.accessoryType = .disclosureIndicator
+            return cell
         case .notifications:
+            let cell = settingsTableView.dequeueReusableCell(withIdentifier: "SettingCell")
+                ?? UITableViewCell(style: .default, reuseIdentifier: "SettingCell")
+            cell.backgroundColor = .systemBackground
+            cell.selectionStyle = .none
+            cell.textLabel?.text = row.title
+            cell.textLabel?.font = .systemFont(ofSize: 17)
+            cell.imageView?.image = UIImage(systemName: row.iconName)
+            cell.imageView?.tintColor = .label
             cell.accessoryType = .none
             let toggle = UISwitch()
             toggle.isOn = notificationsOn
             toggle.addTarget(self, action: #selector(toggleNotif(_:)), for: .valueChanged)
             cell.accessoryView = toggle
-            cell.selectionStyle = .none
+            return cell
         case .logout:
+            let cell = settingsTableView.dequeueReusableCell(withIdentifier: "SettingCell")
+                ?? UITableViewCell(style: .default, reuseIdentifier: "SettingCell")
+            cell.backgroundColor = .systemBackground
+            cell.selectionStyle = .default
+            cell.textLabel?.text = row.title
+            cell.textLabel?.font = .systemFont(ofSize: 17)
+            cell.imageView?.image = UIImage(systemName: row.iconName)
+            cell.imageView?.tintColor = .label
             // TODO implement here
             cell.accessoryView = nil
             cell.accessoryType = .disclosureIndicator
+            return cell
         case .demoMode:
+            let cell = settingsTableView.dequeueReusableCell(withIdentifier: "SettingCell")
+                ?? UITableViewCell(style: .default, reuseIdentifier: "SettingCell")
+            cell.backgroundColor = .systemBackground
+            cell.selectionStyle = .none
+            cell.textLabel?.text = row.title
+            cell.textLabel?.font = .systemFont(ofSize: 17)
+            cell.imageView?.image = UIImage(systemName: row.iconName)
+            cell.imageView?.tintColor = .label
             cell.accessoryType = .none
             let toggle = UISwitch()
             toggle.isOn = Self.isDemoModeEnabled
             toggle.addTarget(self, action: #selector(demoModeChanged(_:)), for: .valueChanged)
             cell.accessoryView = toggle
-            cell.selectionStyle = .none
+            return cell
         }
-        return cell
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -383,16 +481,36 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        51
+        guard let row = SettingRow(rawValue: indexPath.row) else { return 51 }
+        switch row {
+        case .backgroundMusic, .bevosSound:
+            return 78
+        default:
+            return 51
+        }
     }
 
-    @objc private func backgroundMusicChanged(_ sender: UISwitch) {
-        MusicManager.shared.toggleMusic(enabled: sender.isOn)
+    private func volumeText(_ v: Float) -> String {
+        "\(Int(round(max(0, min(1, v)) * 100)))%"
     }
 
-    @objc private func bevosSoundChanged(_ sender: UISwitch) {
-        bevosSoundOn = sender.isOn
-        // Setting is persisted via isBevosSoundEnabled; any moo playback should check SettingViewController.isBevosSoundEnabled
+    @objc private func volumeSliderChanged(_ sender: UISlider) {
+        guard let row = SettingRow(rawValue: sender.tag) else { return }
+        switch row {
+        case .backgroundMusic:
+            MusicManager.shared.setMusicVolume(sender.value)
+        case .bevosSound:
+            Self.bevosSoundVolume = sender.value
+        default:
+            break
+        }
+
+        // Update the % label without janky animations.
+        if let indexPath = IndexPath(row: row.rawValue, section: 0) as IndexPath?,
+           let cell = settingsTableView.cellForRow(at: indexPath) as? VolumeSliderCell {
+            let v = sender.value
+            cell.configure(iconSystemName: row.iconName, title: row.title, value: v, percentText: volumeText(v))
+        }
     }
     
     @objc private func demoModeChanged(_ sender: UISwitch) {

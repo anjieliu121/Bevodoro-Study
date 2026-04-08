@@ -15,6 +15,8 @@ final class MusicManager {
 
     private static let userDefaultsKey = "backgroundMusicEnabled"
     private static let defaultMusicEnabled = true
+    private static let musicVolumeKey = "backgroundMusicVolume"
+    private static let defaultMusicVolume: Float = 0.8
 
     private var player: AVAudioPlayer?
     private let queue = DispatchQueue(label: "com.bevodoro.musicmanager", qos: .userInitiated)
@@ -29,6 +31,22 @@ final class MusicManager {
         }
         set {
             UserDefaults.standard.set(newValue, forKey: MusicManager.userDefaultsKey)
+        }
+    }
+
+    /// Background music volume (0 = mute). Persisted in UserDefaults.
+    var musicVolume: Float {
+        get {
+            if let v = UserDefaults.standard.object(forKey: MusicManager.musicVolumeKey) as? Float {
+                return max(0, min(1, v))
+            }
+            if let n = UserDefaults.standard.object(forKey: MusicManager.musicVolumeKey) as? NSNumber {
+                return max(0, min(1, n.floatValue))
+            }
+            return MusicManager.defaultMusicVolume
+        }
+        set {
+            UserDefaults.standard.set(max(0, min(1, newValue)), forKey: MusicManager.musicVolumeKey)
         }
     }
 
@@ -63,6 +81,7 @@ final class MusicManager {
         do {
             let p = try AVAudioPlayer(contentsOf: url)
             p.numberOfLoops = -1
+            p.volume = musicVolume
             p.prepareToPlay()
             player = p
         } catch {
@@ -77,7 +96,8 @@ final class MusicManager {
         queue.async { [weak self] in
             guard let self = self else { return }
             self.setupPlayer()
-            guard self.isMusicEnabled, let p = self.player, !p.isPlaying else { return }
+            guard self.isMusicEnabled, self.musicVolume > 0, let p = self.player, !p.isPlaying else { return }
+            p.volume = self.musicVolume
             p.play()
         }
     }
@@ -86,6 +106,31 @@ final class MusicManager {
     func stopMusic() {
         queue.async { [weak self] in
             self?.player?.stop()
+        }
+    }
+
+    /// Sets volume (0 = mute) and applies immediately if playing.
+    func setMusicVolume(_ volume: Float) {
+        let v = max(0, min(1, volume))
+        musicVolume = v
+        queue.async { [weak self] in
+            guard let self else { return }
+            self.setupPlayer()
+            self.player?.volume = v
+            if v <= 0 {
+                self.player?.stop()
+            } else if self.isMusicEnabled {
+                if self.player?.isPlaying != true {
+                    self.player?.play()
+                }
+            } else {
+                // The slider is now the single source of truth. If the user raises volume above 0,
+                // we should auto-enable music even if an old toggle previously disabled it.
+                self.isMusicEnabled = true
+                if self.player?.isPlaying != true {
+                    self.player?.play()
+                }
+            }
         }
     }
 
