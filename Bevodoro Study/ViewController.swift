@@ -906,17 +906,28 @@ class ViewController: BaseViewController {
             }
         })
         
-        playBevoMooSound()
+        playBevoTapVoiceSound()
     }
     
-    private func playBevoMooSound() {
+    private func playBevoTapVoiceSound() {
         guard SettingViewController.isBevosSoundEnabled else { return }
         
         if let player = audioPlayer, player.isPlaying {
             player.stop()
         }
         
-        guard let url = Bundle.main.url(forResource: "bevoMoo", withExtension: "mp3") else {
+        let sick = UserManager.shared.currentUser?.isSick() ?? false
+        let candidates = sick
+            ? ["hurt1", "hurt2", "hurt3"]
+            : ["say1", "say2", "say3", "say4"]
+        let name = candidates.randomElement() ?? (sick ? "hurt1" : "say1")
+
+        let url = Bundle.main.url(forResource: name, withExtension: "m4a", subdirectory: "Audio")
+            ?? Bundle.main.url(forResource: name, withExtension: "m4a")
+        guard let url else {
+            #if DEBUG
+            print("ViewController: \(name).m4a not found — add Bevodoro Study/Audio/\(name).m4a to the app bundle.")
+            #endif
             return
         }
         
