@@ -26,6 +26,11 @@ class MainViewController: BaseViewController {
     /// Foods loaded from Firestore (`users/{uid}` → `food` or `foods` map). Quantity shows on each cell.
     private var troughFoods: [FoodItem] = []
     private var troughFoodCollectionView: UICollectionView?
+    /// Horizontal page indicator at the bottom of the trough (only when `troughPageCount > 1`).
+    private var troughPagingScrollBarContainer: UIView?
+    private var troughPagingScrollThumbView: UIView?
+    private var troughPagingScrollThumbLeading: NSLayoutConstraint?
+    private var troughPagingScrollThumbWidth: NSLayoutConstraint?
     /// Paging pan: only begins when touch starts on empty space (`indexPathForItem(at:)` is nil).
     private var troughGapPanGesture: UIPanGestureRecognizer?
 
@@ -53,7 +58,14 @@ class MainViewController: BaseViewController {
     /// How long Bevo stays on the EatFullBody asset after being fed.
     private static let bevoEatFullBodyDuration: TimeInterval = 1.5
 
-    
+    /// Trough page indicator: size, contrast, and vertical spacing from the food row.
+    private static let troughPagingBarHeight: CGFloat = 8
+    private static let troughPagingBarWidthMultiplier: CGFloat = 0.58
+    /// Inset from the trough image’s bottom edge (bar sits just above the rim).
+    private static let troughPagingBarBottomInset: CGFloat = 7
+    /// Nudge food row upward so there’s clear space above the paging bar.
+    private static let troughFoodCollectionCenterYOffset: CGFloat = -14
+
     private static var lastBevoSickAlertShownAt: Date? = nil
     private static let sickAlertCooldown: TimeInterval = 5 * 60  // 5 minutes. rate limit the sick alert so it isnt annoying.
     
@@ -73,6 +85,7 @@ class MainViewController: BaseViewController {
         loadTroughFoodFromFirestore()
         applyBevoSceneBackgroundFromUser()
         applyBevoHatFromUser()
+        applyBevoIdleFullBodyFromUser()
         showBevoSickAlertIfNeeded()
     }
     
@@ -80,6 +93,9 @@ class MainViewController: BaseViewController {
         super.viewDidLayoutSubviews()
         if isMenuOpen {
             refreshOpenMenuGeometry()
+        }
+        if foodTroughImageView != nil {
+            updateTroughPagingScrollBar()
         }
     }
     
@@ -138,7 +154,7 @@ class MainViewController: BaseViewController {
     }
     
     private func setupBackground() {
-        let backgroundImageView = UIImageView(image: UIImage(named: "bkgday"))
+        let backgroundImageView = UIImageView(image: UIImage(named: "Background_Day"))
         backgroundImageView.contentMode = .scaleAspectFill
         backgroundImageView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(backgroundImageView)
@@ -162,7 +178,7 @@ class MainViewController: BaseViewController {
         let chosen = user.equippedBkg ?? fallback
         let key = user.backgrounds.contains(chosen) ? chosen : fallback
         let asset = ItemCatalog.backgroundAssetName(forKey: key)
-        bgView.image = UIImage(named: asset) ?? UIImage(named: "bkgday")
+        bgView.image = UIImage(named: asset) ?? UIImage(named: "Background_Day")
     }
 
     private func applyBevoHatFromUser() {
@@ -197,6 +213,7 @@ class MainViewController: BaseViewController {
             imageView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.28)
         ])
 
+        setupTroughPagingScrollBar(pinnedTo: imageView)
         setupTroughFoodCollectionView(pinnedTo: imageView)
     }
     
@@ -274,6 +291,48 @@ class MainViewController: BaseViewController {
         return max(0, min(troughPageCount - 1, p))
     }
 
+    private func setupTroughPagingScrollBar(pinnedTo trough: UIImageView) {
+        let container = UIView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.layer.cornerCurve = .continuous
+        container.layer.cornerRadius = Self.troughPagingBarHeight / 2
+        container.clipsToBounds = true
+        // Dark track reads clearly on light trough art; reads as a proper “scrollbar” track.
+        container.backgroundColor = UIColor.black.withAlphaComponent(0.4)
+        container.layer.borderWidth = 0.5
+        container.layer.borderColor = UIColor.white.withAlphaComponent(0.35).cgColor
+        container.isHidden = true
+
+        let thumb = UIView()
+        thumb.translatesAutoresizingMaskIntoConstraints = false
+        thumb.layer.cornerCurve = .continuous
+        thumb.layer.cornerRadius = (Self.troughPagingBarHeight - 4) / 2
+        thumb.clipsToBounds = true
+        thumb.backgroundColor = UIColor.white.withAlphaComponent(0.95)
+        thumb.isUserInteractionEnabled = false
+
+        container.addSubview(thumb)
+        view.addSubview(container)
+
+        troughPagingScrollBarContainer = container
+        troughPagingScrollThumbView = thumb
+
+        let barInset: CGFloat = 2
+        NSLayoutConstraint.activate([
+            container.centerXAnchor.constraint(equalTo: trough.centerXAnchor),
+            container.bottomAnchor.constraint(equalTo: trough.bottomAnchor, constant: -Self.troughPagingBarBottomInset),
+            container.widthAnchor.constraint(equalTo: trough.widthAnchor, multiplier: Self.troughPagingBarWidthMultiplier),
+            container.heightAnchor.constraint(equalToConstant: Self.troughPagingBarHeight),
+            thumb.topAnchor.constraint(equalTo: container.topAnchor, constant: barInset),
+            thumb.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -barInset)
+        ])
+        let lead = thumb.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: barInset)
+        let widthC = thumb.widthAnchor.constraint(equalToConstant: 24)
+        NSLayoutConstraint.activate([lead, widthC])
+        troughPagingScrollThumbLeading = lead
+        troughPagingScrollThumbWidth = widthC
+    }
+
     private func setupTroughFoodCollectionView(pinnedTo trough: UIImageView) {
         let layout = makeTroughFoodCompositionalLayout()
         let cv = UICollectionView(frame: .zero, collectionViewLayout: layout)
@@ -285,6 +344,7 @@ class MainViewController: BaseViewController {
         // Avoid the scroll view’s built-in pan competing with our gap-only paging pan.
         cv.panGestureRecognizer.isEnabled = false
         cv.dataSource = self
+        cv.delegate = self
         cv.register(FoodCell.self, forCellWithReuseIdentifier: FoodCell.reuseIdentifier)
 
         view.addSubview(cv)
@@ -292,7 +352,7 @@ class MainViewController: BaseViewController {
 
         NSLayoutConstraint.activate([
             cv.centerXAnchor.constraint(equalTo: trough.centerXAnchor),
-            cv.centerYAnchor.constraint(equalTo: trough.centerYAnchor, constant: -6),
+            cv.centerYAnchor.constraint(equalTo: trough.centerYAnchor, constant: Self.troughFoodCollectionCenterYOffset),
             cv.widthAnchor.constraint(equalTo: trough.widthAnchor, multiplier: 0.88),
             cv.heightAnchor.constraint(equalTo: trough.heightAnchor, multiplier: 0.38)
         ])
@@ -304,6 +364,37 @@ class MainViewController: BaseViewController {
         troughGapPanGesture = pan
 
         cv.reloadData()
+    }
+
+    /// Track + thumb reflect horizontal page position (custom gap pan updates `contentOffset`).
+    private func updateTroughPagingScrollBar() {
+        guard let container = troughPagingScrollBarContainer,
+              let thumbLead = troughPagingScrollThumbLeading,
+              let thumbWidth = troughPagingScrollThumbWidth,
+              let cv = troughFoodCollectionView else { return }
+
+        let pages = troughPageCount
+        if pages <= 1 {
+            container.isHidden = true
+            return
+        }
+
+        container.isHidden = false
+        view.layoutIfNeeded()
+        let horizontalInset: CGFloat = 2
+        let trackUsable = container.bounds.width - 2 * horizontalInset
+        guard trackUsable > 0 else { return }
+
+        let w = cv.bounds.width
+        guard w > 0 else { return }
+
+        let thumbW = max(22, min(trackUsable, trackUsable / CGFloat(pages)))
+        let slack = max(0, trackUsable - thumbW)
+        let maxScrollX = CGFloat(pages - 1) * w
+        let progress = maxScrollX > 0 ? min(1, max(0, cv.contentOffset.x / maxScrollX)) : 0
+
+        thumbWidth.constant = thumbW
+        thumbLead.constant = horizontalInset + progress * slack
     }
 
     @objc private func handleTroughGapPan(_ gesture: UIPanGestureRecognizer) {
@@ -338,6 +429,7 @@ class MainViewController: BaseViewController {
         guard let uid = Auth.auth().currentUser?.uid else {
             troughFoods = []
             troughFoodCollectionView?.reloadData()
+            updateTroughPagingScrollBar()
             return
         }
 
@@ -348,42 +440,90 @@ class MainViewController: BaseViewController {
                     print("Food trough: load error — \(error.localizedDescription)")
                     self.troughFoods = []
                     self.troughFoodCollectionView?.reloadData()
+                    self.updateTroughPagingScrollBar()
                     return
                 }
-                let map = FoodItem.parseFoodMap(from: snapshot?.data())
-                self.troughFoods = FoodItem.troughItems(fromFoodMap: map)
+                var map = FoodItem.parseFoodMap(from: snapshot?.data())
+                // Also allow pill to be fed from the trough (pill lives under `medicine` in the user model).
+                let medicine = FoodItem.parseMedicineMap(from: snapshot?.data())
+                if let pillCount = medicine["pill"], pillCount > 0 {
+                    map["pill", default: 0] += pillCount
+                }
+                let sick = UserManager.shared.currentUser?.isSick() ?? false
+                self.troughFoods = FoodItem.troughItems(fromFoodMap: map, sickBevo: sick)
                 self.troughFoodCollectionView?.reloadData()
+                self.troughFoodCollectionView?.layoutIfNeeded()
+                self.updateTroughPagingScrollBar()
             }
         }
     }
 
-    /// After Bevo eats, update local list and merge into Firestore (keeps other `food` keys from Shop, etc.).
+    /// After Bevo eats, update local list, write back `UserManager`, and persist with `saveToFirestore`.
     private func applyEatFromTrough(atGlobalIndex globalIndex: Int) {
         guard troughFoods.indices.contains(globalIndex) else { return }
         let name = troughFoods[globalIndex].imageName
         if troughFoods[globalIndex].quantity <= 1 {
             troughFoods.remove(at: globalIndex)
-            mergePushFoodMap(updating: name, newQuantity: 0)
+            syncUserManagerConsumable(key: name, newQuantity: 0)
         } else {
             troughFoods[globalIndex].quantity -= 1
-            mergePushFoodMap(updating: name, newQuantity: troughFoods[globalIndex].quantity)
+            let newQty = troughFoods[globalIndex].quantity
+            syncUserManagerConsumable(key: name, newQuantity: newQty)
+        }
+        troughFoods = FoodItem.applyPillPlacement(
+            to: troughFoods,
+            sickBevo: UserManager.shared.currentUser?.isSick() ?? false
+        )
+    }
+
+    private func syncUserManagerConsumable(key: String, newQuantity: Int) {
+        guard var user = UserManager.shared.currentUser else { return }
+
+        // Pill is now a food item. Migrate any legacy medicine pill count into food on consume.
+        if key == "pill", let legacyCount = user.medicine["pill"], legacyCount > 0 {
+            user.medicine.removeValue(forKey: "pill")
+        }
+
+        if newQuantity <= 0 {
+            user.food.removeValue(forKey: key)
+        } else {
+            user.food[key] = newQuantity
+        }
+        UserManager.shared.currentUser = user
+
+        let doc = Firestore.firestore().collection("users").document(user.userID)
+        doc.updateData([
+            "food": user.food,
+            "medicine": user.medicine,
+            "foods": FieldValue.delete()
+        ]) { error in
+            if let error {
+                print("Food trough: save error — \(error.localizedDescription)")
+            }
         }
     }
 
-    private func mergePushFoodMap(updating foodKey: String, newQuantity: Int) {
-        guard let uid = Auth.auth().currentUser?.uid else { return }
-        let doc = Firestore.firestore().collection("users").document(uid)
-        doc.getDocument { snapshot, _ in
-            var food = FoodItem.parseFoodMap(from: snapshot?.data())
-            if newQuantity <= 0 {
-                food.removeValue(forKey: foodKey)
-            } else {
-                food[foodKey] = newQuantity
-            }
-            doc.setData(["food": food], merge: true) { error in
-                if let error = error {
-                    print("Food trough: save error — \(error.localizedDescription)")
-                }
+    /// `User` is a struct: mutations must be written back. Persist `food` with `updateData` so the **entire** map
+    /// is replaced. `setData(..., merge: true)` only merges nested keys under `food`, so removed keys (count 0)
+    /// would otherwise stay on the server and reappear when the trough reloads.
+    ///
+    /// We also remove legacy `foods` if present so `parseFoodMap` cannot read a stale duplicate field.
+    private func syncUserManagerFood(foodKey: String, newQuantity: Int) {
+        guard var user = UserManager.shared.currentUser else { return }
+        if newQuantity <= 0 {
+            user.food.removeValue(forKey: foodKey)
+        } else {
+            user.food[foodKey] = newQuantity
+        }
+        UserManager.shared.currentUser = user
+
+        let doc = Firestore.firestore().collection("users").document(user.userID)
+        doc.updateData([
+            "food": user.food,
+            "foods": FieldValue.delete()
+        ]) { error in
+            if let error {
+                print("Food trough: save error — \(error.localizedDescription)")
             }
         }
     }
@@ -451,7 +591,38 @@ class MainViewController: BaseViewController {
             let fedToBevo = isFoodFrameTouchingOrNearBevo(dropFrame)
 
             if fedToBevo {
-                showBevoEatingFullBodyTemporarily()
+                let global = self.troughGlobalIndex(section: indexPath.section, item: indexPath.item)
+                let fedKey = self.troughFoods.indices.contains(global) ? self.troughFoods[global].imageName : nil
+                let bevoIsSick = UserManager.shared.currentUser?.isSick() ?? false
+
+                if fedKey == "pill", !bevoIsSick {
+                    presentBevoHealthyRefusesPillNotice()
+                    UIView.animate(
+                        withDuration: 0.38,
+                        delay: 0,
+                        usingSpringWithDamping: 0.78,
+                        initialSpringVelocity: 0.65,
+                        options: [.curveEaseInOut],
+                        animations: {
+                            proxy.frame = self.troughFoodDragHomeFrameInView
+                        },
+                        completion: { _ in
+                            proxy.removeFromSuperview()
+                            self.clearTroughFoodDragState()
+                            cv.reloadItems(at: [indexPath])
+                        }
+                    )
+                } else {
+                    if fedKey == "pill", let user = UserManager.shared.currentUser, user.isSick() {
+                        var updated = user
+                        updated.updateLastStudyNow()
+                        UserManager.shared.currentUser = updated
+                        updated.saveToFirestore()
+
+                        showBevoEatingFullBodyTemporarily(idleAfterEatOverride: UIImage(named: "normalFullBody"))
+                    } else {
+                        showBevoEatingFullBodyTemporarily()
+                    }
 
                 let sparkleCenter = CGPoint(x: dropFrame.midX, y: dropFrame.midY)
                 let sparkleSide = max(36, min(dropFrame.width, dropFrame.height) * 0.85)
@@ -481,13 +652,15 @@ class MainViewController: BaseViewController {
                         }, completion: { _ in
                             sparkle.removeFromSuperview()
                             proxy.removeFromSuperview()
-                            let global = self.troughGlobalIndex(section: indexPath.section, item: indexPath.item)
                             self.clearTroughFoodDragState()
                             self.applyEatFromTrough(atGlobalIndex: global)
                             cv.reloadData()
+                            cv.layoutIfNeeded()
+                            self.updateTroughPagingScrollBar()
                         })
                     })
                 })
+                }
             } else {
                 UIView.animate(
                     withDuration: 0.38,
@@ -524,11 +697,27 @@ class MainViewController: BaseViewController {
         return expandedBevoFrame.intersects(foodFrame)
     }
 
-    /// Same `UIImageView` and constraints as normal pose — only the asset changes, so size stays identical.
-    private func showBevoEatingFullBodyTemporarily() {
+    /// Idle full-body asset: sick vs healthy based on `User.isSick()`.
+    private func bevoIdleFullBodyImage() -> UIImage? {
+        guard let user = UserManager.shared.currentUser else {
+            return UIImage(named: "normalFullBody")
+        }
+        if user.isSick() {
+            return UIImage(named: "sickfullbody") ?? UIImage(named: "normalFullBody")
+        }
+        return UIImage(named: "normalFullBody")
+    }
+
+    private func applyBevoIdleFullBodyFromUser() {
         guard let bevo = bevoImageView else { return }
-        guard let eatImage = UIImage(named: "EatFullBody"),
-              let normalImage = UIImage(named: "normalFullBody") else { return }
+        bevo.image = bevoIdleFullBodyImage()
+    }
+
+    /// Same `UIImageView` and constraints as normal pose — only the asset changes, so size stays identical.
+    private func showBevoEatingFullBodyTemporarily(idleAfterEatOverride: UIImage? = nil) {
+        guard let bevo = bevoImageView else { return }
+        guard let eatImage = UIImage(named: "EatFullBody") else { return }
+        let idleAfterEat = idleAfterEatOverride ?? bevoIdleFullBodyImage() ?? UIImage(named: "normalFullBody")
 
         bevoEatRevertWorkItem?.cancel()
         bevo.image = eatImage
@@ -536,7 +725,7 @@ class MainViewController: BaseViewController {
 
         let work = DispatchWorkItem { [weak self] in
             guard let self, let bevo = self.bevoImageView else { return }
-            bevo.image = normalImage
+            bevo.image = idleAfterEat
             self.bevoEatRevertWorkItem = nil
         }
         bevoEatRevertWorkItem = work
@@ -544,17 +733,23 @@ class MainViewController: BaseViewController {
     }
     
     private func setupBevo() {
-        let imageView = UIImageView(image: UIImage(named: "normalFullBody"))
+        let imageView = UIImageView(image: bevoIdleFullBodyImage() ?? UIImage(named: "normalFullBody"))
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.isUserInteractionEnabled = true
         view.addSubview(imageView)
         bevoImageView = imageView
         
+        // Use a fixed layout size (relative to screen) so different poses don't "jump" due to intrinsic image sizes.
+        let w = imageView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.8)
+        let h = imageView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.6)
+        w.priority = .defaultHigh
+        h.priority = .defaultHigh
+
         var constraints: [NSLayoutConstraint] = [
             imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            imageView.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: 0.8),
-            imageView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.6)
+            w,
+            h
         ]
         
         if let trough = foodTroughImageView {
@@ -690,17 +885,28 @@ class MainViewController: BaseViewController {
             }
         })
         
-        playBevoMooSound()
+        playBevoTapVoiceSound()
     }
     
-    private func playBevoMooSound() {
+    private func playBevoTapVoiceSound() {
         guard SettingViewController.isBevosSoundEnabled else { return }
         
         if let player = audioPlayer, player.isPlaying {
             player.stop()
         }
         
-        guard let url = Bundle.main.url(forResource: "bevoMoo", withExtension: "mp3") else {
+        let sick = UserManager.shared.currentUser?.isSick() ?? false
+        let candidates = sick
+            ? ["hurt1", "hurt2", "hurt3"]
+            : ["say1", "say2", "say3", "say4"]
+        let name = candidates.randomElement() ?? (sick ? "hurt1" : "say1")
+
+        let url = Bundle.main.url(forResource: name, withExtension: "m4a", subdirectory: "Audio")
+            ?? Bundle.main.url(forResource: name, withExtension: "m4a")
+        guard let url else {
+            #if DEBUG
+            print("ViewController: \(name).m4a not found — add Bevodoro Study/Audio/\(name).m4a to the app bundle.")
+            #endif
             return
         }
         
@@ -834,6 +1040,8 @@ class MainViewController: BaseViewController {
         foodTroughImageView?.alpha = 0
         troughFoodCollectionView?.transform = t
         troughFoodCollectionView?.alpha = 0
+        troughPagingScrollBarContainer?.transform = t
+        troughPagingScrollBarContainer?.alpha = 0
     }
 
     /// Brings trough + foods back to normal layout (after leaving photo mode).
@@ -842,6 +1050,8 @@ class MainViewController: BaseViewController {
         foodTroughImageView?.alpha = 1
         troughFoodCollectionView?.transform = .identity
         troughFoodCollectionView?.alpha = 1
+        troughPagingScrollBarContainer?.transform = .identity
+        troughPagingScrollBarContainer?.alpha = 1
     }
 
     @objc private func enterPhotoModeFromMenu() {
@@ -911,6 +1121,17 @@ class MainViewController: BaseViewController {
         }, completion: nil)
     }
     
+    /// When Bevo is healthy, dragging a pill onto them bounces back and shows a gentle message (pill is not consumed).
+    private func presentBevoHealthyRefusesPillNotice() {
+        let alert = UIAlertController(
+            title: "Bevo feels great!",
+            message: "Bevo is healthy and doesn’t want the pill right now — maybe later if they feel under the weather.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+
     func showBevoSickAlertIfNeeded() {
         // make sure the user is valid and bevo is sick
         guard let user = UserManager.shared.currentUser else { return }
@@ -926,14 +1147,13 @@ class MainViewController: BaseViewController {
         }
         
         // construct the alert
-        let lastStudyDate = user.lastStudy!.dateValue()
-        let sickAfterDate = lastStudyDate.addingTimeInterval(bevoSickThresholdSeconds)
-        
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .medium
         
         let normalMessage = "It’s been a while since you last studied. Study more to buy medicine to treat Bevo!"
+        let lastStudyDate = user.lastStudy!.dateValue()
+        let sickAfterDate = lastStudyDate.addingTimeInterval(bevoSickThresholdSeconds)
         let debugMessage = """
         \(normalMessage)
         
@@ -953,6 +1173,16 @@ class MainViewController: BaseViewController {
         
         // update rate-limit cooldown, when it was last shown
         MainViewController.lastBevoSickAlertShownAt = Date()
+    }
+}
+
+// MARK: - UICollectionViewDelegate (trough paging indicator)
+
+extension MainViewController: UICollectionViewDelegate {
+
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        guard scrollView === troughFoodCollectionView else { return }
+        updateTroughPagingScrollBar()
     }
 }
 
