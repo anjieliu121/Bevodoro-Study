@@ -23,11 +23,11 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Z0o-nK-0dp">
-                                <rect key="frame" x="152.66666666666666" y="488" width="134.99999999999997" height="14"/>
+                                <rect key="frame" x="154.66666666666666" y="488" width="130.99999999999997" height="40"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="plain" title="Start Timer!">
-                                    <fontDescription key="titleFontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="0.0"/>
+                                    <fontDescription key="titleFontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="20"/>
                                     <color key="baseForegroundColor" systemColor="labelColor"/>
                                 </buttonConfiguration>
                                 <connections>
@@ -39,7 +39,7 @@
                                 <subviews>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="4" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3Xz-9K-Urp">
                                         <rect key="frame" x="5" y="5" width="390" height="110"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                        <fontDescription key="fontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="18"/>
                                         <nil key="textColor"/>
                                         <nil key="highlightedColor"/>
                                     </label>
@@ -62,11 +62,11 @@
                                 </userDefinedRuntimeAttributes>
                             </view>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="LgU-oH-giN">
-                                <rect key="frame" x="152.66666666666666" y="532" width="134.99999999999997" height="14"/>
+                                <rect key="frame" x="162.66666666666666" y="558" width="114.99999999999997" height="40"/>
                                 <color key="backgroundColor" systemColor="systemBackgroundColor"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="plain" title="End Timer">
-                                    <fontDescription key="titleFontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="0.0"/>
+                                    <fontDescription key="titleFontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="20"/>
                                     <color key="baseForegroundColor" systemColor="labelColor"/>
                                 </buttonConfiguration>
                                 <connections>
@@ -80,17 +80,17 @@
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="00:00" textAlignment="center" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontForContentSizeCategory="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="u69-tZ-9hE">
-                                <rect key="frame" x="88" y="328" width="264.33333333333331" height="150"/>
+                                <rect key="frame" x="87.666666666666657" y="328" width="264.66666666666674" height="150"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="150" id="6p8-Tt-IJh"/>
                                 </constraints>
-                                <fontDescription key="fontDescription" type="system" pointSize="100"/>
+                                <fontDescription key="fontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="100"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Study" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="s0U-81-Pcc">
-                                <rect key="frame" x="186" y="804" width="68.333333333333314" height="34"/>
-                                <fontDescription key="fontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="26"/>
+                                <rect key="frame" x="184.66666666666666" y="803" width="71" height="35"/>
+                                <fontDescription key="fontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="27"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
