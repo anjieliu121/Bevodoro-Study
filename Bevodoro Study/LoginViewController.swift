@@ -15,6 +15,7 @@ class LoginViewController: BaseViewController, UITextFieldDelegate {
     @IBOutlet weak var passwordField: UITextField!
     @IBOutlet weak var errorMsgLabel: UILabel!
     
+    override var backgroundImageName: String { "texture_ut_dark" }
     
     override func viewDidLoad() {
         super.viewDidLoad()

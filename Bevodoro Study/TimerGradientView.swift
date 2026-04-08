@@ -10,8 +10,8 @@ import UIKit
 
 class TimerGradientView: UIView {
     // change to light orange and burn orange, from figma
-    var startColor: UIColor = UIColor(named: "LightOrangeYellow") ?? .white
-    var endColor: UIColor = UIColor(named: "ToastyOrange") ?? .systemOrange
+    var startColor: UIColor = UIColor(named: "colorOrangeCream") ?? .white
+    var endColor: UIColor = UIColor(named: "colororangeMid") ?? .systemOrange
 
     override class var layerClass: AnyClass {
         return CAGradientLayer.self

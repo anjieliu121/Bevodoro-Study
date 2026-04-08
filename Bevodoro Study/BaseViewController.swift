@@ -8,19 +8,18 @@
 import UIKit
 
 class BaseViewController: UIViewController {
-
+    
+    var backgroundImageName: String { "texture_ut_light" }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Do any additional setup after loading the view.
         // Set default background image for all views
-        let backgroundImage = UIImageView(frame: view.bounds)
-        backgroundImage.image = UIImage(named: "BlueBackground")
-        backgroundImage.contentMode = .scaleAspectFill
-        backgroundImage.autoresizingMask = [.flexibleWidth, .flexibleHeight]
-        view.insertSubview(backgroundImage, at: 0)
+        let bg = UIImageView(frame: view.bounds)
+        bg.image = UIImage(named: backgroundImageName)
+        bg.contentMode = .scaleAspectFill
+        view.insertSubview(bg, at: 0)
     }
-    
 
     /*
     // MARK: - Navigation

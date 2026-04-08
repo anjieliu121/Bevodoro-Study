@@ -17,6 +17,8 @@ class SignUpViewController: BaseViewController, UITextFieldDelegate {
     @IBOutlet weak var confirmPasswordField: UITextField!
     @IBOutlet weak var errorMsgLabel: UILabel!
     
+    override var backgroundImageName: String { "texture_ut_dark" }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         errorMsgLabel.text = ""
