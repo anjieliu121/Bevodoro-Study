@@ -7,6 +7,7 @@
 
 import UIKit
 import UserNotifications
+import FirebaseAuth
 
 class SettingViewController: BaseViewController {
 
@@ -276,6 +277,21 @@ class SettingViewController: BaseViewController {
 
         present(pickerVC, animated: true)
     }
+    
+    private func showLogoutConfirmation() {
+        let alert = UIAlertController(
+            title: "Log Out",
+            message: "Are you sure you want to log out?",
+            preferredStyle: .alert
+        )
+
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Log Out", style: .destructive) { _ in
+            self.handleLogout()
+        })
+
+        present(alert, animated: true)
+    }
 }
 
 // MARK: - UITableViewDataSource, UITableViewDelegate
@@ -359,6 +375,8 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
             showPomodoroLongBreakPicker()
         case .pomodoroCycleLength:
             showPomodoroCycleLengthPicker()
+        case .logout:
+            handleLogout()
         default:
             break
         }
@@ -464,6 +482,39 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
         })
         alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
         present(alert, animated: true)
+    }
+    
+    private func handleLogout() {
+        let alert = UIAlertController(
+            title: "Log Out",
+            message: "Are you sure you want to log out?",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "Cancel", style: .cancel))
+        alert.addAction(UIAlertAction(title: "Log Out", style: .destructive) { _ in
+            self.performLogout()
+        })
+        present(alert, animated: true)
+    }
+
+    private func performLogout() {
+        do {
+            try Auth.auth().signOut()
+            UserManager.shared.currentUser = nil
+
+            // Navigate back to the root (login/home) screen
+            if let sceneDelegate = view.window?.windowScene?.delegate as? SceneDelegate {
+                sceneDelegate.showLoginScreen()
+            }
+        } catch {
+            let alert = UIAlertController(
+                title: "Error",
+                message: "Failed to log out. Please try again.",
+                preferredStyle: .alert
+            )
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
+        }
     }
 }
 
