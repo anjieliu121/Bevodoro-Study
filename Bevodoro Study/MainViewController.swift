@@ -854,8 +854,8 @@ class MainViewController: BaseViewController {
         }
         
         let timerButton = makeIconButton(systemName: "timer", accessibilityLabel: "Timer")
-        let inventoryButton = makeIconButton(systemName: "tray.fill", accessibilityLabel: "Inventory")  //shippingbox.fill
-        let shopButton = makeIconButton(systemName: "bag.fill", accessibilityLabel: "Shop") // cart.fill
+        let inventoryButton = makeIconButton(systemName: "shippingbox.fill", accessibilityLabel: "Inventory") 
+        let shopButton = makeIconButton(systemName: "cart.fill", accessibilityLabel: "Shop")
         let settingsButton = makeIconButton(systemName: "gearshape.fill", accessibilityLabel: "Settings")
         let photoButton = makeIconButton(systemName: "camera.fill", accessibilityLabel: "Photo mode")
         
