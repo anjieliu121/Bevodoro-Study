@@ -76,7 +76,7 @@ class TimerManager {
     }
     var cycleLength: Int {
         SettingViewController.isDemoModeEnabled ? demoModeCycleLength :
-        (UserManager.shared.currentUser?.settings.timerCycleLength ?? defaultTimerCycleLength) * secondsPerMin
+        (UserManager.shared.currentUser?.settings.timerCycleLength ?? defaultTimerCycleLength)
     }
     
     var isRunning: Bool {
