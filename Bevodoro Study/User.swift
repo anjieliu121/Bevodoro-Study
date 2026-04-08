@@ -135,8 +135,17 @@ struct User: Codable {
         let docRef = db.collection("users").document(userID)
 
         do {
-            let data = try Firestore.Encoder().encode(self)
-            docRef.setData(data, merge: true, completion: completion)
+            // `setData(..., merge: true)` merges nested map keys; it does **not** delete missing keys under `food`,
+            // so eaten items would otherwise stay on the server. Replace `food` in a separate `updateData`.
+            var encoded = try Firestore.Encoder().encode(self)
+            encoded.removeValue(forKey: "food")
+            let batch = db.batch()
+            batch.setData(encoded, forDocument: docRef, merge: true)
+            batch.updateData([
+                "food": food,
+                "foods": FieldValue.delete()
+            ], forDocument: docRef)
+            batch.commit(completion: completion)
         } catch {
             completion?(error)
         }
