@@ -897,7 +897,7 @@ class MainViewController: BaseViewController {
     }
     
     private func playBevoTapVoiceSound() {
-        guard SettingViewController.isBevosSoundEnabled else { return }
+        guard SettingViewController.bevosSoundVolume > 0 else { return }
         
         if let player = audioPlayer, player.isPlaying {
             player.stop()
@@ -920,6 +920,7 @@ class MainViewController: BaseViewController {
         
         do {
             audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.volume = SettingViewController.bevosSoundVolume
             audioPlayer?.prepareToPlay()
             audioPlayer?.play()
         } catch {
@@ -929,7 +930,7 @@ class MainViewController: BaseViewController {
 
     /// Plays `Audio/chewing.mp3` while Bevo shows the eat-full-body pose (same toggle as moo).
     private func playBevoChewingSound() {
-        guard SettingViewController.isBevosSoundEnabled else { return }
+        guard SettingViewController.bevosSoundVolume > 0 else { return }
         if let player = chewingAudioPlayer, player.isPlaying {
             player.stop()
         }
@@ -943,6 +944,7 @@ class MainViewController: BaseViewController {
         }
         do {
             chewingAudioPlayer = try AVAudioPlayer(contentsOf: url)
+            chewingAudioPlayer?.volume = SettingViewController.bevosSoundVolume
             chewingAudioPlayer?.prepareToPlay()
             chewingAudioPlayer?.play()
         } catch {
