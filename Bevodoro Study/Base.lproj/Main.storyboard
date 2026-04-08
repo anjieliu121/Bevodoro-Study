@@ -18,7 +18,7 @@
         <!--Login View Controller-->
         <scene sceneID="7LF-7K-8fW">
             <objects>
-                <viewController id="gUv-8z-Nji" customClass="LoginViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="LoginViewController" id="gUv-8z-Nji" customClass="LoginViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="6Nk-ET-CXr">
                         <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
@@ -260,7 +260,7 @@
             </objects>
             <point key="canvasLocation" x="1736" y="105"/>
         </scene>
-        <!--View Controller-->
+        <!--Main View Controller-->
         <scene sceneID="tne-QT-ifu">
             <objects>
                 <viewController id="BYZ-38-t0r" customClass="MainViewController" customModule="Bevodoro_Study" customModuleProvider="target" sceneMemberID="viewController">
@@ -314,7 +314,7 @@
         </scene>
     </scenes>
     <resources>
-        <image name="bkgday" width="146.66667175292969" height="318.66665649414062"/>
+        <image name="bkgday" width="440" height="956"/>
         <image name="normalFullBody" width="333.33334350585938" height="333.33334350585938"/>
         <namedColor name="AccentColor">
             <color red="1" green="0.79199999570846558" blue="0.15700000524520874" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
