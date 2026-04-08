@@ -170,9 +170,6 @@ class MainViewController: BaseViewController {
 
     private func applyBevoSceneBackgroundFromUser() {
         guard let bgView = bevoSceneBackgroundImageView else { return }
-        // TEMP: force Blossom background for testing
-        bgView.image = UIImage(named: "Background_Blossom")
-        return
         let fallback = ItemCatalog.dayBackgroundKey
         guard let user = UserManager.shared.currentUser else {
             bgView.image = UIImage(named: ItemCatalog.backgroundAssetName(forKey: fallback))
@@ -481,31 +478,12 @@ class MainViewController: BaseViewController {
 
     private func syncUserManagerConsumable(key: String, newQuantity: Int) {
         guard var user = UserManager.shared.currentUser else { return }
-        let medicineKeys = Set(ItemCatalog.medicineItems.map { $0.key })
-        let isMedicine = medicineKeys.contains(key)
 
-        if isMedicine {
-            if newQuantity <= 0 {
-                user.medicine.removeValue(forKey: key)
-            } else {
-                user.medicine[key] = newQuantity
-            }
-            UserManager.shared.currentUser = user
-
-            let doc = Firestore.firestore().collection("users").document(user.userID)
-            doc.updateData(["medicine": user.medicine]) { error in
-                if let error {
-                    print("Trough (medicine): save error — \(error.localizedDescription)")
-                }
-            }
-            return
+        // Pill is now a food item. Migrate any legacy medicine pill count into food on consume.
+        if key == "pill", let legacyCount = user.medicine["pill"], legacyCount > 0 {
+            user.medicine.removeValue(forKey: "pill")
         }
 
-        // `User` is a struct: mutations must be written back. Persist `food` with `updateData` so the **entire** map
-        // is replaced. `setData(..., merge: true)` only merges nested keys under `food`, so removed keys (count 0)
-        // would otherwise stay on the server and reappear when the trough reloads.
-        //
-        // We also remove legacy `foods` if present so `parseFoodMap` cannot read a stale duplicate field.
         if newQuantity <= 0 {
             user.food.removeValue(forKey: key)
         } else {
@@ -516,6 +494,7 @@ class MainViewController: BaseViewController {
         let doc = Firestore.firestore().collection("users").document(user.userID)
         doc.updateData([
             "food": user.food,
+            "medicine": user.medicine,
             "foods": FieldValue.delete()
         ]) { error in
             if let error {
@@ -1199,7 +1178,7 @@ class MainViewController: BaseViewController {
 
 // MARK: - UICollectionViewDelegate (trough paging indicator)
 
-extension ViewController: UICollectionViewDelegate {
+extension MainViewController: UICollectionViewDelegate {
 
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         guard scrollView === troughFoodCollectionView else { return }

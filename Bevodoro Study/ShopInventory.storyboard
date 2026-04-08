@@ -29,7 +29,6 @@
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <segments>
                                     <segment title="Food"/>
-                                    <segment title="Medicine"/>
                                     <segment title="Clothes"/>
                                     <segment title="Backgrounds"/>
                                 </segments>
@@ -159,7 +158,6 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <segments>
                                     <segment title="Food"/>
-                                    <segment title="Medicine"/>
                                     <segment title="Clothes"/>
                                     <segment title="Backgrounds"/>
                                 </segments>
