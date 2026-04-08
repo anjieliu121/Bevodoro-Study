@@ -85,6 +85,7 @@ class ViewController: BaseViewController {
         loadTroughFoodFromFirestore()
         applyBevoSceneBackgroundFromUser()
         applyBevoHatFromUser()
+        applyBevoIdleFullBodyFromUser()
         showBevoSickAlertIfNeeded()
     }
     
@@ -153,7 +154,7 @@ class ViewController: BaseViewController {
     }
     
     private func setupBackground() {
-        let backgroundImageView = UIImageView(image: UIImage(named: "bkgday"))
+        let backgroundImageView = UIImageView(image: UIImage(named: "Background_Day"))
         backgroundImageView.contentMode = .scaleAspectFill
         backgroundImageView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(backgroundImageView)
@@ -169,6 +170,9 @@ class ViewController: BaseViewController {
 
     private func applyBevoSceneBackgroundFromUser() {
         guard let bgView = bevoSceneBackgroundImageView else { return }
+        // TEMP: force Blossom background for testing
+        bgView.image = UIImage(named: "Background_Blossom")
+        return
         let fallback = ItemCatalog.dayBackgroundKey
         guard let user = UserManager.shared.currentUser else {
             bgView.image = UIImage(named: ItemCatalog.backgroundAssetName(forKey: fallback))
@@ -177,7 +181,7 @@ class ViewController: BaseViewController {
         let chosen = user.equippedBkg ?? fallback
         let key = user.backgrounds.contains(chosen) ? chosen : fallback
         let asset = ItemCatalog.backgroundAssetName(forKey: key)
-        bgView.image = UIImage(named: asset) ?? UIImage(named: "bkgday")
+        bgView.image = UIImage(named: asset) ?? UIImage(named: "Background_Day")
     }
 
     private func applyBevoHatFromUser() {
@@ -442,8 +446,14 @@ class ViewController: BaseViewController {
                     self.updateTroughPagingScrollBar()
                     return
                 }
-                let map = FoodItem.parseFoodMap(from: snapshot?.data())
-                self.troughFoods = FoodItem.troughItems(fromFoodMap: map)
+                var map = FoodItem.parseFoodMap(from: snapshot?.data())
+                // Also allow pill to be fed from the trough (pill lives under `medicine` in the user model).
+                let medicine = FoodItem.parseMedicineMap(from: snapshot?.data())
+                if let pillCount = medicine["pill"], pillCount > 0 {
+                    map["pill", default: 0] += pillCount
+                }
+                let sick = UserManager.shared.currentUser?.isSick() ?? false
+                self.troughFoods = FoodItem.troughItems(fromFoodMap: map, sickBevo: sick)
                 self.troughFoodCollectionView?.reloadData()
                 self.troughFoodCollectionView?.layoutIfNeeded()
                 self.updateTroughPagingScrollBar()
@@ -457,11 +467,60 @@ class ViewController: BaseViewController {
         let name = troughFoods[globalIndex].imageName
         if troughFoods[globalIndex].quantity <= 1 {
             troughFoods.remove(at: globalIndex)
-            syncUserManagerFood(foodKey: name, newQuantity: 0)
+            syncUserManagerConsumable(key: name, newQuantity: 0)
         } else {
             troughFoods[globalIndex].quantity -= 1
             let newQty = troughFoods[globalIndex].quantity
-            syncUserManagerFood(foodKey: name, newQuantity: newQty)
+            syncUserManagerConsumable(key: name, newQuantity: newQty)
+        }
+        troughFoods = FoodItem.applyPillPlacement(
+            to: troughFoods,
+            sickBevo: UserManager.shared.currentUser?.isSick() ?? false
+        )
+    }
+
+    private func syncUserManagerConsumable(key: String, newQuantity: Int) {
+        guard var user = UserManager.shared.currentUser else { return }
+        let medicineKeys = Set(ItemCatalog.medicineItems.map { $0.key })
+        let isMedicine = medicineKeys.contains(key)
+
+        if isMedicine {
+            if newQuantity <= 0 {
+                user.medicine.removeValue(forKey: key)
+            } else {
+                user.medicine[key] = newQuantity
+            }
+            UserManager.shared.currentUser = user
+
+            let doc = Firestore.firestore().collection("users").document(user.userID)
+            doc.updateData(["medicine": user.medicine]) { error in
+                if let error {
+                    print("Trough (medicine): save error — \(error.localizedDescription)")
+                }
+            }
+            return
+        }
+
+        // `User` is a struct: mutations must be written back. Persist `food` with `updateData` so the **entire** map
+        // is replaced. `setData(..., merge: true)` only merges nested keys under `food`, so removed keys (count 0)
+        // would otherwise stay on the server and reappear when the trough reloads.
+        //
+        // We also remove legacy `foods` if present so `parseFoodMap` cannot read a stale duplicate field.
+        if newQuantity <= 0 {
+            user.food.removeValue(forKey: key)
+        } else {
+            user.food[key] = newQuantity
+        }
+        UserManager.shared.currentUser = user
+
+        let doc = Firestore.firestore().collection("users").document(user.userID)
+        doc.updateData([
+            "food": user.food,
+            "foods": FieldValue.delete()
+        ]) { error in
+            if let error {
+                print("Food trough: save error — \(error.localizedDescription)")
+            }
         }
     }
 
@@ -553,7 +612,38 @@ class ViewController: BaseViewController {
             let fedToBevo = isFoodFrameTouchingOrNearBevo(dropFrame)
 
             if fedToBevo {
-                showBevoEatingFullBodyTemporarily()
+                let global = self.troughGlobalIndex(section: indexPath.section, item: indexPath.item)
+                let fedKey = self.troughFoods.indices.contains(global) ? self.troughFoods[global].imageName : nil
+                let bevoIsSick = UserManager.shared.currentUser?.isSick() ?? false
+
+                if fedKey == "pill", !bevoIsSick {
+                    presentBevoHealthyRefusesPillNotice()
+                    UIView.animate(
+                        withDuration: 0.38,
+                        delay: 0,
+                        usingSpringWithDamping: 0.78,
+                        initialSpringVelocity: 0.65,
+                        options: [.curveEaseInOut],
+                        animations: {
+                            proxy.frame = self.troughFoodDragHomeFrameInView
+                        },
+                        completion: { _ in
+                            proxy.removeFromSuperview()
+                            self.clearTroughFoodDragState()
+                            cv.reloadItems(at: [indexPath])
+                        }
+                    )
+                } else {
+                    if fedKey == "pill", let user = UserManager.shared.currentUser, user.isSick() {
+                        var updated = user
+                        updated.updateLastStudyNow()
+                        UserManager.shared.currentUser = updated
+                        updated.saveToFirestore()
+
+                        showBevoEatingFullBodyTemporarily(idleAfterEatOverride: UIImage(named: "normalFullBody"))
+                    } else {
+                        showBevoEatingFullBodyTemporarily()
+                    }
 
                 let sparkleCenter = CGPoint(x: dropFrame.midX, y: dropFrame.midY)
                 let sparkleSide = max(36, min(dropFrame.width, dropFrame.height) * 0.85)
@@ -583,7 +673,6 @@ class ViewController: BaseViewController {
                         }, completion: { _ in
                             sparkle.removeFromSuperview()
                             proxy.removeFromSuperview()
-                            let global = self.troughGlobalIndex(section: indexPath.section, item: indexPath.item)
                             self.clearTroughFoodDragState()
                             self.applyEatFromTrough(atGlobalIndex: global)
                             cv.reloadData()
@@ -592,6 +681,7 @@ class ViewController: BaseViewController {
                         })
                     })
                 })
+                }
             } else {
                 UIView.animate(
                     withDuration: 0.38,
@@ -628,11 +718,27 @@ class ViewController: BaseViewController {
         return expandedBevoFrame.intersects(foodFrame)
     }
 
-    /// Same `UIImageView` and constraints as normal pose — only the asset changes, so size stays identical.
-    private func showBevoEatingFullBodyTemporarily() {
+    /// Idle full-body asset: sick vs healthy based on `User.isSick()`.
+    private func bevoIdleFullBodyImage() -> UIImage? {
+        guard let user = UserManager.shared.currentUser else {
+            return UIImage(named: "normalFullBody")
+        }
+        if user.isSick() {
+            return UIImage(named: "sickfullbody") ?? UIImage(named: "normalFullBody")
+        }
+        return UIImage(named: "normalFullBody")
+    }
+
+    private func applyBevoIdleFullBodyFromUser() {
         guard let bevo = bevoImageView else { return }
-        guard let eatImage = UIImage(named: "EatFullBody"),
-              let normalImage = UIImage(named: "normalFullBody") else { return }
+        bevo.image = bevoIdleFullBodyImage()
+    }
+
+    /// Same `UIImageView` and constraints as normal pose — only the asset changes, so size stays identical.
+    private func showBevoEatingFullBodyTemporarily(idleAfterEatOverride: UIImage? = nil) {
+        guard let bevo = bevoImageView else { return }
+        guard let eatImage = UIImage(named: "EatFullBody") else { return }
+        let idleAfterEat = idleAfterEatOverride ?? bevoIdleFullBodyImage() ?? UIImage(named: "normalFullBody")
 
         bevoEatRevertWorkItem?.cancel()
         bevo.image = eatImage
@@ -640,7 +746,7 @@ class ViewController: BaseViewController {
 
         let work = DispatchWorkItem { [weak self] in
             guard let self, let bevo = self.bevoImageView else { return }
-            bevo.image = normalImage
+            bevo.image = idleAfterEat
             self.bevoEatRevertWorkItem = nil
         }
         bevoEatRevertWorkItem = work
@@ -648,17 +754,23 @@ class ViewController: BaseViewController {
     }
     
     private func setupBevo() {
-        let imageView = UIImageView(image: UIImage(named: "normalFullBody"))
+        let imageView = UIImageView(image: bevoIdleFullBodyImage() ?? UIImage(named: "normalFullBody"))
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.isUserInteractionEnabled = true
         view.addSubview(imageView)
         bevoImageView = imageView
         
+        // Use a fixed layout size (relative to screen) so different poses don't "jump" due to intrinsic image sizes.
+        let w = imageView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.8)
+        let h = imageView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.6)
+        w.priority = .defaultHigh
+        h.priority = .defaultHigh
+
         var constraints: [NSLayoutConstraint] = [
             imageView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            imageView.widthAnchor.constraint(lessThanOrEqualTo: view.widthAnchor, multiplier: 0.8),
-            imageView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.6)
+            w,
+            h
         ]
         
         if let trough = foodTroughImageView {
@@ -1019,6 +1131,17 @@ class ViewController: BaseViewController {
         }, completion: nil)
     }
     
+    /// When Bevo is healthy, dragging a pill onto them bounces back and shows a gentle message (pill is not consumed).
+    private func presentBevoHealthyRefusesPillNotice() {
+        let alert = UIAlertController(
+            title: "Bevo feels great!",
+            message: "Bevo is healthy and doesn’t want the pill right now — maybe later if they feel under the weather.",
+            preferredStyle: .alert
+        )
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
+    }
+
     func showBevoSickAlertIfNeeded() {
         // make sure the user is valid and bevo is sick
         guard let user = UserManager.shared.currentUser else { return }
@@ -1034,14 +1157,13 @@ class ViewController: BaseViewController {
         }
         
         // construct the alert
-        let lastStudyDate = user.lastStudy!.dateValue()
-        let sickAfterDate = lastStudyDate.addingTimeInterval(bevoSickThresholdSeconds)
-        
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .medium
         
         let normalMessage = "It’s been a while since you last studied. Study more to buy medicine to treat Bevo!"
+        let lastStudyDate = user.lastStudy!.dateValue()
+        let sickAfterDate = lastStudyDate.addingTimeInterval(bevoSickThresholdSeconds)
         let debugMessage = """
         \(normalMessage)
         

@@ -43,7 +43,7 @@ struct ItemCatalog {
     static let dayBackgroundKey = "day"
 
     static let backgroundItems: [CatalogItem] = [
-        CatalogItem(key: dayBackgroundKey, displayName: "Day", icon: "bkgday", cost: 0),
+        CatalogItem(key: dayBackgroundKey, displayName: "Day", icon: "Background_Day", cost: 0),
         CatalogItem(key: "night", displayName: "Night", icon: "bkgnight", cost: 100),
         CatalogItem(key: "sky", displayName: "Sky", icon: "bkgsky", cost: 120),
     ]
@@ -64,6 +64,6 @@ struct ItemCatalog {
 
     /// Asset name in the asset catalog (same as `icon` for background rows).
     static func backgroundAssetName(forKey key: String) -> String {
-        backgroundItems.first(where: { $0.key == key })?.icon ?? "bkgday"
+        backgroundItems.first(where: { $0.key == key })?.icon ?? "Background_Day"
     }
 }
