@@ -49,9 +49,13 @@ final class InventoryTableViewCell: UITableViewCell {
         itemImageView.image = Self.catalogImage(for: item, side: imageSide)
     }
 
+    func updateUseButton(canUse: Bool) {
+        setUseButton(canUse: canUse)
+    }
+
     private func setUseButton(canUse: Bool) {
         useButton.isEnabled = true
-        useButton.isUserInteractionEnabled = canUse
+        useButton.isUserInteractionEnabled = true
         if canUse {
             useButton.accessibilityTraits.remove(.notEnabled)
         } else {

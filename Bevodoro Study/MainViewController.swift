@@ -745,9 +745,11 @@ class MainViewController: BaseViewController {
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.isUserInteractionEnabled = true
+        imageView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        imageView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
         view.addSubview(imageView)
         bevoImageView = imageView
-        
+
         // Use a fixed layout size (relative to screen) so different poses don't "jump" due to intrinsic image sizes.
         let w = imageView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.8)
         let h = imageView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.6)
@@ -773,6 +775,10 @@ class MainViewController: BaseViewController {
         hatView.contentMode = .scaleAspectFit
         hatView.translatesAutoresizingMaskIntoConstraints = false
         hatView.isUserInteractionEnabled = false
+        hatView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        hatView.setContentHuggingPriority(.defaultLow, for: .vertical)
+        hatView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        hatView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
         imageView.addSubview(hatView)
         NSLayoutConstraint.activate([
             hatView.topAnchor.constraint(equalTo: imageView.topAnchor),
