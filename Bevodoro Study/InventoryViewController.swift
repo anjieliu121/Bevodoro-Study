@@ -140,13 +140,26 @@ extension InventoryViewController {
     private func equipHat(key: String) {
         guard var user = UserManager.shared.currentUser else { return }
         guard user.hats.contains(key) else { return }
-        user.equippedHat = key
+        user.equippedHat = (user.equippedHat == key) ? nil : key
         UserManager.shared.currentUser = user
-        inventoryTableView.reloadData()
+        refreshHatButtons()
         user.saveToFirestore { err in
             if let err {
                 print("save equipped hat:", err.localizedDescription)
             }
+        }
+    }
+
+    private func refreshHatButtons() {
+        let rows = ownedRows()
+        guard let user = UserManager.shared.currentUser else { return }
+        let effectiveHat = user.equippedHat.flatMap { user.hats.contains($0) ? $0 : nil }
+        for cell in inventoryTableView.visibleCells {
+            guard let invCell = cell as? InventoryTableViewCell,
+                  let indexPath = inventoryTableView.indexPath(for: cell),
+                  indexPath.row < rows.count else { continue }
+            let itemKey = rows[indexPath.row].0.key
+            invCell.updateUseButton(canUse: itemKey != effectiveHat)
         }
     }
 
