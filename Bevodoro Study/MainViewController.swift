@@ -23,6 +23,7 @@ class MainViewController: BaseViewController {
     private var bevoImageView: UIImageView?
     private var bevoHatImageView: UIImageView?
     private var foodTroughImageView: UIImageView?
+    private var foodTroughHeightConstraint: NSLayoutConstraint?
     /// Foods loaded from Firestore (`users/{uid}` → `food` or `foods` map). Quantity shows on each cell.
     private var troughFoods: [FoodItem] = []
     private var troughFoodCollectionView: UICollectionView?
@@ -206,11 +207,18 @@ class MainViewController: BaseViewController {
         foodTroughImageView = imageView
         
         let safeArea = view.safeAreaLayoutGuide
+        // Important: use a fixed-height (equal-to) constraint so the trough **never resizes**
+        // due to Bevo pose/state changes. Bevo already uses `.defaultHigh` size constraints,
+        // so it can adapt if vertical space is tight.
+        let height = imageView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.28)
+        height.priority = .required
+        foodTroughHeightConstraint = height
+
         NSLayoutConstraint.activate([
             imageView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor, constant: -4),
             imageView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor, constant: -10),
             imageView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor, constant: 10),
-            imageView.heightAnchor.constraint(lessThanOrEqualTo: view.heightAnchor, multiplier: 0.28)
+            height
         ])
 
         setupTroughPagingScrollBar(pinnedTo: imageView)
@@ -737,9 +745,11 @@ class MainViewController: BaseViewController {
         imageView.contentMode = .scaleAspectFit
         imageView.translatesAutoresizingMaskIntoConstraints = false
         imageView.isUserInteractionEnabled = true
+        imageView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        imageView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
         view.addSubview(imageView)
         bevoImageView = imageView
-        
+
         // Use a fixed layout size (relative to screen) so different poses don't "jump" due to intrinsic image sizes.
         let w = imageView.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.8)
         let h = imageView.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.6)
@@ -765,6 +775,10 @@ class MainViewController: BaseViewController {
         hatView.contentMode = .scaleAspectFit
         hatView.translatesAutoresizingMaskIntoConstraints = false
         hatView.isUserInteractionEnabled = false
+        hatView.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        hatView.setContentHuggingPriority(.defaultLow, for: .vertical)
+        hatView.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        hatView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
         imageView.addSubview(hatView)
         NSLayoutConstraint.activate([
             hatView.topAnchor.constraint(equalTo: imageView.topAnchor),
@@ -854,8 +868,8 @@ class MainViewController: BaseViewController {
         }
         
         let timerButton = makeIconButton(systemName: "timer", accessibilityLabel: "Timer")
-        let inventoryButton = makeIconButton(systemName: "tray.fill", accessibilityLabel: "Inventory")  //shippingbox.fill
-        let shopButton = makeIconButton(systemName: "bag.fill", accessibilityLabel: "Shop") // cart.fill
+        let inventoryButton = makeIconButton(systemName: "shippingbox.fill", accessibilityLabel: "Inventory") 
+        let shopButton = makeIconButton(systemName: "cart.fill", accessibilityLabel: "Shop")
         let settingsButton = makeIconButton(systemName: "gearshape.fill", accessibilityLabel: "Settings")
         let photoButton = makeIconButton(systemName: "camera.fill", accessibilityLabel: "Photo mode")
         
@@ -889,7 +903,7 @@ class MainViewController: BaseViewController {
     }
     
     private func playBevoTapVoiceSound() {
-        guard SettingViewController.isBevosSoundEnabled else { return }
+        guard SettingViewController.bevosSoundVolume > 0 else { return }
         
         if let player = audioPlayer, player.isPlaying {
             player.stop()
@@ -912,6 +926,7 @@ class MainViewController: BaseViewController {
         
         do {
             audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.volume = SettingViewController.bevosSoundVolume
             audioPlayer?.prepareToPlay()
             audioPlayer?.play()
         } catch {
@@ -921,7 +936,7 @@ class MainViewController: BaseViewController {
 
     /// Plays `Audio/chewing.mp3` while Bevo shows the eat-full-body pose (same toggle as moo).
     private func playBevoChewingSound() {
-        guard SettingViewController.isBevosSoundEnabled else { return }
+        guard SettingViewController.bevosSoundVolume > 0 else { return }
         if let player = chewingAudioPlayer, player.isPlaying {
             player.stop()
         }
@@ -935,6 +950,7 @@ class MainViewController: BaseViewController {
         }
         do {
             chewingAudioPlayer = try AVAudioPlayer(contentsOf: url)
+            chewingAudioPlayer?.volume = SettingViewController.bevosSoundVolume
             chewingAudioPlayer?.prepareToPlay()
             chewingAudioPlayer?.play()
         } catch {
