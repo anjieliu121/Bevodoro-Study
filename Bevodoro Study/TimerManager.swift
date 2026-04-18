@@ -17,8 +17,10 @@ let demoModeCoinsPerMinute = 60.0
 let bevoSickAlertCooldownSeconds: TimeInterval = SettingViewController.isDemoModeEnabled ? 2 * 60 : 5 * 60 // rate limit to show alert every 5 minutes
 
 // 1 coin per minute earning rate
+var coinsBaseEarningRate = 1.0  // a multiplier (e.g. can increase for special events)
+let baseCoinsPerMinute = 2.0
 var coinsPerMinute: Double {
-    SettingViewController.isDemoModeEnabled ? demoModeCoinsPerMinute : 1.0
+    SettingViewController.isDemoModeEnabled ? demoModeCoinsPerMinute : baseCoinsPerMinute * coinsBaseEarningRate
 }
 
 // defaults
@@ -261,11 +263,9 @@ class TimerManager {
     
     // study just ended
     private func transitionToBreak() {
-        // compute coins once
-        let earned = UserManager.shared.addCoins(
-            timeInSeconds: initialStudyTimeSeconds
-        )
-
+        // compute coins and add it
+        let earned = calculateCoinsEarned()
+        addCoinsToUser(amount: earned)
         lastStudyEarnedCoins = earned
 
         // tell UserManager to persist
@@ -276,5 +276,23 @@ class TimerManager {
         // update counter
         studySessionCounter = (studySessionCounter + 1) % cycleLength
         print("study session counter now at \(studySessionCounter) (CL=\(cycleLength))")
+    }
+    
+    func calculateCoinsEarned() -> Int {
+        // calculate coins
+        let coinsPerSecond: Double = coinsPerMinute / 60.0   // divide by 60 to get sec
+        let earned: Int = Int(Double(initialStudyTimeSeconds) * coinsPerSecond)  // round down
+        return earned
+    }
+    
+    func addCoinsToUser(amount: Int) {
+        guard var user = UserManager.shared.currentUser else {
+            print("error adding coins: user was null")
+            return
+        }
+        print("user starts with \(user.num_coins) coins")
+        UserManager.shared.currentUser?.addCoins(amount)
+        user.saveToFirestore()  // save to firestore
+        print("user earned \(amount) coins, now has \(user.num_coins) coins")
     }
 }
