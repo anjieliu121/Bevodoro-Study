@@ -9,9 +9,9 @@
 import Foundation
 
 // demo mode settings
-let demoModeStudySeconds = 7
-let demoModeBreakSeconds = 5
-let demoModeLongBreakSeconds = 10
+let demoModeStudySeconds = 4
+let demoModeBreakSeconds = 2
+let demoModeLongBreakSeconds = 3
 let demoModeCycleLength = 2
 let demoModeCoinsPerMinute = 60.0
 let bevoSickAlertCooldownSeconds: TimeInterval = SettingViewController.isDemoModeEnabled ? 2 * 60 : 5 * 60 // rate limit to show alert every 5 minutes
@@ -19,8 +19,9 @@ let bevoSickAlertCooldownSeconds: TimeInterval = SettingViewController.isDemoMod
 // 1 coin per minute earning rate
 var coinsBaseEarningRate = 1.0  // a multiplier (e.g. can increase for special events)
 let baseCoinsPerMinute = 2.0
+let coinCycleFinishBonus = 50
 var coinsPerMinute: Double {
-    SettingViewController.isDemoModeEnabled ? demoModeCoinsPerMinute : baseCoinsPerMinute * coinsBaseEarningRate
+    coinsBaseEarningRate * (SettingViewController.isDemoModeEnabled ? demoModeCoinsPerMinute : baseCoinsPerMinute)
 }
 
 // defaults
@@ -267,6 +268,13 @@ class TimerManager {
         let earned = calculateCoinsEarned()
         addCoinsToUser(amount: earned)
         lastStudyEarnedCoins = earned
+        
+        // check for bonus coins (just before long break)
+        let transitioningToLongBreak = (studySessionCounter == 0)
+        if transitioningToLongBreak {
+            print("finished cycle, adding \(coinCycleFinishBonus) bonus coins")
+            addCoinsToUser(amount: coinCycleFinishBonus)
+        }
 
         // tell UserManager to persist
         UserManager.shared.handleStudyCompleted(
@@ -291,7 +299,8 @@ class TimerManager {
             return
         }
         print("user starts with \(user.num_coins) coins")
-        UserManager.shared.currentUser?.addCoins(amount)
+        user.addCoins(amount)
+        UserManager.shared.currentUser = user  // MUST save the copy back to the original
         user.saveToFirestore()  // save to firestore
         print("user earned \(amount) coins, now has \(user.num_coins) coins")
     }

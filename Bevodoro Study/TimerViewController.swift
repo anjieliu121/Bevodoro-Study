@@ -29,6 +29,10 @@ class TimerViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // font for buttons
+        startButton.titleLabel?.font = UIFont(name: "SourGummy", size: 20)
+        endButton.titleLabel?.font = UIFont(name: "SourGummy", size: 20)
 
         // ---- setup handlers for timer state changes ----
         // display the seconds, updated every second
@@ -128,6 +132,11 @@ class TimerViewController: UIViewController {
             startButton.setTitle("resume", for: .normal)
             endButton.isHidden = false
         }
+        
+        // fonts please stay
+        startButton.titleLabel?.font = UIFont(name: "SourGummy", size: 20)
+        endButton.titleLabel?.font = UIFont(name: "SourGummy", size: 20)
+
     }
     
     // functions as both the start AND pause button
@@ -229,13 +238,14 @@ class TimerViewController: UIViewController {
         attachment.bounds = CGRect(x: 0, y: -4, width: 18, height: 18)
 
         attributed.append(NSAttributedString(attachment: attachment))
-        attributed.append(
-            NSAttributedString(
-                string: " \(earned)! " +
-                (isLongBreak ? "Great job finishing a cycle, so now enjoy a long break!" : "Let's take a break!")
-            )
-        )
-
+        
+        if isLongBreak {
+            attributed.append(NSAttributedString(string: " \(earned)! \nGreat job finishing a cycle, so now enjoy a long break! Remember to stretch and drink water. \nCompleted pomodoro cycle bonus of +\(coinCycleFinishBonus) "))
+            attributed.append(NSAttributedString(attachment: attachment))
+        } else {
+            attributed.append(NSAttributedString(string: " \(earned)! Let's take a break!"))
+        }
+        
         endMsg.attributedText = attributed
         endMsg.numberOfLines = 0
     }
