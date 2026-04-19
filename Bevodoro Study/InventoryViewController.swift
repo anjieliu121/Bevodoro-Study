@@ -19,10 +19,12 @@ class InventoryViewController: BaseViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        HapticsManager.shared.prepareForInteraction()
         refreshUserFromServer()
     }
 
     @IBAction func inventorySegmentChanged(_ sender: UISegmentedControl) {
+        HapticsManager.shared.selection()
         inventoryTableView.reloadData()
     }
 
@@ -140,8 +142,14 @@ extension InventoryViewController {
     private func equipHat(key: String) {
         guard var user = UserManager.shared.currentUser else { return }
         guard user.hats.contains(key) else { return }
-        user.equippedHat = (user.equippedHat == key) ? nil : key
+        let wasEquipped = (user.equippedHat == key)
+        user.equippedHat = wasEquipped ? nil : key
         UserManager.shared.currentUser = user
+        if wasEquipped {
+            HapticsManager.shared.selection()
+        } else {
+            HapticsManager.shared.impactLight()
+        }
         refreshHatButtons()
         user.saveToFirestore { err in
             if let err {
@@ -166,8 +174,13 @@ extension InventoryViewController {
     private func equipBackground(key: String) {
         guard var user = UserManager.shared.currentUser else { return }
         guard user.backgrounds.contains(key) else { return }
+        if user.equippedBkg == key {
+            HapticsManager.shared.selection()
+            return
+        }
         user.equippedBkg = key
         UserManager.shared.currentUser = user
+        HapticsManager.shared.impactLight()
         inventoryTableView.reloadData()
         user.saveToFirestore { err in
             if let err {
