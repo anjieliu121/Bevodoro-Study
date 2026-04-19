@@ -51,6 +51,8 @@ class MainViewController: BaseViewController {
     private var hamburgerTrailingConstraint: NSLayoutConstraint?
     private var isPhotoModeActive = false
     private var photoModeOverlay: UIView?
+    /// Global vertical nudge for all equipped hats/clothes; negative moves upward.
+    private static let bevoHatVerticalOffset: CGFloat = -30
     /// Full-screen image behind Bevo (not the `BaseViewController` chrome).
     private var bevoSceneBackgroundImageView: UIImageView?
     /// Foods per page (3 → first page full, second page has 2 items).
@@ -781,10 +783,13 @@ class MainViewController: BaseViewController {
         hatView.setContentCompressionResistancePriority(.defaultLow, for: .vertical)
         imageView.addSubview(hatView)
         NSLayoutConstraint.activate([
-            hatView.topAnchor.constraint(equalTo: imageView.topAnchor),
-            hatView.leadingAnchor.constraint(equalTo: imageView.leadingAnchor),
-            hatView.trailingAnchor.constraint(equalTo: imageView.trailingAnchor),
-            hatView.bottomAnchor.constraint(equalTo: imageView.bottomAnchor)
+            hatView.widthAnchor.constraint(equalTo: imageView.widthAnchor),
+            hatView.heightAnchor.constraint(equalTo: imageView.heightAnchor),
+            hatView.centerXAnchor.constraint(equalTo: imageView.centerXAnchor),
+            hatView.centerYAnchor.constraint(
+                equalTo: imageView.centerYAnchor,
+                constant: Self.bevoHatVerticalOffset
+            )
         ])
         bevoHatImageView = hatView
 
