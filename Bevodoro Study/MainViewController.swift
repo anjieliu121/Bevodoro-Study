@@ -80,6 +80,7 @@ class MainViewController: BaseViewController {
         setupBevo()
         setupHamburgerMenu()
         bringTroughFoodCollectionToFront()
+        HapticsManager.shared.prepareForInteraction()
     }
 
     override func viewWillAppear(_ animated: Bool) {
@@ -606,6 +607,7 @@ class MainViewController: BaseViewController {
                 let bevoIsSick = UserManager.shared.currentUser?.isSick() ?? false
 
                 if fedKey == "pill", !bevoIsSick {
+                    HapticsManager.shared.warning()
                     presentBevoHealthyRefusesPillNotice()
                     UIView.animate(
                         withDuration: 0.38,
@@ -623,6 +625,7 @@ class MainViewController: BaseViewController {
                         }
                     )
                 } else {
+                    HapticsManager.shared.impactMedium()
                     if fedKey == "pill", let user = UserManager.shared.currentUser, user.isSick() {
                         var updated = user
                         updated.updateLastStudyNow()
@@ -672,6 +675,7 @@ class MainViewController: BaseViewController {
                 })
                 }
             } else {
+                HapticsManager.shared.impactLight()
                 UIView.animate(
                     withDuration: 0.38,
                     delay: 0,
@@ -893,6 +897,7 @@ class MainViewController: BaseViewController {
     
     @objc private func handleBevoTap() {
         guard let imageView = bevoImageView else { return }
+        HapticsManager.shared.impactLight()
         
         // Simple bounce animation
         UIView.animate(withDuration: 0.1,

@@ -22,6 +22,7 @@ class LoginViewController: BaseViewController, UITextFieldDelegate {
         errorMsgLabel.text = ""
         emailField.delegate = self
         passwordField.delegate = self
+        HapticsManager.shared.prepareForInteraction()
     }
     
     // Called when 'return' key pressed
@@ -39,6 +40,7 @@ class LoginViewController: BaseViewController, UITextFieldDelegate {
         Auth.auth().signIn(withEmail: emailField.text!, password: passwordField.text!) {
             authResult, error in
             if let error = error as NSError? {
+                HapticsManager.shared.error()
                 let authError = AuthErrorCode(rawValue: error.code)
                 switch authError {
                 case .userNotFound:
@@ -69,6 +71,7 @@ class LoginViewController: BaseViewController, UITextFieldDelegate {
                 }
 
                 DispatchQueue.main.async {
+                    HapticsManager.shared.success()
                     MusicManager.shared.playMusic()
                     self.performSegue(withIdentifier: "loginSegue", sender: self)
                     self.emailField.text = ""

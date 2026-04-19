@@ -19,10 +19,12 @@ class ShopViewController: BaseViewController {
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+        HapticsManager.shared.prepareForInteraction()
         refreshUserFromServer()
     }
 
     @IBAction func shopSegmentChanged(_ sender: UISegmentedControl) {
+        HapticsManager.shared.selection()
         shopTableView.reloadData()
     }
 
@@ -72,7 +74,10 @@ class ShopViewController: BaseViewController {
 
     private func purchase(item: CatalogItem, categoryIndex: Int) {
         guard var user = UserManager.shared.currentUser else { return }
-        guard user.num_coins >= item.cost else { return }
+        guard user.num_coins >= item.cost else {
+            HapticsManager.shared.warning()
+            return
+        }
 
         switch categoryIndex {
         case 0:
@@ -80,12 +85,18 @@ class ShopViewController: BaseViewController {
             user.food[item.key, default: 0] += 1
 
         case 1:
-            guard !user.hats.contains(item.key) else { return }
+            guard !user.hats.contains(item.key) else {
+                HapticsManager.shared.warning()
+                return
+            }
             user.subtractCoins(item.cost)
             user.hats.append(item.key)
 
         case 2:
-            guard !user.backgrounds.contains(item.key) else { return }
+            guard !user.backgrounds.contains(item.key) else {
+                HapticsManager.shared.warning()
+                return
+            }
             user.subtractCoins(item.cost)
             user.backgrounds.append(item.key)
 
@@ -94,6 +105,7 @@ class ShopViewController: BaseViewController {
         }
 
         UserManager.shared.currentUser = user
+        HapticsManager.shared.success()
         user.saveToFirestore { err in
             if let err {
                 print("save after purchase:", err.localizedDescription)

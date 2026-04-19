@@ -25,6 +25,7 @@ class SignUpViewController: BaseViewController, UITextFieldDelegate {
         emailField.delegate = self
         usernameField.delegate = self
         passwordField.delegate = self
+        HapticsManager.shared.prepareForInteraction()
     }
     
     // Called when 'return' key pressed
@@ -42,10 +43,12 @@ class SignUpViewController: BaseViewController, UITextFieldDelegate {
     @IBAction func registerButton(_ sender: Any) {
         guard let email = emailField.text, !email.isEmpty, let username = usernameField.text, !username.isEmpty, let password = passwordField.text, !password.isEmpty, let confirmPassword = confirmPasswordField.text, !confirmPassword.isEmpty else {
                 errorMsgLabel.text = "Please fill in all fields."
+                HapticsManager.shared.warning()
                 return
             }
         guard password == confirmPassword else {
             errorMsgLabel.text = "Passwords do not match."
+            HapticsManager.shared.warning()
             return
         }
             
@@ -54,6 +57,7 @@ class SignUpViewController: BaseViewController, UITextFieldDelegate {
         Auth.auth().createUser(withEmail: email, password: password) { authResult, error in
             if let error = error as NSError? {
                 self.errorMsgLabel.text = "Error: \(error.localizedDescription)"
+                HapticsManager.shared.error()
                 return
             }
 
@@ -70,6 +74,7 @@ class SignUpViewController: BaseViewController, UITextFieldDelegate {
                 alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
                     self.navigationController?.popViewController(animated: true)
                 })
+                HapticsManager.shared.success()
                 self.present(alert, animated: true)
             }
         }
