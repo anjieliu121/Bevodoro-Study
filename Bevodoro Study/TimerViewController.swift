@@ -29,6 +29,10 @@ class TimerViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        // font for buttons
+        startButton.titleLabel?.font = UIFont(name: "SourGummy", size: 20)
+        endButton.titleLabel?.font = UIFont(name: "SourGummy", size: 20)
 
         // ---- setup handlers for timer state changes ----
         // display the seconds, updated every second
@@ -128,6 +132,11 @@ class TimerViewController: UIViewController {
             startButton.setTitle("resume", for: .normal)
             endButton.isHidden = false
         }
+        
+        // fonts please stay
+        startButton.titleLabel?.font = UIFont(name: "SourGummy", size: 20)
+        endButton.titleLabel?.font = UIFont(name: "SourGummy", size: 20)
+
     }
     
     // functions as both the start AND pause button
@@ -194,22 +203,6 @@ class TimerViewController: UIViewController {
         print("TimerViewController Warning: didReceiveMemoryWarning was triggered for user \(user.user)")
     }
     
-    func addCoins(timeInSeconds: Int) -> Int {
-        let coinsPerSecond: Double = coinsPerMinute / 60.0   // divide by 60 to get
-        let earned: Int = Int(Double(timeInSeconds) * coinsPerSecond)  // round down
-        // NOTE: this also means that any study time less than 1 minute will earn NO coins
-        guard var user = UserManager.shared.currentUser else {
-            print("error adding coins: user was null")
-            return 0
-        }
-        print("user starts with \(user.num_coins) coins")  // TODO change to label
-        user.addCoins(earned)
-        UserManager.shared.currentUser = user  // save back to shared user, user is a copy
-        user.saveToFirestore()  // save to firestore
-        print("user earned \(earned) coins, now has \(user.num_coins) coins")  // TODO change to label
-        return earned
-    }
-    
     // Sends notifcsations
     private static func sendNotif(title: String, body: String) {
         guard SettingViewController.isNotificationsEnabled else { return }
@@ -245,13 +238,14 @@ class TimerViewController: UIViewController {
         attachment.bounds = CGRect(x: 0, y: -4, width: 18, height: 18)
 
         attributed.append(NSAttributedString(attachment: attachment))
-        attributed.append(
-            NSAttributedString(
-                string: " \(earned)! " +
-                (isLongBreak ? "Great job finishing a cycle, so now enjoy a long break!" : "Let's take a break!")
-            )
-        )
-
+        
+        if isLongBreak {
+            attributed.append(NSAttributedString(string: " \(earned)! \nGreat job finishing a cycle, so now enjoy a long break! Remember to stretch and drink water. \nCompleted pomodoro cycle bonus of +\(coinCycleFinishBonus) "))
+            attributed.append(NSAttributedString(attachment: attachment))
+        } else {
+            attributed.append(NSAttributedString(string: " \(earned)! Let's take a break!"))
+        }
+        
         endMsg.attributedText = attributed
         endMsg.numberOfLines = 0
     }
