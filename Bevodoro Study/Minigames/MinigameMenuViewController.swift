@@ -4,6 +4,7 @@
 //
 //  Created by Yim, Isabella H on 4/20/26.
 //
+// (A)I tried my best
 
 
 import UIKit
@@ -14,11 +15,14 @@ class MinigameMenuViewController: BaseViewController, UITableViewDataSource, UIT
         let title: String
         let storyboardName: String
         let storyboardID: String
+        let systemIconName: String
+        let desc: String
     }
+    let backupIconName = "gamecontroller.fill"
     
     private let minigames = [
-        Minigame(title: "Card Guesser", storyboardName: "CardGuesser", storyboardID: "CardGuesserViewController"),
-        Minigame(title: "Chaser", storyboardName: "Chaser", storyboardID: "ChaserViewController")
+        Minigame(title: "Card Guesser", storyboardName: "CardGuesser", storyboardID: "CardGuesserViewController", systemIconName: "suit.spade.fill", desc: "Guess what card Bevo is thinking of"),
+        Minigame(title: "Chaser", storyboardName: "Chaser", storyboardID: "ChaserViewController", systemIconName: "forward.fill", desc: "Guide bevo to eat apples")
     ]
 
     private lazy var tableView: UITableView = {
@@ -35,9 +39,28 @@ class MinigameMenuViewController: BaseViewController, UITableViewDataSource, UIT
         super.viewDidLoad()
         setupTableView()
     }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
 
+        navigationItem.title = "Minigames"
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationController?.navigationBar.tintColor = SettingsStyle.accent
+    }
     private func setupTableView() {
         view.addSubview(tableView)
+
+        // Match Settings table styling
+        tableView.backgroundColor = .clear
+        tableView.separatorStyle = .singleLine
+        tableView.separatorColor = SettingsStyle.divider
+        tableView.separatorInset = UIEdgeInsets(top: 0, left: 72, bottom: 0, right: 0)
+
+        // Register the Settings-style cell (why? idk)
+        tableView.register(
+            SettingsDetailCell.self,
+            forCellReuseIdentifier: SettingsDetailCell.reuseIdentifier
+        )
 
         NSLayoutConstraint.activate([
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
@@ -50,13 +73,27 @@ class MinigameMenuViewController: BaseViewController, UITableViewDataSource, UIT
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         minigames.count
     }
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        72
+    }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let game = minigames[indexPath.row]
 
-        let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
-        cell.textLabel?.text = minigames[indexPath.row].title
-        cell.accessoryType = .disclosureIndicator
+        let cell = tableView.dequeueReusableCell(
+            withIdentifier: SettingsDetailCell.reuseIdentifier,
+            for: indexPath
+        ) as! SettingsDetailCell  // use settings styling
+
+        cell.configure(
+            iconSystemName: game.systemIconName,
+            title: game.title,
+            subtitle: game.desc,
+            detail: nil
+        )
+
         return cell
+
     }
     
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -68,3 +105,5 @@ class MinigameMenuViewController: BaseViewController, UITableViewDataSource, UIT
         navigationController?.pushViewController(vc, animated: true)
     }
 }
+
+
