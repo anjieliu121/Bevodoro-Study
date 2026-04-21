@@ -880,18 +880,21 @@ class MainViewController: BaseViewController {
         let inventoryButton = makeIconButton(systemName: "shippingbox.fill", accessibilityLabel: "Inventory") 
         let shopButton = makeIconButton(systemName: "cart.fill", accessibilityLabel: "Shop")
         let settingsButton = makeIconButton(systemName: "gearshape.fill", accessibilityLabel: "Settings")
+        let minigamesButton = makeIconButton(systemName: "gamecontroller.fill", accessibilityLabel: "Minigames")
         let photoButton = makeIconButton(systemName: "camera.fill", accessibilityLabel: "Photo mode")
         
         timerButton.addTarget(self, action: #selector(openTimer), for: .touchUpInside)
         shopButton.addTarget(self, action: #selector(openShop), for: .touchUpInside)
         inventoryButton.addTarget(self, action: #selector(openInventory), for: .touchUpInside)
         settingsButton.addTarget(self, action: #selector(openSettings), for: .touchUpInside)
+        minigamesButton.addTarget(self, action: #selector(openMinigames), for: .touchUpInside)
         photoButton.addTarget(self, action: #selector(enterPhotoModeFromMenu), for: .touchUpInside)
         
         stackView.addArrangedSubview(timerButton)
         stackView.addArrangedSubview(inventoryButton)
         stackView.addArrangedSubview(shopButton)
         stackView.addArrangedSubview(settingsButton)
+        stackView.addArrangedSubview(minigamesButton)
         stackView.addArrangedSubview(photoButton)
     }
     
@@ -1018,6 +1021,12 @@ class MainViewController: BaseViewController {
     @objc private func openSettings() {
         let storyboard = UIStoryboard(name: "Setting", bundle: nil)
         let vc = storyboard.instantiateViewController(identifier: "SettingViewController")
+        closeMenuAndPresent(vc)
+    }
+    
+    @objc private func openMinigames() {
+        let storyboard = UIStoryboard(name: "MinigameMenu", bundle: nil)
+        let vc = storyboard.instantiateViewController(identifier: "MinigameMenuViewController")
         closeMenuAndPresent(vc)
     }
     
