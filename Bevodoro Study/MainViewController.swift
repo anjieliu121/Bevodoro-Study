@@ -7,6 +7,7 @@
 
 import UIKit
 import AVFoundation
+import UserNotifications
 import FirebaseCore
 import FirebaseAuth
 import FirebaseFirestore
@@ -91,8 +92,9 @@ class MainViewController: BaseViewController {
         applyBevoHatFromUser()
         applyBevoIdleFullBodyFromUser()
         showBevoSickAlertIfNeeded()
+        sendBevoSickNotif()
     }
-    
+
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         if isMenuOpen {
@@ -1167,45 +1169,68 @@ class MainViewController: BaseViewController {
         present(alert, animated: true)
     }
 
+    private func sendBevoSickNotif() {
+        guard SettingViewController.isNotificationsEnabled else { return }
+        guard let user = UserManager.shared.currentUser, user.isSick() else { return }
+
+        let content = UNMutableNotificationContent()
+        content.title = "Bevo is feeling sick!"
+        content.body = "It's been a while since you last studied! Help Bevo recover by giving him some medicine."
+        content.sound = .default
+
+        //The delay is just to give us time to exit so it actually shows up in the demo
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+        let request = UNNotificationRequest(
+            identifier: UUID().uuidString,
+            content: content,
+            trigger: trigger
+        )
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error {
+                print("MainViewController: failed to send Bevo sick notification: \(error)")
+            }
+        }
+    }
+
     func showBevoSickAlertIfNeeded() {
         // make sure the user is valid and bevo is sick
         guard let user = UserManager.shared.currentUser else { return }
         guard user.isSick() else { return }
         guard user.lastStudy != nil else { return } // nil for new users
-        
-        // Don't be annoying. rate-limit the alert to every sickAlertCooldown seconds.
+
+        // Don’t be annoying. rate-limit the alert to every sickAlertCooldown seconds.
         if let lastShown = MainViewController.lastBevoSickAlertShownAt {
             let elapsed = Date().timeIntervalSince(lastShown)
             guard elapsed >= MainViewController.sickAlertCooldown else {
                 return
             }
         }
-        
+
         // construct the alert
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .medium
-        
+
         let normalMessage = "It’s been a while since you last studied. Study more to buy medicine to treat Bevo!"
         let lastStudyDate = user.lastStudy!.dateValue()
         let sickAfterDate = lastStudyDate.addingTimeInterval(bevoSickThresholdSeconds)
         let debugMessage = """
         \(normalMessage)
-        
+
         Debug Mode info:
         Last study date: \(formatter.string(from: lastStudyDate))
         Sick if after: \(formatter.string(from: sickAfterDate))
         """
-        
+
         let alert = UIAlertController(
             title: "Bevo is Sick!",
             message: SettingViewController.isDemoModeEnabled ? debugMessage : normalMessage,
             preferredStyle: .alert
         )
-        
+
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
-        
+
         // update rate-limit cooldown, when it was last shown
         MainViewController.lastBevoSickAlertShownAt = Date()
     }
