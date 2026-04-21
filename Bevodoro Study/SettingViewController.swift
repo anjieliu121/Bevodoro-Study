@@ -168,11 +168,25 @@ class SettingViewController: BaseViewController {
     }
 
     private let glowHost = UIView()
+    private let backgroundImageView = UIImageView()
 
     override func viewDidLoad() {
         super.viewDidLoad()
         view.subviews.compactMap { $0 as? UIImageView }.first?.isHidden = true
-        view.backgroundColor = SettingsStyle.background
+        view.backgroundColor = .clear
+
+        backgroundImageView.translatesAutoresizingMaskIntoConstraints = false
+        backgroundImageView.image = UIImage(named: "texture_ut_light")
+        backgroundImageView.contentMode = .scaleAspectFill
+        backgroundImageView.clipsToBounds = true
+        view.insertSubview(backgroundImageView, at: 0)
+
+        NSLayoutConstraint.activate([
+            backgroundImageView.topAnchor.constraint(equalTo: view.topAnchor),
+            backgroundImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            backgroundImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            backgroundImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
 
         glowHost.translatesAutoresizingMaskIntoConstraints = false
         glowHost.isUserInteractionEnabled = false
@@ -211,10 +225,9 @@ class SettingViewController: BaseViewController {
         navigationItem.largeTitleDisplayMode = .always
         navigationItem.title = "Settings"
 
-        let barBg = SettingsStyle.background
         let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = barBg
+        appearance.configureWithTransparentBackground()
+        appearance.backgroundColor = .clear
         appearance.shadowColor = .clear
         let navTitleFont = SettingsTypography.sourGummy(size: 17, weight: .semibold)
         let navLargeFont = SettingsTypography.sourGummy(size: 34, weight: .semibold)
@@ -279,7 +292,7 @@ class SettingViewController: BaseViewController {
         case .pomodoroCycleLength: return "Set cycles per session"
         case .notifications: return "Receive reminders and updates"
         case .logout: return "Sign out of your account"
-        case .demoMode: return "Explore Bevo Doro features"
+        case .demoMode: return "Explore Bevodoro features"
         }
     }
 
@@ -450,7 +463,7 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = sec.title
         label.font = SettingsTypography.sourGummy(size: 12, weight: .semibold)
-        label.textColor = SettingsStyle.subtitle
+        label.textColor = SettingsStyle.mainTitle
         label.accessibilityTraits.insert(.header)
         container.addSubview(label)
         NSLayoutConstraint.activate([

@@ -26,17 +26,35 @@ class MinigameMenuViewController: BaseViewController, UITableViewDataSource, UIT
     ]
 
     private lazy var tableView: UITableView = {
-        let table = UITableView()
+        let table = UITableView(frame: .zero, style: .insetGrouped)
         table.translatesAutoresizingMaskIntoConstraints = false
         table.delegate = self
         table.dataSource = self
         table.register(UITableViewCell.self, forCellReuseIdentifier: "Cell")
         table.backgroundColor = .clear
+        table.sectionHeaderTopPadding = 8
         return table
     }()
+    
+    private let backgroundImageView = UIImageView()
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        view.backgroundColor = .clear
+        
+        backgroundImageView.translatesAutoresizingMaskIntoConstraints = false
+        backgroundImageView.image = UIImage(named: "texture_ut_light")
+        backgroundImageView.contentMode = .scaleAspectFill
+        backgroundImageView.clipsToBounds = true
+        view.insertSubview(backgroundImageView, at: 0)
+        
+        NSLayoutConstraint.activate([
+            backgroundImageView.topAnchor.constraint(equalTo: view.topAnchor),
+            backgroundImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            backgroundImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            backgroundImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+        
         setupTableView()
     }
     
@@ -46,6 +64,25 @@ class MinigameMenuViewController: BaseViewController, UITableViewDataSource, UIT
         navigationItem.title = "Minigames"
         navigationController?.navigationBar.prefersLargeTitles = true
         navigationController?.navigationBar.tintColor = SettingsStyle.accent
+        
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithTransparentBackground()
+        appearance.backgroundColor = .clear
+        appearance.shadowColor = .clear
+        let navTitleFont = SettingsTypography.sourGummy(size: 17, weight: .semibold)
+        let navLargeFont = SettingsTypography.sourGummy(size: 34, weight: .semibold)
+        appearance.titleTextAttributes = [
+            .foregroundColor: SettingsStyle.mainTitle,
+            .font: navTitleFont
+        ]
+        appearance.largeTitleTextAttributes = [
+            .font: navLargeFont,
+            .foregroundColor: SettingsStyle.mainTitle
+        ]
+        
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
     }
     private func setupTableView() {
         view.addSubview(tableView)
