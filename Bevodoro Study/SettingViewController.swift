@@ -143,49 +143,163 @@ class SettingViewController: BaseViewController {
 
     private var selectedPomodoroMinutes = UserManager.shared.currentUser?.settings.timerStudyMins ?? defaultTimerStudyMins
 
+    private enum SettingsSection: Int, CaseIterable {
+        case audio
+        case pomodoro
+        case general
+
+        var title: String {
+            switch self {
+            case .audio: return "Audio"
+            case .pomodoro: return "Pomodoro"
+            case .general: return "General"
+            }
+        }
+
+        var rows: [SettingRow] {
+            switch self {
+            case .audio: return [.backgroundMusic, .bevosSound]
+            case .pomodoro: return [
+                .pomodoroStudyTimer, .pomodoroBreakTimer, .pomodoroLongBreakTimer, .pomodoroCycleLength
+            ]
+            case .general: return [.notifications, .logout, .demoMode]
+            }
+        }
+    }
+
+    private let glowHost = UIView()
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        // view.backgroundColor = .systemBackground
-        setupNavigationHeader()
+        view.subviews.compactMap { $0 as? UIImageView }.first?.isHidden = true
+        view.backgroundColor = SettingsStyle.background
+
+        glowHost.translatesAutoresizingMaskIntoConstraints = false
+        glowHost.isUserInteractionEnabled = false
+        glowHost.backgroundColor = .clear
+        view.insertSubview(glowHost, belowSubview: settingsTableView)
+
+        NSLayoutConstraint.activate([
+            glowHost.topAnchor.constraint(equalTo: view.topAnchor),
+            glowHost.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            glowHost.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            glowHost.heightAnchor.constraint(equalToConstant: 200)
+        ])
+
+        let glow = CAGradientLayer()
+        glow.colors = [
+            SettingsStyle.accent.withAlphaComponent(0.22).cgColor,
+            UIColor.clear.cgColor
+        ]
+        glow.locations = [0, 1]
+        glow.startPoint = CGPoint(x: 0.5, y: 0)
+        glow.endPoint = CGPoint(x: 0.5, y: 1)
+        glowHost.layer.addSublayer(glow)
+        glow.name = "settingsTopGlow"
+
         setupTableView()
     }
 
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        if let header = settingsTableView.tableHeaderView {
-            var frame = header.frame
-            frame.size.width = view.bounds.width
-            header.frame = frame
-            settingsTableView.tableHeaderView = header
-        }
+        glowHost.layer.sublayers?.compactMap { $0 as? CAGradientLayer }.first?.frame = glowHost.bounds
     }
 
-    private func setupNavigationHeader() {
-        let headerHeight: CGFloat = 56
-        let headerView = UIView(frame: CGRect(x: 0, y: 0, width: view.bounds.width, height: headerHeight))
-        headerView.backgroundColor = .systemBackground
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        navigationController?.navigationBar.prefersLargeTitles = true
+        navigationItem.largeTitleDisplayMode = .always
+        navigationItem.title = "Settings"
 
-        let titleLabel = UILabel()
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
-        titleLabel.text = "Settings"
-        titleLabel.font = .systemFont(ofSize: 18, weight: .semibold)
-        titleLabel.textColor = .label
-        headerView.addSubview(titleLabel)
+        let barBg = SettingsStyle.background
+        let appearance = UINavigationBarAppearance()
+        appearance.configureWithOpaqueBackground()
+        appearance.backgroundColor = barBg
+        appearance.shadowColor = .clear
+        let navTitleFont = SettingsTypography.sourGummy(size: 17, weight: .semibold)
+        let navLargeFont = SettingsTypography.sourGummy(size: 34, weight: .semibold)
+        appearance.titleTextAttributes = [
+            .foregroundColor: SettingsStyle.mainTitle,
+            .font: navTitleFont
+        ]
+        appearance.largeTitleTextAttributes = [
+            .font: navLargeFont,
+            .foregroundColor: SettingsStyle.mainTitle
+        ]
 
-        NSLayoutConstraint.activate([
-            titleLabel.centerXAnchor.constraint(equalTo: headerView.centerXAnchor),
-            titleLabel.centerYAnchor.constraint(equalTo: headerView.centerYAnchor)
-        ])
+        navigationController?.navigationBar.standardAppearance = appearance
+        navigationController?.navigationBar.scrollEdgeAppearance = appearance
+        navigationController?.navigationBar.compactAppearance = appearance
+        navigationController?.navigationBar.tintColor = SettingsStyle.accent
 
-        settingsTableView.tableHeaderView = headerView
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            image: UIImage(systemName: "chevron.backward.circle"),
+            style: .plain,
+            target: self,
+            action: #selector(UIViewController.dismissModalBack)
+        )
+        navigationItem.leftBarButtonItem?.accessibilityLabel = "Back"
+
+        settingsTableView.reloadData()
     }
 
     private func setupTableView() {
         settingsTableView.delegate = self
         settingsTableView.dataSource = self
-        settingsTableView.backgroundColor = .systemBackground
-        settingsTableView.separatorInset = UIEdgeInsets(top: 0, left: 56, bottom: 0, right: 0)
+        settingsTableView.backgroundColor = .clear
+        settingsTableView.separatorStyle = .singleLine
+        settingsTableView.separatorColor = SettingsStyle.divider
+        settingsTableView.separatorInset = UIEdgeInsets(top: 0, left: 72, bottom: 0, right: 0)
+        settingsTableView.sectionHeaderTopPadding = 8
         settingsTableView.register(VolumeSliderCell.self, forCellReuseIdentifier: VolumeSliderCell.reuseIdentifier)
+        settingsTableView.register(SettingsDetailCell.self, forCellReuseIdentifier: SettingsDetailCell.reuseIdentifier)
+        settingsTableView.register(SettingsToggleCell.self, forCellReuseIdentifier: SettingsToggleCell.reuseIdentifier)
+    }
+
+    private func settingRow(at indexPath: IndexPath) -> SettingRow {
+        SettingsSection(rawValue: indexPath.section)!.rows[indexPath.row]
+    }
+
+    private func indexPath(for row: SettingRow) -> IndexPath? {
+        for sec in SettingsSection.allCases {
+            if let r = sec.rows.firstIndex(of: row) {
+                return IndexPath(row: r, section: sec.rawValue)
+            }
+        }
+        return nil
+    }
+
+    private func subtitle(for row: SettingRow) -> String {
+        switch row {
+        case .backgroundMusic: return "Adjust background music volume"
+        case .bevosSound: return "Adjust Bevo's voice volume"
+        case .pomodoroStudyTimer: return "Set study duration"
+        case .pomodoroBreakTimer: return "Set short break duration"
+        case .pomodoroLongBreakTimer: return "Set long break duration"
+        case .pomodoroCycleLength: return "Set cycles per session"
+        case .notifications: return "Receive reminders and updates"
+        case .logout: return "Sign out of your account"
+        case .demoMode: return "Explore Bevo Doro features"
+        }
+    }
+
+    private func pomodoroDetailText(for row: SettingRow) -> String? {
+        switch row {
+        case .pomodoroStudyTimer:
+            let m = UserManager.shared.currentUser?.settings.timerStudyMins ?? defaultTimerStudyMins
+            return "\(m) min"
+        case .pomodoroBreakTimer:
+            let m = UserManager.shared.currentUser?.settings.timerBreakMins ?? defaultTimerBreakMins
+            return "\(m) min"
+        case .pomodoroLongBreakTimer:
+            let m = UserManager.shared.currentUser?.settings.timerLongBreakMins ?? defaultTimerLongBreakMins
+            return "\(m) min"
+        case .pomodoroCycleLength:
+            let c = UserManager.shared.currentUser?.settings.timerCycleLength ?? defaultTimerCycleLength
+            return "\(c) cycles"
+        default:
+            return nil
+        }
     }
 
     private func showPomodoroStudyPicker() {
@@ -320,26 +434,59 @@ class SettingViewController: BaseViewController {
 // MARK: - UITableViewDataSource, UITableViewDelegate
 extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
 
+    func numberOfSections(in tableView: UITableView) -> Int {
+        SettingsSection.allCases.count
+    }
+
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        SettingRow.allCases.count
+        SettingsSection(rawValue: section)?.rows.count ?? 0
+    }
+
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        guard let sec = SettingsSection(rawValue: section) else { return nil }
+        let container = UIView()
+        container.backgroundColor = .clear
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = sec.title
+        label.font = SettingsTypography.sourGummy(size: 12, weight: .semibold)
+        label.textColor = SettingsStyle.subtitle
+        label.accessibilityTraits.insert(.header)
+        container.addSubview(label)
+        NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: container.leadingAnchor, constant: 22),
+            label.trailingAnchor.constraint(equalTo: container.trailingAnchor, constant: -16),
+            label.topAnchor.constraint(equalTo: container.topAnchor, constant: 10),
+            label.bottomAnchor.constraint(equalTo: container.bottomAnchor, constant: -2)
+        ])
+        return container
+    }
+
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        30
+    }
+
+    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        if section == SettingsSection.general.rawValue { return 28 }
+        return 10
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        guard let row = SettingRow(rawValue: indexPath.row) else { return UITableViewCell() }
+        let row = settingRow(at: indexPath)
 
         switch row {
-        case .backgroundMusic:
+        case .backgroundMusic, .bevosSound:
             guard let cell = settingsTableView.dequeueReusableCell(
                 withIdentifier: VolumeSliderCell.reuseIdentifier,
                 for: indexPath
             ) as? VolumeSliderCell else {
                 return UITableViewCell()
             }
-            cell.backgroundColor = .systemBackground
-            let v = MusicManager.shared.musicVolume
+            let v = row == .backgroundMusic ? MusicManager.shared.musicVolume : Self.bevosSoundVolume
             cell.configure(
                 iconSystemName: row.iconName,
                 title: row.title,
+                subtitle: subtitle(for: row),
                 value: v,
                 percentText: volumeText(v)
             )
@@ -347,122 +494,42 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
             cell.slider.addTarget(self, action: #selector(volumeSliderChanged(_:)), for: .valueChanged)
             return cell
 
-        case .bevosSound:
+        case .pomodoroStudyTimer, .pomodoroBreakTimer, .pomodoroLongBreakTimer, .pomodoroCycleLength, .logout:
             guard let cell = settingsTableView.dequeueReusableCell(
-                withIdentifier: VolumeSliderCell.reuseIdentifier,
+                withIdentifier: SettingsDetailCell.reuseIdentifier,
                 for: indexPath
-            ) as? VolumeSliderCell else {
+            ) as? SettingsDetailCell else {
                 return UITableViewCell()
             }
-            cell.backgroundColor = .systemBackground
-            let v = Self.bevosSoundVolume
             cell.configure(
                 iconSystemName: row.iconName,
                 title: row.title,
-                value: v,
-                percentText: volumeText(v)
+                subtitle: subtitle(for: row),
+                detail: pomodoroDetailText(for: row)
             )
-            cell.slider.tag = row.rawValue
-            cell.slider.addTarget(self, action: #selector(volumeSliderChanged(_:)), for: .valueChanged)
             return cell
 
-        case .pomodoroStudyTimer:
-            let cell = settingsTableView.dequeueReusableCell(withIdentifier: "SettingCell")
-                ?? UITableViewCell(style: .default, reuseIdentifier: "SettingCell")
-            cell.backgroundColor = .systemBackground
-            cell.selectionStyle = .default
-            cell.textLabel?.text = row.title
-            cell.textLabel?.font = .systemFont(ofSize: 17)
-            cell.imageView?.image = UIImage(systemName: row.iconName)
-            cell.imageView?.tintColor = .label
-            cell.accessoryView = nil
-            cell.accessoryType = .disclosureIndicator
-            return cell
-        case .pomodoroBreakTimer:
-            let cell = settingsTableView.dequeueReusableCell(withIdentifier: "SettingCell")
-                ?? UITableViewCell(style: .default, reuseIdentifier: "SettingCell")
-            cell.backgroundColor = .systemBackground
-            cell.selectionStyle = .default
-            cell.textLabel?.text = row.title
-            cell.textLabel?.font = .systemFont(ofSize: 17)
-            cell.imageView?.image = UIImage(systemName: row.iconName)
-            cell.imageView?.tintColor = .label
-            cell.accessoryView = nil
-            cell.accessoryType = .disclosureIndicator
-            return cell
-        case .pomodoroLongBreakTimer:
-            let cell = settingsTableView.dequeueReusableCell(withIdentifier: "SettingCell")
-                ?? UITableViewCell(style: .default, reuseIdentifier: "SettingCell")
-            cell.backgroundColor = .systemBackground
-            cell.selectionStyle = .default
-            cell.textLabel?.text = row.title
-            cell.textLabel?.font = .systemFont(ofSize: 17)
-            cell.imageView?.image = UIImage(systemName: row.iconName)
-            cell.imageView?.tintColor = .label
-            cell.accessoryView = nil
-            cell.accessoryType = .disclosureIndicator
-            return cell
-        case .pomodoroCycleLength:
-            let cell = settingsTableView.dequeueReusableCell(withIdentifier: "SettingCell")
-                ?? UITableViewCell(style: .default, reuseIdentifier: "SettingCell")
-            cell.backgroundColor = .systemBackground
-            cell.selectionStyle = .default
-            cell.textLabel?.text = row.title
-            cell.textLabel?.font = .systemFont(ofSize: 17)
-            cell.imageView?.image = UIImage(systemName: row.iconName)
-            cell.imageView?.tintColor = .label
-            cell.accessoryView = nil
-            cell.accessoryType = .disclosureIndicator
-            return cell
-        case .notifications:
-            let cell = settingsTableView.dequeueReusableCell(withIdentifier: "SettingCell")
-                ?? UITableViewCell(style: .default, reuseIdentifier: "SettingCell")
-            cell.backgroundColor = .systemBackground
-            cell.selectionStyle = .none
-            cell.textLabel?.text = row.title
-            cell.textLabel?.font = .systemFont(ofSize: 17)
-            cell.imageView?.image = UIImage(systemName: row.iconName)
-            cell.imageView?.tintColor = .label
-            cell.accessoryType = .none
-            let toggle = UISwitch()
-            toggle.isOn = notificationsOn
-            toggle.addTarget(self, action: #selector(toggleNotif(_:)), for: .valueChanged)
-            cell.accessoryView = toggle
-            return cell
-        case .logout:
-            let cell = settingsTableView.dequeueReusableCell(withIdentifier: "SettingCell")
-                ?? UITableViewCell(style: .default, reuseIdentifier: "SettingCell")
-            cell.backgroundColor = .systemBackground
-            cell.selectionStyle = .default
-            cell.textLabel?.text = row.title
-            cell.textLabel?.font = .systemFont(ofSize: 17)
-            cell.imageView?.image = UIImage(systemName: row.iconName)
-            cell.imageView?.tintColor = .label
-            // TODO implement here
-            cell.accessoryView = nil
-            cell.accessoryType = .disclosureIndicator
-            return cell
-        case .demoMode:
-            let cell = settingsTableView.dequeueReusableCell(withIdentifier: "SettingCell")
-                ?? UITableViewCell(style: .default, reuseIdentifier: "SettingCell")
-            cell.backgroundColor = .systemBackground
-            cell.selectionStyle = .none
-            cell.textLabel?.text = row.title
-            cell.textLabel?.font = .systemFont(ofSize: 17)
-            cell.imageView?.image = UIImage(systemName: row.iconName)
-            cell.imageView?.tintColor = .label
-            cell.accessoryType = .none
-            let toggle = UISwitch()
-            toggle.isOn = Self.isDemoModeEnabled
-            toggle.addTarget(self, action: #selector(demoModeChanged(_:)), for: .valueChanged)
-            cell.accessoryView = toggle
+        case .notifications, .demoMode:
+            guard let cell = settingsTableView.dequeueReusableCell(
+                withIdentifier: SettingsToggleCell.reuseIdentifier,
+                for: indexPath
+            ) as? SettingsToggleCell else {
+                return UITableViewCell()
+            }
+            let on = row == .notifications ? notificationsOn : Self.isDemoModeEnabled
+            cell.configure(iconSystemName: row.iconName, title: row.title, subtitle: subtitle(for: row), isOn: on)
+            if row == .notifications {
+                cell.toggle.addTarget(self, action: #selector(toggleNotif(_:)), for: .valueChanged)
+            } else {
+                cell.toggle.addTarget(self, action: #selector(demoModeChanged(_:)), for: .valueChanged)
+            }
             return cell
         }
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         settingsTableView.deselectRow(at: indexPath, animated: true)
-        guard let row = SettingRow(rawValue: indexPath.row) else { return }
+        let row = settingRow(at: indexPath)
 
         switch row {
         case .pomodoroStudyTimer:
@@ -481,12 +548,12 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        guard let row = SettingRow(rawValue: indexPath.row) else { return 51 }
+        let row = settingRow(at: indexPath)
         switch row {
         case .backgroundMusic, .bevosSound:
-            return 78
+            return 104
         default:
-            return 51
+            return 72
         }
     }
 
@@ -505,11 +572,16 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
             break
         }
 
-        // Update the % label without janky animations.
-        if let indexPath = IndexPath(row: row.rawValue, section: 0) as IndexPath?,
+        if let indexPath = indexPath(for: row),
            let cell = settingsTableView.cellForRow(at: indexPath) as? VolumeSliderCell {
             let v = sender.value
-            cell.configure(iconSystemName: row.iconName, title: row.title, value: v, percentText: volumeText(v))
+            cell.configure(
+                iconSystemName: row.iconName,
+                title: row.title,
+                subtitle: subtitle(for: row),
+                value: v,
+                percentText: volumeText(v)
+            )
         }
     }
     
@@ -663,7 +735,7 @@ final class PomodoroPickerViewController: UIViewController {
 
         doneButton.translatesAutoresizingMaskIntoConstraints = false
         doneButton.setTitle("Done", for: .normal)
-        doneButton.titleLabel?.font = .systemFont(ofSize: 17, weight: .semibold)
+        doneButton.titleLabel?.font = SettingsTypography.sourGummy(size: 17, weight: .semibold)
         doneButton.addTarget(self, action: #selector(doneTapped), for: .touchUpInside)
         view.addSubview(doneButton)
 
@@ -691,8 +763,13 @@ extension PomodoroPickerViewController: UIPickerViewDataSource, UIPickerViewDele
         values.count
     }
     
-    func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        "\(values[row]) \(unitLabel)"
+    func pickerView(_ pickerView: UIPickerView, attributedTitleForRow row: Int, forComponent component: Int) -> NSAttributedString? {
+        let text = "\(values[row]) \(unitLabel)"
+        let font = SettingsTypography.sourGummy(size: 21, weight: .regular)
+        return NSAttributedString(string: text, attributes: [
+            .font: font,
+            .foregroundColor: UIColor.label
+        ])
     }
 
     func pickerView(_ pickerView: UIPickerView, didSelectRow row: Int, inComponent component: Int) {
