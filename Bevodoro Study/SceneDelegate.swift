@@ -56,5 +56,14 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window?.rootViewController = loginVC
         window?.makeKeyAndVisible()
     }
+
+    func showMainScreen() {
+        let storyboard = UIStoryboard(name: "Main", bundle: nil)
+        let mainNav = storyboard.instantiateViewController(withIdentifier: "MainNavigationController")
+        guard let window else { return }
+        UIView.transition(with: window, duration: 0.4, options: .transitionCrossDissolve) {
+            window.rootViewController = mainNav
+        }
+    }
     
 }

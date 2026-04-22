@@ -73,9 +73,11 @@ class LoginViewController: BaseViewController, UITextFieldDelegate {
                 DispatchQueue.main.async {
                     HapticsManager.shared.success()
                     MusicManager.shared.playMusic()
-                    self.performSegue(withIdentifier: "loginSegue", sender: self)
                     self.emailField.text = ""
                     self.passwordField.text = ""
+                    let loadingVC = LoadingViewController()
+                    loadingVC.modalPresentationStyle = .fullScreen
+                    self.present(loadingVC, animated: true)
                 }
             }
         }
