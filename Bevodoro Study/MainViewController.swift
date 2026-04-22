@@ -1177,7 +1177,6 @@ class MainViewController: BaseViewController {
         content.body = "It's been a while since you last studied! Help Bevo recover by giving him some medicine."
         content.sound = .default
 
-        //The delay is just to give us time to exit so it actually shows up in the demo
         let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
         let request = UNNotificationRequest(
             identifier: UUID().uuidString,
@@ -1190,8 +1189,6 @@ class MainViewController: BaseViewController {
             }
         }
     }
-
-
 }
 
 // MARK: - UICollectionViewDelegate (trough paging indicator)
