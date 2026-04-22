@@ -25,6 +25,8 @@ class SignUpViewController: BaseViewController, UITextFieldDelegate {
         emailField.delegate = self
         usernameField.delegate = self
         passwordField.delegate = self
+        passwordField.isSecureTextEntry = true
+        confirmPasswordField.isSecureTextEntry = true
         HapticsManager.shared.prepareForInteraction()
     }
     

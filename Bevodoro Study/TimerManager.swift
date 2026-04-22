@@ -15,6 +15,7 @@ let demoModeLongBreakSeconds = 3
 let demoModeCycleLength = 2
 let demoModeCoinsPerMinute = 60.0
 let bevoSickAlertCooldownSeconds: TimeInterval = SettingViewController.isDemoModeEnabled ? 2 * 60 : 5 * 60 // rate limit to show alert every 5 minutes
+let demoCoinBonusAmount = 500
 
 // 1 coin per minute earning rate
 var coinsBaseEarningRate = 1.0  // a multiplier (e.g. can increase for special events)
