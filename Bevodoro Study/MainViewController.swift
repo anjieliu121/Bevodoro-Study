@@ -1251,7 +1251,8 @@ class MainViewController: BaseViewController {
 
         let normalMessage = "It’s been a while since you last studied. Study more to buy medicine to treat Bevo!"
         let lastStudyDate = user.lastStudy!.dateValue()
-        let sickAfterDate = lastStudyDate.addingTimeInterval(bevoSickThresholdSeconds)
+        let threshold = SettingViewController.isDemoModeEnabled ? demoBevoSickThresholdSeconds : bevoSickThresholdSeconds
+        let sickAfterDate = lastStudyDate.addingTimeInterval(threshold)
         let debugMessage = """
         \(normalMessage)
 

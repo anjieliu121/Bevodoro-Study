@@ -14,7 +14,8 @@ let demoModeBreakSeconds = 2
 let demoModeLongBreakSeconds = 3
 let demoModeCycleLength = 2
 let demoModeCoinsPerMinute = 60.0
-let bevoSickAlertCooldownSeconds: TimeInterval = SettingViewController.isDemoModeEnabled ? 2 * 60 : 5 * 60 // rate limit to show alert every 5 minutes
+let bevoSickAlertCooldownSeconds: TimeInterval = 5 * secondsPerMinute // rate limit to show alert every 5 minutes
+let demoBevoSickAlertCooldownSeconds: TimeInterval = 2 * secondsPerMinute
 let demoCoinBonusAmount = 500
 
 // 1 coin per minute earning rate
@@ -33,7 +34,6 @@ let defaultTimerStudyMins = 25
 let defaultTimerBreakMins = 5
 let defaultTimerLongBreakMins = 15
 let defaultTimerCycleLength = 4  // how many study sessions must be completed before a long break
-let secondsPerMin = 60
 let minsPerHour = 60
 
 // all possible states the timer can be in
@@ -68,15 +68,15 @@ class TimerManager {
     // use computed properties to get initial study time seconds in case currentUser is null
     var initialStudyTimeSeconds: Int {
         SettingViewController.isDemoModeEnabled ? demoModeStudySeconds :
-        (UserManager.shared.currentUser?.settings.timerStudyMins ?? defaultTimerStudyMins) * secondsPerMin
+        (UserManager.shared.currentUser?.settings.timerStudyMins ?? defaultTimerStudyMins) * Int(secondsPerMinute)
     }
     var initialBreakTimeSeconds: Int {
         SettingViewController.isDemoModeEnabled ? demoModeBreakSeconds :
-        (UserManager.shared.currentUser?.settings.timerBreakMins ?? defaultTimerBreakMins) * secondsPerMin
+        (UserManager.shared.currentUser?.settings.timerBreakMins ?? defaultTimerBreakMins) * Int(secondsPerMinute)
     }
     var initialLongBreakTimeSeconds: Int {
         SettingViewController.isDemoModeEnabled ? demoModeLongBreakSeconds :
-        (UserManager.shared.currentUser?.settings.timerLongBreakMins ?? defaultTimerLongBreakMins) * secondsPerMin
+        (UserManager.shared.currentUser?.settings.timerLongBreakMins ?? defaultTimerLongBreakMins) * Int(secondsPerMinute)
     }
     var cycleLength: Int {
         SettingViewController.isDemoModeEnabled ? demoModeCycleLength :
@@ -104,7 +104,7 @@ class TimerManager {
         // initialize variables
         secondsRemaining = defaultTimerStudyMins
         if let studyMins = UserManager.shared.currentUser?.settings.timerStudyMins {
-                secondsRemaining = studyMins * secondsPerMin
+                secondsRemaining = studyMins * Int(secondsPerMinute)
         } else {
             print("TimerManager ERROR: user is nil")
         }

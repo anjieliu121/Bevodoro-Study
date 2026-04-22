@@ -618,9 +618,9 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
         Shorter study time: \(demoModeStudySeconds) seconds
         Shorter break time: \(demoModeBreakSeconds) seconds
         Shorter long break time: \(demoModeLongBreakSeconds) seconds
-        Shorter cycle: \(demoModeCycleLength) seconds
+        Shorter cycle: \(demoModeCycleLength) sessions
         Higher earning rate: \(demoModeCoinsPerMinute) coins per minute
-        Lower Sick threshold: \(bevoSickThresholdSeconds) seconds
+        Lower Sick threshold: \(demoBevoSickThresholdSeconds) seconds
         
         ... and additional information in displays
         """

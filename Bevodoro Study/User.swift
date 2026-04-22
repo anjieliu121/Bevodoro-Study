@@ -10,8 +10,10 @@ import Foundation
 import FirebaseFirestore
 
 let secondsPerDays = 1.0 * 60 * 60 * 24
+let secondsPerMinute = 60.0
 let bevoSickThresholdDays = 3.0  // after how many days since last login that bevo will be considered sick
-let bevoSickThresholdSeconds = 30.0
+let bevoSickThresholdSeconds = bevoSickThresholdDays * secondsPerDays
+let demoBevoSickThresholdSeconds = 30.0
 
 struct UserSettings: Codable {
     var bkgMusic: Bool
@@ -230,14 +232,15 @@ struct User: Codable {
         let lastStudyDate = lastStudy!.dateValue()
         let now = Date()
         // TODO calling SettingViewController here creates a dependency on a VC. move the setting to a new class, modify that class's var in SettingViewController, then set classs User to use the seting in the new class.
-        let threshold = SettingViewController.isDemoModeEnabled ? 30.0 : bevoSickThresholdSeconds
+        let threshold = SettingViewController.isDemoModeEnabled ? demoBevoSickThresholdSeconds : bevoSickThresholdSeconds
+        let cooldown = SettingViewController.isDemoModeEnabled ? demoBevoSickAlertCooldownSeconds : bevoSickAlertCooldownSeconds
 
         print("""
         DEBUG: isSick check
         lastStudy: \(lastStudyDate)
         now:       \(now)
         delta:     \(now.timeIntervalSince(lastStudyDate))
-        threshold: \(threshold), but limited every \(bevoSickAlertCooldownSeconds) sec
+        threshold: \(threshold), but limited every \(cooldown) seconds
         """)
 
         guard lastStudyDate <= now else {

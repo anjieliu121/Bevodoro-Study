@@ -189,9 +189,9 @@ class TimerViewController: UIViewController {
 
     // converts a TimeInterval to a string. assumes < 1 hour
     func seconds2String(seconds: Int) -> String {
-        guard seconds < secondsPerMin * minsPerHour else { return "60:00*" }
-        let mins = (seconds / secondsPerMin) % secondsPerMin
-        let secs = seconds % secondsPerMin
+        guard seconds < Int(secondsPerMinute) * minsPerHour else { return "60:00*" }
+        let mins = (seconds / Int(secondsPerMinute)) % Int(secondsPerMinute)
+        let secs = seconds % Int(secondsPerMinute)
         return String(format: "%02i:%02i", mins, secs)
     }
     
