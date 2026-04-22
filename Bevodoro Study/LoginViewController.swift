@@ -22,6 +22,7 @@ class LoginViewController: BaseViewController, UITextFieldDelegate {
         errorMsgLabel.text = ""
         emailField.delegate = self
         passwordField.delegate = self
+        passwordField.isSecureTextEntry = true
         HapticsManager.shared.prepareForInteraction()
     }
     

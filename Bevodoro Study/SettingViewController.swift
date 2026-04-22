@@ -612,20 +612,19 @@ extension SettingViewController: UITableViewDataSource, UITableViewDelegate {
     }
     
     private func showDemoModeAlert() {
-        let addCoinAmount: Int = 100
         let message = """
         Features:
-        Added \(addCoinAmount) coins to current balance
+        Added \(demoCoinBonusAmount) coins to current balance
         Shorter study time: \(demoModeStudySeconds) seconds
         Shorter break time: \(demoModeBreakSeconds) seconds
         Shorter long break time: \(demoModeLongBreakSeconds) seconds
-        Shorter cycle: \(demoModeCycleLength) seconds
+        Shorter cycle: \(demoModeCycleLength) sessions
         Higher earning rate: \(demoModeCoinsPerMinute) coins per minute
-        Lower Sick threshold: \(bevoSickThresholdSeconds) seconds
+        Lower Sick threshold: \(demoBevoSickThresholdSeconds) seconds
         
         ... and additional information in displays
         """
-        UserManager.shared.currentUser?.addCoins(addCoinAmount)
+        UserManager.shared.currentUser?.addCoins(demoCoinBonusAmount)
         UserManager.shared.currentUser?.saveToFirestore()
 
         let alert = UIAlertController(

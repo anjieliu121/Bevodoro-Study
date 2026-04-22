@@ -894,9 +894,9 @@ class MainViewController: BaseViewController {
         stackView.addArrangedSubview(timerButton)
         stackView.addArrangedSubview(inventoryButton)
         stackView.addArrangedSubview(shopButton)
-        stackView.addArrangedSubview(settingsButton)
         stackView.addArrangedSubview(minigamesButton)
         stackView.addArrangedSubview(photoButton)
+        stackView.addArrangedSubview(settingsButton)
     }
     
     @objc private func handleBevoTap() {
