@@ -25,6 +25,8 @@ class SignUpViewController: BaseViewController, UITextFieldDelegate {
         emailField.delegate = self
         usernameField.delegate = self
         passwordField.delegate = self
+        passwordField.isSecureTextEntry = true
+        confirmPasswordField.isSecureTextEntry = true
         HapticsManager.shared.prepareForInteraction()
     }
     
@@ -62,20 +64,17 @@ class SignUpViewController: BaseViewController, UITextFieldDelegate {
             }
 
             guard let authResult = authResult else { return }
-            let newUser = User(userID: authResult.user.uid, user: username)
+            var newUser = User(userID: authResult.user.uid, user: username)
+            newUser.lastLogin = Timestamp(date: Date())
+            UserManager.shared.currentUser = newUser
             newUser.saveToFirestore()
 
             DispatchQueue.main.async {
-                // Show success then pop back to login
-                let alert = UIAlertController(
-                    title: "Account Created",
-                    message: "Your account has been created. Please log in.",
-                    preferredStyle: .alert)
-                alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
-                    self.navigationController?.popViewController(animated: true)
-                })
                 HapticsManager.shared.success()
-                self.present(alert, animated: true)
+                MusicManager.shared.playMusic()
+                let loadingVC = LoadingViewController()
+                loadingVC.modalPresentationStyle = .fullScreen
+                self.present(loadingVC, animated: true)
             }
         }
     }
