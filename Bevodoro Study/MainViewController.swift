@@ -72,6 +72,7 @@ class MainViewController: BaseViewController {
 
     private static var lastBevoSickAlertShownAt: Date? = nil
     private static let sickAlertCooldown: TimeInterval = 5 * 60  // 5 minutes. rate limit the sick alert so it isnt annoying.
+    private var streakPopupShown = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -91,8 +92,12 @@ class MainViewController: BaseViewController {
         applyBevoSceneBackgroundFromUser()
         applyBevoHatFromUser()
         applyBevoIdleFullBodyFromUser()
+        if SettingViewController.isDemoModeEnabled {
+            UserManager.shared.currentUser?.studyStreak = 3
+        }
         showBevoSickAlertIfNeeded()
         sendBevoSickNotif()
+        showStreakPopupIfNeeded()
     }
 
     override func viewDidLayoutSubviews() {
@@ -1192,6 +1197,39 @@ class MainViewController: BaseViewController {
         }
     }
 
+    private func showStreakPopupIfNeeded() {
+        guard !streakPopupShown else { return }
+        guard var user = UserManager.shared.currentUser else { return }
+        guard user.studyStreak > 0 else { return }
+
+        let streak = user.studyStreak
+        let calendar = Calendar.current
+        let alreadyAwardedToday: Bool = {
+            guard let last = user.lastStreakBonusDate?.dateValue() else { return false }
+            return calendar.isDateInToday(last)
+        }()
+
+        var bonusCoins = 0
+        if !alreadyAwardedToday {
+            bonusCoins = streak
+            TimerManager.shared.addCoinsToUser(amount: bonusCoins)
+            user.lastStreakBonusDate = Timestamp(date: Date())
+            UserManager.shared.currentUser = user
+            user.saveToFirestore()
+        }
+
+        let message = alreadyAwardedToday
+            ? "You're on a \(streak)-day streak! Keep it up!"
+            : "You're on a \(streak)-day streak! You earned \(bonusCoins) bonus coin\(bonusCoins == 1 ? "" : "s") for logging in today."
+        // If another alert is already on screen, wait — don't mark as shown yet.
+        guard presentedViewController == nil else { return }
+        streakPopupShown = true
+
+        let alert = UIAlertController(title: "\(streak)-Day Study Streak!", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "Let's go!", style: .default))
+        present(alert, animated: true)
+    }
+
     func showBevoSickAlertIfNeeded() {
         // make sure the user is valid and bevo is sick
         guard let user = UserManager.shared.currentUser else { return }
@@ -1228,7 +1266,9 @@ class MainViewController: BaseViewController {
             preferredStyle: .alert
         )
 
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+            self?.showStreakPopupIfNeeded()
+        })
         present(alert, animated: true)
 
         // update rate-limit cooldown, when it was last shown

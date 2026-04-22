@@ -58,6 +58,8 @@ struct User: Codable {
     var lastLogin: Timestamp
     var lastStudy: Timestamp?  // may be null
     var numCompletedStudySessions: Int
+    var studyStreak: Int
+    var lastStreakBonusDate: Timestamp?
     var settings: UserSettings
 
     init(
@@ -73,6 +75,8 @@ struct User: Codable {
         lastLogin: Timestamp = Timestamp(date: Date()),
         lastStudy: Timestamp? = nil,
         numCompletedStudySessions: Int = 0,
+        studyStreak: Int = 0,
+        lastStreakBonusDate: Timestamp? = nil,
         settings: UserSettings = UserSettings()
     ) {
         self.userID = userID
@@ -87,13 +91,15 @@ struct User: Codable {
         self.lastLogin = lastLogin
         self.lastStudy = lastStudy
         self.numCompletedStudySessions = numCompletedStudySessions
+        self.studyStreak = studyStreak
+        self.lastStreakBonusDate = lastStreakBonusDate
         self.settings = settings
     }
 
     enum CodingKeys: String, CodingKey {
         case userID, user, num_coins, food, medicine, hats, backgrounds
         case equippedHat, equippedBkg, lastLogin, lastStudy, settings
-        case numCompletedStudySessions
+        case numCompletedStudySessions, studyStreak, lastStreakBonusDate
     }
 
     init(from decoder: Decoder) throws {
@@ -110,6 +116,8 @@ struct User: Codable {
         lastLogin = try c.decode(Timestamp.self, forKey: .lastLogin)
         lastStudy = try c.decodeIfPresent(Timestamp.self, forKey: .lastStudy)
         numCompletedStudySessions = try c.decodeIfPresent(Int.self, forKey: .numCompletedStudySessions) ?? 0
+        studyStreak = try c.decodeIfPresent(Int.self, forKey: .studyStreak) ?? 0
+        lastStreakBonusDate = try c.decodeIfPresent(Timestamp.self, forKey: .lastStreakBonusDate)
         settings = try c.decodeIfPresent(UserSettings.self, forKey: .settings) ?? UserSettings()
     }
 
@@ -127,6 +135,8 @@ struct User: Codable {
         try c.encode(lastLogin, forKey: .lastLogin)
         try c.encodeIfPresent(lastStudy, forKey: .lastStudy)
         try c.encode(numCompletedStudySessions, forKey: .numCompletedStudySessions)
+        try c.encode(studyStreak, forKey: .studyStreak)
+        try c.encodeIfPresent(lastStreakBonusDate, forKey: .lastStreakBonusDate)
         try c.encode(settings, forKey: .settings)
     }
 
