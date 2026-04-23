@@ -6,6 +6,7 @@
 //
 // (A)I tried my best
 
+let coinsEarnedPerMinigame = 1
 
 import UIKit
 
@@ -140,6 +141,12 @@ class MinigameMenuViewController: BaseViewController, UITableViewDataSource, UIT
         let storyboard = UIStoryboard(name: minigame.storyboardName, bundle: nil)
         let vc = storyboard.instantiateViewController(identifier: minigame.storyboardID)
         navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    static func awardCoins() -> Int {
+        UserManager.shared.currentUser?.addCoins(coinsEarnedPerMinigame)
+        UserManager.shared.currentUser?.saveToFirestore()
+        return coinsEarnedPerMinigame
     }
 }
 

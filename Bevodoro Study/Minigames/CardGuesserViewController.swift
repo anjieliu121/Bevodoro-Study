@@ -21,6 +21,7 @@ protocol SuitChanger {
 class CardGuesserViewController: UIViewController, PipChanger, SuitChanger {
     @IBOutlet weak var pipButtonText: UIButton!
     @IBOutlet weak var suitButtonText: UIButton!
+    @IBOutlet weak var submitButton: UIButton!
     @IBOutlet weak var pipMsg: UILabel!
     @IBOutlet weak var suitMsg: UILabel!
     @IBOutlet weak var guessMsg: UILabel!
@@ -37,34 +38,15 @@ class CardGuesserViewController: UIViewController, PipChanger, SuitChanger {
     var suitGuess = ""
     var guessCount: Int = 0
     
+    var gameIsOver: Bool = false
+    
     override func viewDidLoad() {
         super.viewDidLoad()
-        pipMsg.text = ""
-        suitMsg.text = ""
-        guessMsg.text = ""
-        
-        // generate a random card
-        correctPipIndex = Int.random(in: 0..<pips.count)
-        correctSuitIndex = Int.random(in: 0..<suits.count)
-        correctPip = pips[correctPipIndex]
-        correctSuit = suits[correctSuitIndex]
-        print("correctPip= \(correctPip), correctSuit=\(correctSuit)")
+        resetGame()
     }
     
     override func viewWillAppear(_ animated: Bool) {
-        // set pip button text
-        if pipGuess == "" {
-            pipButtonText.setTitle("select pip", for: .normal)
-        } else {
-            pipButtonText.setTitle(pipGuess, for: .normal)
-        }
-        
-        // set suit button text
-        if suitGuess == "" {
-            suitButtonText.setTitle("select suit", for: .normal)
-        } else {
-            suitButtonText.setTitle(suitGuess, for: .normal)
-        }
+        reloadButtonTitles()
     }
     
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
@@ -83,6 +65,11 @@ class CardGuesserViewController: UIViewController, PipChanger, SuitChanger {
     
     // check for matches
     @IBAction func submitButtonPressed(_ sender: Any) {
+        if gameIsOver {
+            // retry was pressed
+            resetGame()
+        }
+        
         if pipGuess == "" || suitGuess == "" {
             guessMsg.text = "Select a pip value and suit first"
         } else {
@@ -111,11 +98,83 @@ class CardGuesserViewController: UIViewController, PipChanger, SuitChanger {
             
             // set guess count message
             if pipCorrect && suitCorrect {
-                guessMsg.text = "You guessed correctly in \(guessCount) tries!"
+                // disable buttons
+                disableButtons()
+                
+                // award coins
+                var earned = MinigameMenuViewController.awardCoins()
+                
+                // display
+                let attributed = NSMutableAttributedString(
+                    string: "You guessed correctly in \(guessCount) tries! Earned "
+                )
+                let attachment = NSTextAttachment()
+                attachment.image = UIImage(named: "Coin")
+                attachment.bounds = CGRect(x: 0, y: -4, width: 18, height: 18)
+                attributed.append(NSAttributedString(attachment: attachment))
+                attributed.append(NSAttributedString(string: " \(earned)"))
+                guessMsg.attributedText = attributed
+                
+                // change this button to a retry button
+                submitButton.setTitle("Retry", for: .normal)
+                gameIsOver = true
             } else {
                 guessMsg.text = "Guesses so far: \(guessCount)"
             }
         }        
+    }
+    
+    func resetGame() {
+        enableButtons()
+        setRandomCard()
+        
+        pipMsg.text = ""
+        suitMsg.text = ""
+        guessMsg.text = ""
+        
+        pipGuess = ""
+        suitGuess = ""
+        guessCount = 0
+        
+        submitButton.setTitle("Submit Guess", for: .normal)
+        reloadButtonTitles()
+        
+        gameIsOver = false
+    }
+    
+    func setRandomCard() {
+        // generate a random card
+        correctPipIndex = Int.random(in: 0..<pips.count)
+        correctSuitIndex = Int.random(in: 0..<suits.count)
+        correctPip = pips[correctPipIndex]
+        correctSuit = suits[correctSuitIndex]
+        print("correctPip= \(correctPip), correctSuit=\(correctSuit)")
+    }
+    
+    func reloadButtonTitles() {
+        // set pip button text
+        if pipGuess == "" {
+            pipButtonText.setTitle("select pip", for: .normal)
+        } else {
+            pipButtonText.setTitle(pipGuess, for: .normal)
+        }
+        
+        // set suit button text
+        if suitGuess == "" {
+            suitButtonText.setTitle("select suit", for: .normal)
+        } else {
+            suitButtonText.setTitle(suitGuess, for: .normal)
+        }
+    }
+    
+    func disableButtons() {
+        pipButtonText.isEnabled = false
+        suitButtonText.isEnabled = false
+    }
+    
+    func enableButtons() {
+        pipButtonText.isEnabled = true
+        suitButtonText.isEnabled = true
     }
     
     func changePip(newPip: String) {
