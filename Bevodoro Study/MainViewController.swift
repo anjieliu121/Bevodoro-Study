@@ -70,9 +70,6 @@ class MainViewController: BaseViewController {
     /// Nudge food row upward so there’s clear space above the paging bar.
     private static let troughFoodCollectionCenterYOffset: CGFloat = -14
 
-    private static var lastBevoSickAlertShownAt: Date? = nil
-    private static let sickAlertCooldown: TimeInterval = 5 * 60  // 5 minutes. rate limit the sick alert so it isnt annoying.
-    private var streakPopupShown = false
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -95,9 +92,6 @@ class MainViewController: BaseViewController {
         if SettingViewController.isDemoModeEnabled {
             UserManager.shared.currentUser?.studyStreak = 3
         }
-        showBevoSickAlertIfNeeded()
-        sendBevoSickNotif()
-        showStreakPopupIfNeeded()
     }
 
     override func viewDidLayoutSubviews() {
@@ -1197,84 +1191,7 @@ class MainViewController: BaseViewController {
         }
     }
 
-    private func showStreakPopupIfNeeded() {
-        guard !streakPopupShown else { return }
-        guard var user = UserManager.shared.currentUser else { return }
-        guard user.studyStreak > 0 else { return }
 
-        let streak = user.studyStreak
-        let calendar = Calendar.current
-        let alreadyAwardedToday: Bool = {
-            guard let last = user.lastStreakBonusDate?.dateValue() else { return false }
-            return calendar.isDateInToday(last)
-        }()
-
-        var bonusCoins = 0
-        if !alreadyAwardedToday {
-            bonusCoins = streak
-            TimerManager.shared.addCoinsToUser(amount: bonusCoins)
-            user.lastStreakBonusDate = Timestamp(date: Date())
-            UserManager.shared.currentUser = user
-            user.saveToFirestore()
-        }
-
-        let message = alreadyAwardedToday
-            ? "You're on a \(streak)-day streak! Keep it up!"
-            : "You're on a \(streak)-day streak! You earned \(bonusCoins) bonus coin\(bonusCoins == 1 ? "" : "s") for logging in today."
-        // If another alert is already on screen, wait — don't mark as shown yet.
-        guard presentedViewController == nil else { return }
-        streakPopupShown = true
-
-        let alert = UIAlertController(title: "\(streak)-Day Study Streak!", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "Let's go!", style: .default))
-        present(alert, animated: true)
-    }
-
-    func showBevoSickAlertIfNeeded() {
-        // make sure the user is valid and bevo is sick
-        guard let user = UserManager.shared.currentUser else { return }
-        guard user.isSick() else { return }
-        guard user.lastStudy != nil else { return } // nil for new users
-
-        // Don’t be annoying. rate-limit the alert to every sickAlertCooldown seconds.
-        if let lastShown = MainViewController.lastBevoSickAlertShownAt {
-            let elapsed = Date().timeIntervalSince(lastShown)
-            guard elapsed >= MainViewController.sickAlertCooldown else {
-                return
-            }
-        }
-
-        // construct the alert
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .medium
-
-        let normalMessage = "It’s been a while since you last studied. Study more to buy medicine to treat Bevo!"
-        let lastStudyDate = user.lastStudy!.dateValue()
-        let threshold = SettingViewController.isDemoModeEnabled ? demoBevoSickThresholdSeconds : bevoSickThresholdSeconds
-        let sickAfterDate = lastStudyDate.addingTimeInterval(threshold)
-        let debugMessage = """
-        \(normalMessage)
-
-        Debug Mode info:
-        Last study date: \(formatter.string(from: lastStudyDate))
-        Sick if after: \(formatter.string(from: sickAfterDate))
-        """
-
-        let alert = UIAlertController(
-            title: "Bevo is Sick!",
-            message: SettingViewController.isDemoModeEnabled ? debugMessage : normalMessage,
-            preferredStyle: .alert
-        )
-
-        alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
-            self?.showStreakPopupIfNeeded()
-        })
-        present(alert, animated: true)
-
-        // update rate-limit cooldown, when it was last shown
-        MainViewController.lastBevoSickAlertShownAt = Date()
-    }
 }
 
 // MARK: - UICollectionViewDelegate (trough paging indicator)
