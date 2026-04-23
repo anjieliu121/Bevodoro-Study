@@ -6,11 +6,14 @@
 //
 
 import UIKit
+import UserNotifications
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     var window: UIWindow?
-
+    private var bevoSickCheckTimer: Timer?
+    private static let bevoSickNotifDateKey = "lastBevoSickNotifDate"
+    private static let bevoSickCheckInterval: TimeInterval = 60
 
     func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
         // Use this method to optionally configure and attach the UIWindow `window` to the provided UIWindowScene `scene`.
@@ -27,15 +30,43 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 
     func sceneDidBecomeActive(_ scene: UIScene) {
-        // Called when the scene has moved from an inactive state to an active state.
-        // Use this method to restart any tasks that were paused (or not yet started) when the scene was inactive.
         MusicManager.shared.playMusic()
+        startBevoSickTimer()
     }
 
     func sceneWillResignActive(_ scene: UIScene) {
-        // Called when the scene will move from an active state to an inactive state.
-        // This may occur due to temporary interruptions (ex. an incoming phone call).
         MusicManager.shared.stopMusic()
+        bevoSickCheckTimer?.invalidate()
+        bevoSickCheckTimer = nil
+    }
+
+    private func startBevoSickTimer() {
+        bevoSickCheckTimer?.invalidate()
+        bevoSickCheckTimer = Timer.scheduledTimer(withTimeInterval: Self.bevoSickCheckInterval, repeats: true) { [weak self] _ in
+            self?.checkAndNotifyBevoSick()
+        }
+    }
+
+    private func checkAndNotifyBevoSick() {
+        guard SettingViewController.isNotificationsEnabled else { return }
+        guard let user = UserManager.shared.currentUser, user.isSick() else { return }
+
+        // Only notify once per day.
+        if let lastDate = UserDefaults.standard.object(forKey: Self.bevoSickNotifDateKey) as? Date,
+           Calendar.current.isDateInToday(lastDate) { return }
+
+        UserDefaults.standard.set(Date(), forKey: Self.bevoSickNotifDateKey)
+
+        let content = UNMutableNotificationContent()
+        content.title = "Bevo is feeling sick!"
+        content.body = "It's been a while since you last studied! Help Bevo recover by giving him some medicine."
+        content.sound = .default
+
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error { print("SceneDelegate: failed to send Bevo sick notification: \(error)") }
+        }
     }
 
     func sceneWillEnterForeground(_ scene: UIScene) {

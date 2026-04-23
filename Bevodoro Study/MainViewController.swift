@@ -7,7 +7,6 @@
 
 import UIKit
 import AVFoundation
-import UserNotifications
 import FirebaseCore
 import FirebaseAuth
 import FirebaseFirestore
@@ -1166,28 +1165,6 @@ class MainViewController: BaseViewController {
         )
         alert.addAction(UIAlertAction(title: "OK", style: .default))
         present(alert, animated: true)
-    }
-
-    private func sendBevoSickNotif() {
-        guard SettingViewController.isNotificationsEnabled else { return }
-        guard let user = UserManager.shared.currentUser, user.isSick() else { return }
-
-        let content = UNMutableNotificationContent()
-        content.title = "Bevo is feeling sick!"
-        content.body = "It's been a while since you last studied! Help Bevo recover by giving him some medicine."
-        content.sound = .default
-
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
-        let request = UNNotificationRequest(
-            identifier: UUID().uuidString,
-            content: content,
-            trigger: trigger
-        )
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error {
-                print("MainViewController: failed to send Bevo sick notification: \(error)")
-            }
-        }
     }
 }
 

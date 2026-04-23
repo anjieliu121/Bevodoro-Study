@@ -23,6 +23,12 @@ class LoginViewController: BaseViewController, UITextFieldDelegate {
         emailField.delegate = self
         passwordField.delegate = self
         passwordField.isSecureTextEntry = true
+
+        let sourGummy = UIFont(name: "SourGummy-Black_SemiBold", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        emailField.font = sourGummy
+        passwordField.font = sourGummy
+        errorMsgLabel.font = sourGummy
+
         HapticsManager.shared.prepareForInteraction()
     }
     

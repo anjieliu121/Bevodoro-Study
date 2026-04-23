@@ -27,6 +27,14 @@ class SignUpViewController: BaseViewController, UITextFieldDelegate {
         passwordField.delegate = self
         passwordField.isSecureTextEntry = true
         confirmPasswordField.isSecureTextEntry = true
+
+        let sourGummy = UIFont(name: "SourGummy-Black_SemiBold", size: 14) ?? UIFont.systemFont(ofSize: 14)
+        emailField.font = sourGummy
+        usernameField.font = sourGummy
+        passwordField.font = sourGummy
+        confirmPasswordField.font = sourGummy
+        errorMsgLabel.font = sourGummy
+
         HapticsManager.shared.prepareForInteraction()
     }
     
