@@ -31,12 +31,20 @@ struct ItemCatalog {
     ]
 
     static let hatItems: [CatalogItem] = [
+        CatalogItem(key: "cowboyHat_blue", displayName: "Blue cowboy hat", icon: "cowboyHat_blue", cost: 40),
+        CatalogItem(key: "cowboyHat_brown", displayName: "Brown cowboy hat", icon: "cowboyHat_brown", cost: 40),
+        CatalogItem(key: "cowboyHat_orange", displayName: "Orange cowboy hat", icon: "cowboyHat_orange", cost: 40),
+        CatalogItem(key: "cowboyHat_pink", displayName: "Pink cowboy hat", icon: "cowboyHat_pink", cost: 40),
+        CatalogItem(key: "cowboyHat_purple", displayName: "Purple cowboy hat", icon: "cowboyHat_purple", cost: 40),
         CatalogItem(key: "bowBlue", displayName: "Blue bow", icon: "bowBlue", cost: 50),
         CatalogItem(key: "bowPink", displayName: "Pink bow", icon: "bowPink", cost: 50),
         CatalogItem(key: "bowPurple", displayName: "Purple bow", icon: "bowPurple", cost: 50),
         CatalogItem(key: "bowRed", displayName: "Red bow", icon: "bowRed", cost: 50),
         CatalogItem(key: "catearsWhite", displayName: "White cat ears", icon: "catearsWhite", cost: 55),
+        CatalogItem(key: "catearsOrange", displayName: "Orange cat ears", icon: "catearsOrange", cost: 55),
+        CatalogItem(key: "catearsBlack", displayName: "Black cat ears", icon: "catearsBlack", cost: 55),
         CatalogItem(key: "topHat", displayName: "Top Hat", icon: "topHat", cost: 55),
+        CatalogItem(key: "aviators", displayName: "Aviator sunglasses", icon: "aviators", cost: 60),
         CatalogItem(key: "towerHeadband", displayName: "Tower headband", icon: "towerHeadband", cost: 65),
         CatalogItem(key: "crown", displayName: "Crown", icon: "crown", cost: 70),
     ]
