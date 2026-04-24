@@ -59,6 +59,7 @@ struct ItemCatalog {
         CatalogItem(key: "blossom", displayName: "Blossom", icon: "Background_Blossom", cost: 150),
         CatalogItem(key: "sunset", displayName: "Sunset", icon: "Background_Sunset", cost: 130),
         CatalogItem(key: "speedway", displayName: "Speedway", icon: "Background_Speedway", cost: 130),
+        CatalogItem(key: "devs", displayName: "Meet The Devs", icon: "Background_Devs", cost: 100),
     ]
 
     static let shopCategories: [[CatalogItem]] = [
