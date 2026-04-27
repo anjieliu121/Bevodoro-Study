@@ -2,7 +2,7 @@
 //  HapticsManager.swift
 //  Bevodoro Study
 //
-//  Created by Codex on 4/19/26.
+//  Created by Anjie on 4/19/26.
 //
 
 import UIKit
