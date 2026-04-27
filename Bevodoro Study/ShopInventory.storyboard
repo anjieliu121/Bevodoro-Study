@@ -23,7 +23,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <segmentedControl opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="kLk-8Z-xV4">
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="kLk-8Z-xV4">
                                 <rect key="frame" x="14" y="151" width="412" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -36,7 +36,7 @@
                                     <action selector="shopSegmentChanged:" destination="dN6-0a-2uW" eventType="valueChanged" id="seg-Chg-001"/>
                                 </connections>
                             </segmentedControl>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="96" estimatedRowHeight="96" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="hek-VO-n8b">
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="96" estimatedRowHeight="96" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="hek-VO-n8b">
                                 <rect key="frame" x="0.0" y="201" width="440" height="687"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -111,25 +111,42 @@
                                     <outlet property="dataSource" destination="dN6-0a-2uW" id="tbl-Ds-001"/>
                                 </connections>
                             </tableView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="9999+" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qzg-hb-J8V">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="9999+" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="qzg-hb-J8V">
                                 <rect key="frame" x="368" y="92" width="52" height="36"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="18"/>
                                 <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Shop" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="evp-QY-g89">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Shop" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="evp-QY-g89">
                                 <rect key="frame" x="185" y="91" width="70" height="39"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="SourGummy-Black_SemiBold" family="Sour Gummy" pointSize="30"/>
                                 <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="Coin" translatesAutoresizingMaskIntoConstraints="NO" id="Qwu-0A-Sr5">
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Coin" translatesAutoresizingMaskIntoConstraints="NO" id="Qwu-0A-Sr5">
                                 <rect key="frame" x="336" y="96" width="28" height="28"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
                             </imageView>
                         </subviews>
+                        <constraints>
+                            <constraint firstItem="evp-QY-g89" firstAttribute="centerX" secondItem="aOE-RG-5sC" secondAttribute="centerX" id="shop-title-centerX"/>
+                            <constraint firstItem="evp-QY-g89" firstAttribute="top" secondItem="aOE-RG-5sC" secondAttribute="top" constant="8" id="shop-title-top"/>
+                            <constraint firstItem="qzg-hb-J8V" firstAttribute="trailing" secondItem="aOE-RG-5sC" secondAttribute="trailing" constant="-16" id="shop-coinlabel-trailing"/>
+                            <constraint firstItem="qzg-hb-J8V" firstAttribute="centerY" secondItem="evp-QY-g89" secondAttribute="centerY" id="shop-coinlabel-centerY"/>
+                            <constraint firstItem="Qwu-0A-Sr5" firstAttribute="trailing" secondItem="qzg-hb-J8V" secondAttribute="leading" constant="-4" id="shop-coinicon-trailing"/>
+                            <constraint firstItem="Qwu-0A-Sr5" firstAttribute="centerY" secondItem="qzg-hb-J8V" secondAttribute="centerY" id="shop-coinicon-centerY"/>
+                            <constraint firstItem="Qwu-0A-Sr5" firstAttribute="width" secondItem="Qwu-0A-Sr5" secondAttribute="height" id="shop-coinicon-ratio"/>
+                            <constraint firstItem="Qwu-0A-Sr5" firstAttribute="height" constant="28" id="shop-coinicon-height"/>
+                            <constraint firstItem="kLk-8Z-xV4" firstAttribute="top" secondItem="evp-QY-g89" secondAttribute="bottom" constant="16" id="shop-segment-top"/>
+                            <constraint firstItem="kLk-8Z-xV4" firstAttribute="leading" secondItem="aOE-RG-5sC" secondAttribute="leading" constant="14" id="shop-segment-leading"/>
+                            <constraint firstItem="aOE-RG-5sC" firstAttribute="trailing" secondItem="kLk-8Z-xV4" secondAttribute="trailing" constant="14" id="shop-segment-trailing"/>
+                            <constraint firstItem="hek-VO-n8b" firstAttribute="top" secondItem="kLk-8Z-xV4" secondAttribute="bottom" constant="16" id="shop-table-top"/>
+                            <constraint firstItem="hek-VO-n8b" firstAttribute="leading" secondItem="aOE-RG-5sC" secondAttribute="leading" id="shop-table-leading"/>
+                            <constraint firstItem="aOE-RG-5sC" firstAttribute="trailing" secondItem="hek-VO-n8b" secondAttribute="trailing" id="shop-table-trailing"/>
+                            <constraint firstItem="aOE-RG-5sC" firstAttribute="bottom" secondItem="hek-VO-n8b" secondAttribute="bottom" id="shop-table-bottom"/>
+                        </constraints>
                         <viewLayoutGuide key="safeArea" id="aOE-RG-5sC"/>
                         <color key="backgroundColor" name="AccentColor"/>
                     </view>
@@ -153,7 +170,7 @@
                         <rect key="frame" x="0.0" y="0.0" width="440" height="956"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <segmentedControl opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="5gJ-Vk-yLO">
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="plain" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="5gJ-Vk-yLO">
                                 <rect key="frame" x="20" y="124" width="400" height="32"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <segments>
@@ -165,7 +182,7 @@
                                     <action selector="inventorySegmentChanged:" destination="RzR-2h-H9X" eventType="valueChanged" id="inv-Seg-Chg"/>
                                 </connections>
                             </segmentedControl>
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" fixedFrame="YES" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="96" estimatedRowHeight="96" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="DYy-X6-NQF">
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="none" rowHeight="96" estimatedRowHeight="96" sectionHeaderHeight="-1" estimatedSectionHeaderHeight="-1" sectionFooterHeight="-1" estimatedSectionFooterHeight="-1" translatesAutoresizingMaskIntoConstraints="NO" id="DYy-X6-NQF">
                                 <rect key="frame" x="0.0" y="176" width="440" height="712"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
@@ -235,25 +252,42 @@
                                     <outlet property="dataSource" destination="RzR-2h-H9X" id="inv-Tbl-Ds"/>
                                 </connections>
                             </tableView>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="9999+" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="yti-sD-i3t">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="9999+" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="yti-sD-i3t">
                                 <rect key="frame" x="370" y="77" width="52" height="38"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="SourGummy-Black_Regular" family="Sour Gummy" pointSize="18"/>
                                 <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Inventory" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="KqF-77-Fig">
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Inventory" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="KqF-77-Fig">
                                 <rect key="frame" x="155" y="74" width="131" height="39"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <fontDescription key="fontDescription" name="SourGummy-Black_SemiBold" family="Sour Gummy" pointSize="30"/>
                                 <color key="textColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" image="Coin" translatesAutoresizingMaskIntoConstraints="NO" id="zA8-yT-niZ">
+                            <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" horizontalHuggingPriority="251" verticalHuggingPriority="251" image="Coin" translatesAutoresizingMaskIntoConstraints="NO" id="zA8-yT-niZ">
                                 <rect key="frame" x="334" y="82" width="28" height="28"/>
                                 <autoresizingMask key="autoresizingMask" flexibleMinX="YES" flexibleMaxY="YES"/>
                             </imageView>
                         </subviews>
+                        <constraints>
+                            <constraint firstItem="KqF-77-Fig" firstAttribute="centerX" secondItem="j14-87-wwg" secondAttribute="centerX" id="inv-title-centerX"/>
+                            <constraint firstItem="KqF-77-Fig" firstAttribute="top" secondItem="j14-87-wwg" secondAttribute="top" constant="8" id="inv-title-top"/>
+                            <constraint firstItem="yti-sD-i3t" firstAttribute="trailing" secondItem="j14-87-wwg" secondAttribute="trailing" constant="-16" id="inv-coinlabel-trailing"/>
+                            <constraint firstItem="yti-sD-i3t" firstAttribute="centerY" secondItem="KqF-77-Fig" secondAttribute="centerY" id="inv-coinlabel-centerY"/>
+                            <constraint firstItem="zA8-yT-niZ" firstAttribute="trailing" secondItem="yti-sD-i3t" secondAttribute="leading" constant="-4" id="inv-coinicon-trailing"/>
+                            <constraint firstItem="zA8-yT-niZ" firstAttribute="centerY" secondItem="yti-sD-i3t" secondAttribute="centerY" id="inv-coinicon-centerY"/>
+                            <constraint firstItem="zA8-yT-niZ" firstAttribute="width" secondItem="zA8-yT-niZ" secondAttribute="height" id="inv-coinicon-ratio"/>
+                            <constraint firstItem="zA8-yT-niZ" firstAttribute="height" constant="28" id="inv-coinicon-height"/>
+                            <constraint firstItem="5gJ-Vk-yLO" firstAttribute="top" secondItem="KqF-77-Fig" secondAttribute="bottom" constant="16" id="inv-segment-top"/>
+                            <constraint firstItem="5gJ-Vk-yLO" firstAttribute="leading" secondItem="j14-87-wwg" secondAttribute="leading" constant="14" id="inv-segment-leading"/>
+                            <constraint firstItem="j14-87-wwg" firstAttribute="trailing" secondItem="5gJ-Vk-yLO" secondAttribute="trailing" constant="14" id="inv-segment-trailing"/>
+                            <constraint firstItem="DYy-X6-NQF" firstAttribute="top" secondItem="5gJ-Vk-yLO" secondAttribute="bottom" constant="16" id="inv-table-top"/>
+                            <constraint firstItem="DYy-X6-NQF" firstAttribute="leading" secondItem="j14-87-wwg" secondAttribute="leading" id="inv-table-leading"/>
+                            <constraint firstItem="j14-87-wwg" firstAttribute="trailing" secondItem="DYy-X6-NQF" secondAttribute="trailing" id="inv-table-trailing"/>
+                            <constraint firstItem="j14-87-wwg" firstAttribute="bottom" secondItem="DYy-X6-NQF" secondAttribute="bottom" id="inv-table-bottom"/>
+                        </constraints>
                         <viewLayoutGuide key="safeArea" id="j14-87-wwg"/>
                         <color key="backgroundColor" name="AccentColor"/>
                     </view>
