@@ -73,8 +73,7 @@ class TimerViewController: UIViewController {
         }
         
         // fire a local notification when the timer finishes
-        timerManager.onTimerComplete = { [weak self] completedStudyMode in
-            guard self != nil else { return }
+        timerManager.onTimerComplete = { completedStudyMode in
             if completedStudyMode {
                 TimerViewController.sendNotif(
                     title: "Study session complete!",
