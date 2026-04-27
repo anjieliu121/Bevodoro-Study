@@ -13,7 +13,7 @@ let secondsPerDays = 1.0 * 60 * 60 * 24
 let secondsPerMinute = 60.0
 let bevoSickThresholdDays = 2.0  // after how many days since last login that bevo will be considered sick
 let bevoSickThresholdSeconds = bevoSickThresholdDays * secondsPerDays
-let demoBevoSickThresholdSeconds = 30.0
+let demoBevoSickThresholdSeconds = 60.0 // on demo mode, bevo is considered sick after 60 seconds since last study
 
 struct UserSettings: Codable {
     var bkgMusic: Bool

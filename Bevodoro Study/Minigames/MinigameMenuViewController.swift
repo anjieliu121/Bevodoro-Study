@@ -4,7 +4,6 @@
 //
 //  Created by Yim, Isabella H on 4/20/26.
 //
-// (A)I tried my best
 
 let coinsEarnedPerMinigame = 1
 
@@ -65,6 +64,26 @@ class MinigameMenuViewController: BaseViewController, UICollectionViewDataSource
         ])
         
         setupCollectionView()
+        checkAndNotifyStudyInProgress()
+    }
+
+    func checkAndNotifyStudyInProgress() {
+        // prevent the user from playing games if they are currently studying during break time
+        if TimerManager.shared.currentMode == .study && TimerManager.shared.isRunning {
+            let alert = UIAlertController(title: "You should be studying!", message: "Please finish your study session before playing minigames during break time.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default) { [weak self] _ in
+                self?.dismissCurrentViewController()
+            })
+            present(alert, animated: true, completion: nil)
+        }
+    }
+
+    private func dismissCurrentViewController() {
+        if presentingViewController != nil {
+            dismiss(animated: true)
+        } else {
+            navigationController?.popViewController(animated: true)
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
