@@ -23,7 +23,8 @@ class MinigameMenuViewController: BaseViewController, UITableViewDataSource, UIT
     
     private let minigames = [
         Minigame(title: "Card Guesser", storyboardName: "CardGuesser", storyboardID: "CardGuesserViewController", systemIconName: "suit.spade.fill", desc: "Guess what card Bevo is thinking of"),
-        Minigame(title: "Chaser", storyboardName: "Chaser", storyboardID: "ChaserViewController", systemIconName: "forward.fill", desc: "Guide bevo to eat apples")
+        Minigame(title: "Chaser", storyboardName: "Chaser", storyboardID: "ChaserViewController", systemIconName: "forward.fill", desc: "Guide bevo to eat apples"),
+        Minigame(title: "Three Match", storyboardName: "ThreeMatch", storyboardID: "ThreeMatchViewController", systemIconName: "square.grid.3x3.fill", desc: "Swap tiles and match rows of three")
     ]
 
     private lazy var tableView: UITableView = {
